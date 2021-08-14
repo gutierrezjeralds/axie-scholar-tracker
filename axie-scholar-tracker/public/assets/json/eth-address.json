@@ -1,0 +1,26 @@
+[
+    {
+        "id": 1,
+        "ethAddress": "ronin:c0a2796857293218ee40d0eb1fbcbf59f8f23efb",
+        "manager": "100",
+        "scholar": "0"
+    },
+    {
+        "id": 2,
+        "ethAddress": "ronin:411bf3e5386c688920392dbfc8af6685405d12d8",
+        "manager": "50",
+        "scholar": "50"
+    },
+    {
+        "id": 3,
+        "ethAddress": "ronin:1263e0cf33a3cafbf9e9090665aa8f9a23b05268",
+        "manager": "50",
+        "scholar": "50"
+    },
+    {
+        "id": 4,
+        "ethAddress": "ronin:e3b430f34db38d6ce76f679330b8d81baf2121f5",
+        "manager": "50",
+        "scholar": "50"
+    }
+]

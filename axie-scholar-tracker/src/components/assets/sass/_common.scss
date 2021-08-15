@@ -580,7 +580,7 @@
     z-index: -10 !important;
  }
 
- .cursor-default{
+.cursor-default{
     cursor: default !important;
 }
 .cursor-pointer{
@@ -604,4 +604,82 @@ html, body {
 
 body, #root{
     overflow-x: hidden;
+}
+
+//Selectable
+.unselectable, p, span, label, a, i, div, table, tr, td{
+	-webkit-user-select: none;  /* Chrome all / Safari all */
+	-moz-user-select: none;     /* Firefox all */
+	-ms-user-select: none;      /* IE 10+ */
+	user-select: none;
+    outline: none !important;
+}
+
+//Selectable
+.selectable-text{
+	-webkit-user-select: text !important;  /* Chrome all / Safari all */
+	-moz-user-select: text !important;     /* Firefox all */
+	-ms-user-select: text !important;      /* IE 10+ */
+	user-select: text !important;
+}
+
+// Loader
+.loader-section {
+    .loader-spin-dual-ring {
+        display: inline-block;
+        height: 10px;
+        &:after{
+            content: " ";
+            display: block;
+            width: 26px;
+            height: 26px;
+            margin-top: -9px;
+            border-radius: 50%;
+            border: 3px solid #fff;
+            border-color: #fff transparent #fff transparent;
+            animation: loader-spin-dual-ring 1.2s linear infinite;
+        }
+        &.loader-50{
+            &:after{
+                width: 50px !important;
+                height: 50px !important;
+            }
+        }
+        &.loader-41{
+            &:after{
+                width: 41px !important;
+                height: 41px !important;
+            }
+        }
+        &.loader-height-22px{
+            height: 22px;
+        }
+        &.loader-height-26px{
+            height: 26px;
+        }
+        &.loader-mt-0px{
+            &:after{
+                margin-top: 0px;
+            }
+        }
+        &.loader-blue-whale{
+            &:after{
+                border: 3px solid $blue-whale;
+                border-color: $blue-whale transparent $blue-whale transparent;
+            }
+        }
+    }
+    .loader-backdrop {
+        opacity: 0.5;
+        transition: opacity 0.15s linear;
+    }
+}
+
+// Common table style
+table {
+    tr {
+        td {
+            font-size: .8rem !important;
+        }
+    }
 }

@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import Home from './components/views/Home';
+import Main from './components/Main';
 import reportWebVitals from './reportWebVitals';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import 'bootstrap-css-only/css/bootstrap.min.css';
@@ -9,7 +9,7 @@ import './components/assets/sass/screen.scss'
 
 ReactDOM.render(
   <React.StrictMode>
-    <Home />
+    <Main />
   </React.StrictMode>,
   document.getElementById('root')
 );

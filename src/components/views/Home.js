@@ -521,7 +521,7 @@ class Home extends React.Component {
     }
 
     render() {
-        document.title = "Home | Axie Scholar Tracker";
+        document.title = "Home | Team Loki Tracker";
         return (
             <MDBBox tag="div" className="home-wrapper">
                 {

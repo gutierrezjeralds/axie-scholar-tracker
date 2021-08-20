@@ -1,6 +1,7 @@
 import React from 'react'
 import {
-    MDBBox, MDBNavbar, MDBNavbarBrand, MDBNavbarNav, MDBNavItem, MDBNavbarToggler, MDBCollapse, MDBContainer
+    MDBBox, MDBNavbar, MDBNavbarBrand, MDBNavbarNav, MDBNavItem, MDBNavbarToggler, MDBCollapse, MDBContainer,
+    MDBDropdown, MDBDropdownToggle, MDBDropdownMenu, MDBDropdownItem
 } from "mdbreact";
 
 class Header extends React.Component {
@@ -29,7 +30,14 @@ class Header extends React.Component {
                         <MDBCollapse id="navbarCollapse3" isOpen={this.state.isOpen} navbar>
                             <MDBNavbarNav right>
                                 <MDBNavItem active>
-                                    <MDBBox tag="span" className="white-text cursor-pointer">Add New Scholar</MDBBox>
+                                    <MDBDropdown>
+                                        <MDBDropdownToggle nav caret>
+                                            <MDBBox tag="span" className="mr-2">To the Moon</MDBBox>
+                                        </MDBDropdownToggle>
+                                        <MDBDropdownMenu>
+                                            <MDBDropdownItem href="#!">View Manager Earnings</MDBDropdownItem>
+                                        </MDBDropdownMenu>
+                                    </MDBDropdown>
                                 </MDBNavItem>
                             </MDBNavbarNav>
                         </MDBCollapse>

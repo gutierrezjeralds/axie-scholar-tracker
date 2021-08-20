@@ -7,7 +7,7 @@ class Footer extends React.Component {
             <MDBFooter color="" className="font-small pt-4 w-100">
                 <MDBBox tag="div" className="footer-copyright text-center py-3">
                 <MDBContainer fluid>
-                    &copy; {new Date().getFullYear()} Copyright: Axie Scholar's Tracker ® All Rights Reserved.
+                    &copy; {new Date().getFullYear()} Copyright: Team Loki x To the Moon ® All Rights Reserved.
                 </MDBContainer>
                 </MDBBox>
           </MDBFooter>

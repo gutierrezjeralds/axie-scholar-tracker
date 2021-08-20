@@ -317,7 +317,7 @@ class Home extends React.Component {
                                     // Top ELO / MMR Rank
                                     this.state.playerRecords.sort((a, b) =>  a.ranking.rank - b.ranking.rank ).map((items, index) => (
                                         index === 0 ? (
-                                            <MDBBox key={items.client_id} tag="span" className="">Top ELO: <strong>{items.ranking.name} ({items.ranking.elo})</strong></MDBBox>
+                                            <MDBBox key={items.client_id} tag="span" className="">Top MMR: <strong>{items.ranking.name} ({items.ranking.elo})</strong></MDBBox>
                                         ) : ("")
                                     ))
                                 }
@@ -354,7 +354,7 @@ class Home extends React.Component {
                                                 <MDBCardTitle className="font-weight-bold font-family-architects-daughter">{items.ranking.name}</MDBCardTitle>
                                                 <MDBCardText>
                                                     <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
-                                                        <MDBBox tag="span" className="font-weight-bold">Elo: </MDBBox>
+                                                        <MDBBox tag="span" className="font-weight-bold">MMR: </MDBBox>
                                                         {(items.ranking.elo).toLocaleString()}
                                                     </MDBBox>
                                                     <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
@@ -418,7 +418,7 @@ class Home extends React.Component {
                                                 <MDBCardTitle className="font-weight-bold font-family-architects-daughter">{items.ranking.name}</MDBCardTitle>
                                                 <MDBCardText>
                                                     <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
-                                                        <MDBBox tag="span" className="font-weight-bold">Elo: </MDBBox>
+                                                        <MDBBox tag="span" className="font-weight-bold">MMR: </MDBBox>
                                                         {(items.ranking.elo).toLocaleString()}
                                                     </MDBBox>
                                                     <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">

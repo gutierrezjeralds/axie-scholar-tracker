@@ -3,6 +3,7 @@ import {
     MDBBox, MDBNavbar, MDBNavbarBrand, MDBNavbarNav, MDBNavItem, MDBNavbarToggler, MDBCollapse, MDBContainer,
     MDBDropdown, MDBDropdownToggle, MDBDropdownMenu, MDBDropdownItem
 } from "mdbreact";
+import Cookies from 'js-cookie'
 
 class Header extends React.Component {
     constructor(props) {
@@ -14,6 +15,14 @@ class Header extends React.Component {
     
     toggleCollapse = () => {
         this.setState({ isOpen: !this.state.isOpen });
+    }
+
+    onLogoutHandle(event) {
+        event.preventDefault();
+        // Logout x removed cookie
+        Cookies.set('filter', '');
+        // Reload page
+        window.location.reload(false);
     }
 
     render() {
@@ -35,7 +44,8 @@ class Header extends React.Component {
                                             <MDBBox tag="span" className="mr-2">To the Moon</MDBBox>
                                         </MDBDropdownToggle>
                                         <MDBDropdownMenu>
-                                            <MDBDropdownItem href="#!">View Manager Earnings</MDBDropdownItem>
+                                            <MDBDropdownItem>View Manager Earnings</MDBDropdownItem>
+                                            <MDBDropdownItem onClick={this.onLogoutHandle.bind(this)}>Logout</MDBDropdownItem>
                                         </MDBDropdownMenu>
                                     </MDBDropdown>
                                 </MDBNavItem>

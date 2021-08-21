@@ -15,20 +15,28 @@ class Home extends React.Component {
             isNotif: false,
             notifCat: "default",
             notifStr: "",
-            isUser: this.props.user,
+            isUser: this.props.user || "",
             slpCurrentValue: 0,
             isRecordLoaded: false,
-            recordItems: this.props.record,
             isPlayerLoaded: false,
             playerItems: [],
             playerRecords: [],
+            singlePlayerItems: [],
             singlePlayerRecords: []
         }
     }
 
     UNSAFE_componentWillMount() {
+        this.pageRefresh();
         this.getCoingecko();
         this.getRecord();
+    }
+
+    // Page reload
+    pageRefresh = () => {
+        setTimeout( function() {
+            window.location.reload(false);
+        }, 120000);
     }
 
     // Get Coingecko data / json
@@ -76,27 +84,63 @@ class Home extends React.Component {
 
     // Fetch Player Record Data
     getRecord = () => {
-        // Fetch player details in api of sky mavis
-        this.state.recordItems.map(async (item, index) => {
-            const ethAddress = item.ethAddress ? `0x${item.ethAddress.substring(6)}` : "";
-            var userEthAddress = null;
+        $.ajax({
+            url: "../assets/json/eth-address.json",
+            dataType: "json",
+            cache: false
+        })
+        .then(
+            (result) => {
+                // Fetch player details in api of sky mavis
+                result.map(async (item, index) => {
+                    const ethAddress = item.ethAddress ? `0x${item.ethAddress.substring(6)}` : "";
+                    var userEthAddress = null;
 
-            if (item.email.toLowerCase() === this.state.isUser.toLowerCase() || item.name.toLowerCase() === this.state.isUser.toLowerCase()) {
-                // Get ETH Address based on Credential
-                userEthAddress = ethAddress;
-            }
+                    if (item.email.toLowerCase() === this.state.isUser.toLowerCase() || item.name.toLowerCase() === this.state.isUser.toLowerCase()) {
+                        // Get ETH Address based on Credential
+                        userEthAddress = ethAddress;
+                    }
 
-            await this.getPlayerDetails(item, ethAddress, userEthAddress);
-            
-            if (index === this.state.recordItems.length - 1) {
+                    await this.getPlayerDetails(item, ethAddress, userEthAddress);
+                    
+                    if (index === result.length - 1) {
+                        this.setState({
+                            isLoaded: true,
+                            isPlayerLoaded: true
+                        })
+                    }
+                    return true;
+                });
+                // console.log("playerItems", this.state.playerItems)
+            },
+            // Note: it's important to handle errors here
+            // instead of a catch() block so that we don't swallow
+            // exceptions from actual bugs in components.
+            (error) => {
                 this.setState({
                     isLoaded: true,
-                    isPlayerLoaded: true
+                    isNotif: true,
+                    notifCat: "error",
+                    notifStr: "Unexpected error, please reload the page!",
+                    error: true
                 })
+                    
+                console.error('Oh well, you failed. Here some thoughts on the error that occured:', error)
             }
-            return true;
-        });
-        // console.log("playerItems", this.state.playerItems)
+        )
+        .catch(
+            (err) => {
+                this.setState({
+                    isLoaded: true,
+                    isNotif: true,
+                    notifCat: "error",
+                    notifStr: "Unexpected error, please reload the page!",
+                    error: true
+                })
+                    
+                console.error('Oh well, you failed. Here some thoughts on the error that occured:', err)
+            }
+        )
     }
 
     // Get Player details base on Sky Mavis API
@@ -121,9 +165,9 @@ class Home extends React.Component {
 
                         if (ethAddress === userEthAddress) {
                             // Get ETH Address based on Credential
-                            this.state.singlePlayerRecords.push(result);
+                            this.state.singlePlayerItems.push(result);
                             this.setState({
-                                singlePlayerRecords: this.state.singlePlayerRecords
+                                singlePlayerRecords: this.state.singlePlayerItems
                             })
                         }
 
@@ -315,64 +359,62 @@ class Home extends React.Component {
                         {
                             // Scholar display x single display
                             this.state.singlePlayerRecords.map(items => (
-                                items.details.manager !== "100" ? (
-                                    <MDBCol key={items.client_id} sm="12" md="6" lg="4" className="my-3">
-                                        <MDBCard className="z-depth-2">
+                                <MDBCol key={items.client_id} sm="12" md="6" lg="4" className="my-3">
+                                    <MDBCard className="z-depth-2">
                                         <MDBCardBody className="black-text">
-                                                <MDBCardTitle className="font-weight-bold font-family-architects-daughter">{items.ranking.name}</MDBCardTitle>
-                                                <MDBCardText>
-                                                    <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
-                                                        <MDBBox tag="span" className="font-weight-bold">MMR: </MDBBox>
-                                                        {(items.ranking.elo).toLocaleString()}
-                                                    </MDBBox>
-                                                    <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
-                                                        <MDBBox tag="span" className="font-weight-bold">Rank: </MDBBox>
-                                                        {(items.ranking.rank).toLocaleString()}
-                                                    </MDBBox>
-                                                    <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
-                                                        <MDBBox tag="span" className="font-weight-bold">Last Claimed SLP: </MDBBox>
-                                                        {items.blockchain_related.signature.amount > 0 ? (items.blockchain_related.signature.amount) : ("")}
-                                                    </MDBBox>
-                                                    <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
-                                                        <MDBBox tag="span" className="font-weight-bold">Last Claimed At: </MDBBox>
-                                                        {items.blockchain_related.signature.amount > 0 ? (
-                                                            <Moment format="MMM DD, YYYY HH:MM A" unix>{items.blockchain_related.signature.timestamp}</Moment>
-                                                        ) : ("")}
-                                                    </MDBBox>
-                                                    <MDBBox tag="div" className="mt-3">
-                                                        <MDBTable bordered striped responsive>
-                                                            <MDBTableHead color="rgba-teal-strong" textWhite>
-                                                                <tr>
-                                                                    <th colSpan="5" className="text-center font-weight-bold">Smooth Love Potion</th>
-                                                                </tr>
-                                                            </MDBTableHead>
-                                                            <MDBTableBody>
-                                                                <tr className="text-center">
-                                                                    <td colSpan="2" className="font-weight-bold">CLAIM ON</td>
-                                                                    <td colSpan="3" className="font-weight-bold">{<Moment format="MMM DD, YYYY HH:MM A" add={{ days: 14 }} unix>{items.last_claimed_item_at}</Moment>}</td>
-                                                                </tr>
-                                                                <tr className="text-center">
-                                                                    <td className="font-weight-bold" title="Adventure SLP Quest (Today)">ADV</td>
-                                                                    <td className="font-weight-bold" title="In Game SLP">INGAME</td>
-                                                                    <td className="font-weight-bold" title="In Game SLP Sharing">SHARE ({items.details.scholar}%)</td>
-                                                                    <td className="font-weight-bold" title="Ronin SLP + Sharing SLP">TOTAL</td>
-                                                                    <td className="font-weight-bold" title="PHP Currency">EARNING</td>
-                                                                </tr>
-                                                                <tr className="text-center">
-                                                                    <td>0</td>
-                                                                    <td>{items.total}</td>
-                                                                    <td>{Math.floor(items.total * ("0."+items.details.scholar))}</td>
-                                                                    <td>{Math.floor(items.total * ("0."+items.details.scholar))}</td>
-                                                                    <td>{(items.total * this.state.slpCurrentValue).toFixed(2)}</td>
-                                                                </tr>
-                                                            </MDBTableBody>
-                                                        </MDBTable>
-                                                    </MDBBox>
-                                                </MDBCardText>
-                                            </MDBCardBody>
-                                        </MDBCard>
-                                    </MDBCol>
-                                ) : ("")
+                                            <MDBCardTitle className="font-weight-bold font-family-architects-daughter">{items.ranking.name}</MDBCardTitle>
+                                            <MDBCardText>
+                                                <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
+                                                    <MDBBox tag="span" className="font-weight-bold">MMR: </MDBBox>
+                                                    {(items.ranking.elo).toLocaleString()}
+                                                </MDBBox>
+                                                <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
+                                                    <MDBBox tag="span" className="font-weight-bold">Rank: </MDBBox>
+                                                    {(items.ranking.rank).toLocaleString()}
+                                                </MDBBox>
+                                                <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
+                                                    <MDBBox tag="span" className="font-weight-bold">Last Claimed SLP: </MDBBox>
+                                                    {items.blockchain_related.signature.amount > 0 ? (items.blockchain_related.signature.amount) : ("")}
+                                                </MDBBox>
+                                                <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
+                                                    <MDBBox tag="span" className="font-weight-bold">Last Claimed At: </MDBBox>
+                                                    {items.blockchain_related.signature.amount > 0 ? (
+                                                        <Moment format="MMM DD, YYYY HH:MM A" unix>{items.blockchain_related.signature.timestamp}</Moment>
+                                                    ) : ("")}
+                                                </MDBBox>
+                                                <MDBBox tag="div" className="mt-3">
+                                                    <MDBTable bordered striped responsive>
+                                                        <MDBTableHead color="rgba-teal-strong" textWhite>
+                                                            <tr>
+                                                                <th colSpan="5" className="text-center font-weight-bold">Smooth Love Potion</th>
+                                                            </tr>
+                                                        </MDBTableHead>
+                                                        <MDBTableBody>
+                                                            <tr className="text-center">
+                                                                <td colSpan="2" className="font-weight-bold">CLAIM ON</td>
+                                                                <td colSpan="3" className="font-weight-bold">{<Moment format="MMM DD, YYYY HH:MM A" add={{ days: 14 }} unix>{items.last_claimed_item_at}</Moment>}</td>
+                                                            </tr>
+                                                            <tr className="text-center">
+                                                                <td className="font-weight-bold" title="Adventure SLP Quest (Today)">ADV</td>
+                                                                <td className="font-weight-bold" title="In Game SLP">INGAME</td>
+                                                                <td className="font-weight-bold" title="In Game SLP Sharing">SHARE ({items.details.scholar}%)</td>
+                                                                <td className="font-weight-bold" title="Ronin SLP + Sharing SLP">TOTAL</td>
+                                                                <td className="font-weight-bold" title="PHP Currency">EARNING</td>
+                                                            </tr>
+                                                            <tr className="text-center">
+                                                                <td>0</td>
+                                                                <td>{items.total}</td>
+                                                                <td>{Math.floor(items.total * ("0."+items.details.scholar))}</td>
+                                                                <td>{Math.floor(items.total * ("0."+items.details.scholar))}</td>
+                                                                <td>{(items.total * this.state.slpCurrentValue).toFixed(2)}</td>
+                                                            </tr>
+                                                        </MDBTableBody>
+                                                    </MDBTable>
+                                                </MDBBox>
+                                            </MDBCardText>
+                                        </MDBCardBody>
+                                    </MDBCard>
+                                </MDBCol>
                             ))
                         }
                     </React.Fragment>
@@ -418,7 +460,7 @@ class Home extends React.Component {
                                                         <MDBTable bordered striped responsive>
                                                             <MDBTableHead color="rgba-teal-strong" textWhite>
                                                                 <tr>
-                                                                    <th colSpan="5" className="text-center font-weight-bold">Smooth Love Potion</th>
+                                                                    <th colSpan="5" className="text-center font-weight-bold">Small Love Potion</th>
                                                                 </tr>
                                                             </MDBTableHead>
                                                             <MDBTableBody>
@@ -482,7 +524,7 @@ class Home extends React.Component {
                                                         <MDBTable bordered striped responsive>
                                                             <MDBTableHead color="rgba-teal-strong" textWhite>
                                                                 <tr>
-                                                                    <th colSpan="5" className="text-center font-weight-bold">Smooth Love Potion</th>
+                                                                    <th colSpan="5" className="text-center font-weight-bold">Small Love Potion</th>
                                                                 </tr>
                                                             </MDBTableHead>
                                                             <MDBTableBody>
@@ -518,6 +560,10 @@ class Home extends React.Component {
                 )
             }
         }
+    }
+
+    renderEmptyDetails() {
+
     }
 
     render() {
@@ -563,8 +609,13 @@ class Home extends React.Component {
                                         // Display Single data based on credential
                                         this.renderSingleDetails()
                                     ) : (
-                                        // Display all data
-                                        this.renderAllDetails()
+                                        Object.keys(this.state.playerRecords).length > 0 ? (
+                                            // Display all data
+                                            this.renderAllDetails()
+                                        ) : (
+                                            // Display no data
+                                            this.renderEmptyDetails()
+                                        )
                                     )
                                 }
                             </MDBRow>

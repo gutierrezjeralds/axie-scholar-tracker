@@ -83,7 +83,7 @@ class Login extends React.Component {
             <React.Fragment>
                 <MDBContainer className="h-50vh">
                     <MDBRow className="h-50vh justify-content-center align-self-center">
-                        <MDBCol size="6" className="justify-content-center align-self-center">
+                        <MDBCol sm="12" md="6" lg="6" className="justify-content-center align-self-center">
                             <MDBCard className="z-depth-2 w-100">
                                 <MDBCardBody className="black-text">
                                     <MDBCardTitle className="font-weight-bold font-family-architects-daughter text-center">Sign in</MDBCardTitle>

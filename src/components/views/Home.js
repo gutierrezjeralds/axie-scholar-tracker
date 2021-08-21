@@ -391,8 +391,12 @@ class Home extends React.Component {
                                                         </MDBTableHead>
                                                         <MDBTableBody>
                                                             <tr className="text-center">
-                                                                <td colSpan="2" className="font-weight-bold">CLAIM ON</td>
+                                                                <td colSpan="2" rowSpan="2" className="font-weight-bold v-align-middle">CLAIM ON</td>
                                                                 <td colSpan="3" className="font-weight-bold">{<Moment format="MMM DD, YYYY HH:MM A" add={{ days: 14 }} unix>{items.last_claimed_item_at}</Moment>}</td>
+                                                                
+                                                            </tr>
+                                                            <tr className="text-center">
+                                                                <td colSpan="3" className="font-weight-bold">{<Moment unit="days" durationFromNow unix>{items.last_claimed_item_at}</Moment>}</td>
                                                             </tr>
                                                             <tr className="text-center">
                                                                 <td className="font-weight-bold" title="Adventure SLP Quest (Today)">ADV</td>
@@ -465,8 +469,12 @@ class Home extends React.Component {
                                                             </MDBTableHead>
                                                             <MDBTableBody>
                                                                 <tr className="text-center">
-                                                                    <td colSpan="2" className="font-weight-bold">CLAIM ON</td>
+                                                                    <td colSpan="2" rowSpan="2" className="font-weight-bold v-align-middle">CLAIM ON</td>
                                                                     <td colSpan="3" className="font-weight-bold">{<Moment format="MMM DD, YYYY HH:MM A" add={{ days: 14 }} unix>{items.last_claimed_item_at}</Moment>}</td>
+                                                                    
+                                                                </tr>
+                                                                <tr className="text-center">
+                                                                    <td colSpan="3" className="font-weight-bold">{<Moment unit="days" durationFromNow unix>{items.last_claimed_item_at}</Moment>}</td>
                                                                 </tr>
                                                                 <tr className="text-center">
                                                                     <td className="font-weight-bold" title="Adventure SLP Quest (Today)">ADV</td>
@@ -529,8 +537,12 @@ class Home extends React.Component {
                                                             </MDBTableHead>
                                                             <MDBTableBody>
                                                                 <tr className="text-center">
-                                                                    <td colSpan="2" className="font-weight-bold">CLAIM ON</td>
+                                                                    <td colSpan="2" rowSpan="2" className="font-weight-bold v-align-middle">CLAIM ON</td>
                                                                     <td colSpan="3" className="font-weight-bold">{<Moment format="MMM DD, YYYY HH:MM A" add={{ days: 14 }} unix>{items.last_claimed_item_at}</Moment>}</td>
+                                                                    
+                                                                </tr>
+                                                                <tr className="text-center">
+                                                                    <td colSpan="3" className="font-weight-bold">{<Moment unit="days" durationFromNow unix>{items.last_claimed_item_at}</Moment>}</td>
                                                                 </tr>
                                                                 <tr className="text-center">
                                                                     <td className="font-weight-bold" title="Adventure SLP Quest (Today)">ADV</td>

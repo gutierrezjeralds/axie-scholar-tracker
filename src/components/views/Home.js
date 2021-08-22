@@ -5,6 +5,7 @@ import {
     MDBTable, MDBTableBody, MDBTableHead
 } from "mdbreact";
 import Moment from 'react-moment';
+import moment from 'moment';
 
 class Home extends React.Component {
     constructor(props) {
@@ -111,7 +112,7 @@ class Home extends React.Component {
                     }
                     return true;
                 });
-                // console.log("playerItems", this.state.playerItems)
+                console.log("playerItems", this.state.playerItems)
             },
             // Note: it's important to handle errors here
             // instead of a catch() block so that we don't swallow
@@ -156,6 +157,7 @@ class Home extends React.Component {
                     // Get Player ranking base on Sky Mavis API
                     const ranking = await this.getPlayerRanking(ethAddress);
                     if (!ranking.error) {
+                        result.last_claimed_item_at_add = moment.unix(result.last_claimed_item_at).add(1, 'days');
                         result.details = details;
                         result.ranking = ranking;
                         this.state.playerItems.push(result);
@@ -359,66 +361,68 @@ class Home extends React.Component {
                         {
                             // Scholar display x single display
                             this.state.singlePlayerRecords.map(items => (
-                                <MDBCol key={items.client_id} sm="12" md="6" lg="4" className="my-3">
-                                    <MDBCard className="z-depth-2">
-                                        <MDBCardBody className="black-text">
-                                            <MDBCardTitle className="font-weight-bold font-family-architects-daughter">{items.ranking.name}</MDBCardTitle>
-                                            <MDBCardText>
-                                                <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
-                                                    <MDBBox tag="span" className="font-weight-bold">MMR: </MDBBox>
-                                                    {(items.ranking.elo).toLocaleString()}
-                                                </MDBBox>
-                                                <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
-                                                    <MDBBox tag="span" className="font-weight-bold">Rank: </MDBBox>
-                                                    {(items.ranking.rank).toLocaleString()}
-                                                </MDBBox>
-                                                <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
-                                                    <MDBBox tag="span" className="font-weight-bold">Last Claimed SLP: </MDBBox>
-                                                    {items.blockchain_related.signature.amount > 0 ? (items.blockchain_related.signature.amount) : ("")}
-                                                </MDBBox>
-                                                <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
-                                                    <MDBBox tag="span" className="font-weight-bold">Last Claimed At: </MDBBox>
-                                                    {items.blockchain_related.signature.amount > 0 ? (
-                                                        <Moment format="MMM DD, YYYY HH:MM A" unix>{items.blockchain_related.signature.timestamp}</Moment>
-                                                    ) : ("")}
-                                                </MDBBox>
-                                                <MDBBox tag="div" className="mt-3">
-                                                    <MDBTable bordered striped responsive>
-                                                        <MDBTableHead color="rgba-teal-strong" textWhite>
-                                                            <tr>
-                                                                <th colSpan="5" className="text-center font-weight-bold">Smooth Love Potion</th>
-                                                            </tr>
-                                                        </MDBTableHead>
-                                                        <MDBTableBody>
-                                                            <tr className="text-center">
-                                                                <td colSpan="2" rowSpan="2" className="font-weight-bold v-align-middle">CLAIM ON</td>
-                                                                <td colSpan="3" className="font-weight-bold">{<Moment format="MMM DD, YYYY HH:MM A" add={{ days: 14 }} unix>{items.last_claimed_item_at}</Moment>}</td>
-                                                                
-                                                            </tr>
-                                                            <tr className="text-center">
-                                                                <td colSpan="3" className="font-weight-bold">{<Moment unit="days" durationFromNow unix>{items.last_claimed_item_at}</Moment>}</td>
-                                                            </tr>
-                                                            <tr className="text-center">
-                                                                <td className="font-weight-bold" title="Adventure SLP Quest (Today)">ADV</td>
-                                                                <td className="font-weight-bold" title="In Game SLP">INGAME</td>
-                                                                <td className="font-weight-bold" title="In Game SLP Sharing">SHARE ({items.details.scholar}%)</td>
-                                                                <td className="font-weight-bold" title="Ronin SLP + Sharing SLP">TOTAL</td>
-                                                                <td className="font-weight-bold" title="PHP Currency">EARNING</td>
-                                                            </tr>
-                                                            <tr className="text-center">
-                                                                <td>0</td>
-                                                                <td>{items.total}</td>
-                                                                <td>{Math.floor(items.total * ("0."+items.details.scholar))}</td>
-                                                                <td>{Math.floor(items.total * ("0."+items.details.scholar))}</td>
-                                                                <td>{(items.total * this.state.slpCurrentValue).toFixed(2)}</td>
-                                                            </tr>
-                                                        </MDBTableBody>
-                                                    </MDBTable>
-                                                </MDBBox>
-                                            </MDBCardText>
-                                        </MDBCardBody>
-                                    </MDBCard>
-                                </MDBCol>
+                                items.details.manager !== "100" ? (
+                                    <MDBCol key={items.client_id} sm="12" md="6" lg="4" className="my-3">
+                                        <MDBCard className="z-depth-2">
+                                            <MDBCardBody className="black-text">
+                                                <MDBCardTitle className="font-weight-bold font-family-architects-daughter">{items.ranking.name}</MDBCardTitle>
+                                                <MDBCardText>
+                                                    <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
+                                                        <MDBBox tag="span" className="font-weight-bold">MMR: </MDBBox>
+                                                        {(items.ranking.elo).toLocaleString()}
+                                                    </MDBBox>
+                                                    <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
+                                                        <MDBBox tag="span" className="font-weight-bold">Rank: </MDBBox>
+                                                        {(items.ranking.rank).toLocaleString()}
+                                                    </MDBBox>
+                                                    <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
+                                                        <MDBBox tag="span" className="font-weight-bold">Last Claimed SLP: </MDBBox>
+                                                        {items.blockchain_related.signature.amount > 0 ? (items.blockchain_related.signature.amount) : ("")}
+                                                    </MDBBox>
+                                                    <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
+                                                        <MDBBox tag="span" className="font-weight-bold">Last Claimed At: </MDBBox>
+                                                        {items.blockchain_related.signature.amount > 0 ? (
+                                                            <Moment format="MMM DD, YYYY HH:MM A" unix>{items.blockchain_related.signature.timestamp}</Moment>
+                                                        ) : ("")}
+                                                    </MDBBox>
+                                                    <MDBBox tag="div" className="mt-3">
+                                                        <MDBTable bordered striped responsive>
+                                                            <MDBTableHead color="rgba-teal-strong" textWhite>
+                                                                <tr>
+                                                                    <th colSpan="5" className="text-center font-weight-bold">Smooth Love Potion</th>
+                                                                </tr>
+                                                            </MDBTableHead>
+                                                            <MDBTableBody>
+                                                                <tr className="text-center">
+                                                                    <td colSpan="2" rowSpan="2" className="font-weight-bold v-align-middle">CLAIM ON</td>
+                                                                    <td colSpan="3" className="font-weight-bold">{<Moment format="MMM DD, YYYY HH:MM A" add={{ days: 14 }} unix>{items.last_claimed_item_at}</Moment>}</td>
+                                                                    
+                                                                </tr>
+                                                                <tr className="text-center">
+                                                                    <td colSpan="3" className="font-weight-bold">{<Moment durationFromNow>{items.last_claimed_item_at_add}</Moment>}</td>
+                                                                </tr>
+                                                                <tr className="text-center">
+                                                                    <td className="font-weight-bold" title="Adventure SLP Quest (Today)">ADV</td>
+                                                                    <td className="font-weight-bold" title="In Game SLP">INGAME</td>
+                                                                    <td className="font-weight-bold" title="In Game SLP Sharing">SHARE ({items.details.scholar}%)</td>
+                                                                    <td className="font-weight-bold" title="Ronin SLP + Sharing SLP">TOTAL</td>
+                                                                    <td className="font-weight-bold" title="PHP Currency">EARNING</td>
+                                                                </tr>
+                                                                <tr className="text-center">
+                                                                    <td>0</td>
+                                                                    <td>{items.total}</td>
+                                                                    <td>{Math.floor(items.total * ("0."+items.details.scholar))}</td>
+                                                                    <td>{Math.floor(items.total * ("0."+items.details.scholar))}</td>
+                                                                    <td>{(Math.floor(items.total * ("0."+items.details.scholar)) * this.state.slpCurrentValue).toFixed(2)}</td>
+                                                                </tr>
+                                                            </MDBTableBody>
+                                                        </MDBTable>
+                                                    </MDBBox>
+                                                </MDBCardText>
+                                            </MDBCardBody>
+                                        </MDBCard>
+                                    </MDBCol>
+                                ) : ("")
                             ))
                         }
                     </React.Fragment>
@@ -474,7 +478,7 @@ class Home extends React.Component {
                                                                     
                                                                 </tr>
                                                                 <tr className="text-center">
-                                                                    <td colSpan="3" className="font-weight-bold">{<Moment unit="days" durationFromNow unix>{items.last_claimed_item_at}</Moment>}</td>
+                                                                <td colSpan="3" className="font-weight-bold">{<Moment durationFromNow>{items.last_claimed_item_at_add}</Moment>}</td>
                                                                 </tr>
                                                                 <tr className="text-center">
                                                                     <td className="font-weight-bold" title="Adventure SLP Quest (Today)">ADV</td>
@@ -486,8 +490,8 @@ class Home extends React.Component {
                                                                 <tr className="text-center">
                                                                     <td>0</td>
                                                                     <td>{items.total}</td>
-                                                                    <td>{Math.floor(items.total * ("0."+items.details.manager))}</td>
-                                                                    <td>{Math.floor(items.total * ("0."+items.details.manager))}</td>
+                                                                    <td>{items.total}</td>
+                                                                    <td>{items.total}</td>
                                                                     <td>{(items.total * this.state.slpCurrentValue).toFixed(2)}</td>
                                                                 </tr>
                                                             </MDBTableBody>
@@ -542,7 +546,7 @@ class Home extends React.Component {
                                                                     
                                                                 </tr>
                                                                 <tr className="text-center">
-                                                                    <td colSpan="3" className="font-weight-bold">{<Moment unit="days" durationFromNow unix>{items.last_claimed_item_at}</Moment>}</td>
+                                                                    <td colSpan="3" className="font-weight-bold">{<Moment durationFromNow>{items.last_claimed_item_at_add}</Moment>}</td>
                                                                 </tr>
                                                                 <tr className="text-center">
                                                                     <td className="font-weight-bold" title="Adventure SLP Quest (Today)">ADV</td>
@@ -556,7 +560,7 @@ class Home extends React.Component {
                                                                     <td>{items.total}</td>
                                                                     <td>{Math.floor(items.total * ("0."+items.details.scholar))}</td>
                                                                     <td>{Math.floor(items.total * ("0."+items.details.scholar))}</td>
-                                                                    <td>{(items.total * this.state.slpCurrentValue).toFixed(2)}</td>
+                                                                    <td>{(Math.floor(items.total * ("0."+items.details.scholar)) * this.state.slpCurrentValue).toFixed(2)}</td>
                                                                 </tr>
                                                             </MDBTableBody>
                                                         </MDBTable>

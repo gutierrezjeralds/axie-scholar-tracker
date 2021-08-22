@@ -24,7 +24,7 @@ class Login extends React.Component {
         if (user && user !== undefined) {
             if (user === "TeamLoki2021") {
                 // Display all details
-                Cookies.set("filter", "All")
+                Cookies.set("filter", "Manager")
                 // Reload page
                 window.location.reload(false);
             } else {

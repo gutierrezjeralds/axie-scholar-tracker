@@ -34,5 +34,14 @@
         "manager": "50",
         "scholar": "50",
         "sponsor": "0"
+    },
+    {
+        "id": 5,
+        "ethAddress": "ronin:bcb2952ef31c29d007025bc2e4f3c7271c419272",
+        "name": "JCarl",
+        "email": "katigbakjangkarl@gmail.com",
+        "manager": "50",
+        "scholar": "50",
+        "sponsor": "0"
     }
 ]

@@ -9,7 +9,8 @@ class Header extends React.Component {
     constructor(props) {
         super(props)
         this.state = {
-            isOpen: false
+            isOpen: false,
+            isUser: this.props.user || ""
         };
     }
     
@@ -44,7 +45,11 @@ class Header extends React.Component {
                                             <MDBBox tag="span" className="mr-2">To the Moon</MDBBox>
                                         </MDBDropdownToggle>
                                         <MDBDropdownMenu>
-                                            <MDBDropdownItem>View Manager Earnings</MDBDropdownItem>
+                                            {
+                                                this.state.isUser === "Manager" ? (
+                                                    <MDBDropdownItem>View Manager Earnings</MDBDropdownItem>
+                                                ) : ("")
+                                            }
                                             <MDBDropdownItem onClick={this.onLogoutHandle.bind(this)}>Logout</MDBDropdownItem>
                                         </MDBDropdownMenu>
                                     </MDBDropdown>

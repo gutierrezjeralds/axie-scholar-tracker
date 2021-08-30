@@ -446,7 +446,7 @@ class Home extends React.Component {
                                                                     <td>{items.inGameSLP}</td>
                                                                     <td>{items.sharedSLP}</td>
                                                                     <td>{items.totalSLP}</td>
-                                                                    <td>{(Math.floor(items.totalSLP * ("0."+items.details.scholar)) * this.state.slpCurrentValue).toFixed(2)}</td>
+                                                                    <td>{(items.totalSLP * this.state.slpCurrentValue).toFixed(2)}</td>
                                                                 </tr>
                                                             </MDBTableBody>
                                                         </MDBTable>
@@ -593,7 +593,7 @@ class Home extends React.Component {
                                                                     <td>{items.inGameSLP}</td>
                                                                     <td>{items.sharedSLP}</td>
                                                                     <td>{items.totalSLP}</td>
-                                                                    <td>{(Math.floor(items.totalSLP * ("0."+items.details.scholar)) * this.state.slpCurrentValue).toFixed(2)}</td>
+                                                                    <td>{(items.totalSLP * this.state.slpCurrentValue).toFixed(2)}</td>
                                                                 </tr>
                                                             </MDBTableBody>
                                                         </MDBTable>

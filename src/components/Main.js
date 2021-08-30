@@ -18,7 +18,7 @@ class Main extends React.Component {
         if ( this.state.promptUser !== null && this.state.promptUser !== undefined && this.state.promptUser !== "" ) {
             return (
                 <React.Fragment>
-                    <Header />
+                    <Header user={this.state.promptUser} />
                     <MDBBox tag="div" className="main">
                         <Home user={this.state.promptUser} />
                     </MDBBox>

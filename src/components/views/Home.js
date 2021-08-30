@@ -160,11 +160,37 @@ class Home extends React.Component {
                         result.last_claimed_item_at_add = moment.unix(result.last_claimed_item_at).add(1, 'days');
                         result.details = details;
                         result.ranking = ranking;
+                        result.inGameSLP = result.total;
+                        result.totalSLP = result.total;
+
                         if (result.blockchain_related === null || result.blockchain_related.signature === null) {
+                            // Adding empty object
                             result.blockchain_related.signature = {
                                 amount: 0,
                                 timestamp: ""
                             }
+                        }
+
+                        result.sharedSLP = result.inGameSLP;
+                        if (Object.keys(details).length > 0) {
+                            let roninBalance = 0;
+                            let totalSLP = 0
+
+                            // Check if has balance in Ronin x Set new value for total in game slp
+                            if (result.blockchain_related.balance !== null && result.blockchain_related.balance > 0) {
+                                roninBalance = result.blockchain_related.balance;
+                                totalSLP = result.total;
+                                result.inGameSLP = totalSLP - roninBalance;
+                            }
+
+                            // Set new Shared SLP
+                            if (details.manager !== "100") {
+                                const iskoShare = "0." + details.scholar;
+                                result.sharedSLP = Math.floor(result.inGameSLP * iskoShare);
+                            }
+
+                            // Set new total SLP x computed base on Shared SLP plus total SLP
+                            result.totalSLP = roninBalance + result.sharedSLP;
                         }
 
                         this.state.playerItems.push(result);
@@ -347,7 +373,7 @@ class Home extends React.Component {
                                     // Top In Game SLP
                                     this.state.playerRecords.sort((a, b) =>  b.total - a.total ).map((items, index) => (
                                         index === 0 ? (
-                                            <MDBBox key={items.client_id} tag="span" className="ml-2">Top In Game SLP: <strong>{items.ranking.name} ({items.total})</strong></MDBBox>
+                                            <MDBBox key={items.client_id} tag="span" className="ml-2">Top In Game SLP: <strong>{items.ranking.name} ({items.inGameSLP})</strong></MDBBox>
                                         ) : ("")
                                     ))
                                 }
@@ -417,10 +443,10 @@ class Home extends React.Component {
                                                                 </tr>
                                                                 <tr className="text-center">
                                                                     <td>0</td>
-                                                                    <td>{items.total}</td>
-                                                                    <td>{Math.floor(items.total * ("0."+items.details.scholar))}</td>
-                                                                    <td>{Math.floor(items.total * ("0."+items.details.scholar))}</td>
-                                                                    <td>{(Math.floor(items.total * ("0."+items.details.scholar)) * this.state.slpCurrentValue).toFixed(2)}</td>
+                                                                    <td>{items.inGameSLP}</td>
+                                                                    <td>{items.sharedSLP}</td>
+                                                                    <td>{items.totalSLP}</td>
+                                                                    <td>{(Math.floor(items.totalSLP * ("0."+items.details.scholar)) * this.state.slpCurrentValue).toFixed(2)}</td>
                                                                 </tr>
                                                             </MDBTableBody>
                                                         </MDBTable>
@@ -475,7 +501,7 @@ class Home extends React.Component {
                                                         <MDBTable bordered striped responsive>
                                                             <MDBTableHead color="rgba-teal-strong" textWhite>
                                                                 <tr>
-                                                                    <th colSpan="5" className="text-center font-weight-bold">Small Love Potion</th>
+                                                                    <th colSpan="5" className="text-center font-weight-bold">Smooth Love Potion</th>
                                                                 </tr>
                                                             </MDBTableHead>
                                                             <MDBTableBody>
@@ -496,10 +522,10 @@ class Home extends React.Component {
                                                                 </tr>
                                                                 <tr className="text-center">
                                                                     <td>0</td>
-                                                                    <td>{items.total}</td>
-                                                                    <td>{items.total}</td>
-                                                                    <td>{items.total}</td>
-                                                                    <td>{(items.total * this.state.slpCurrentValue).toFixed(2)}</td>
+                                                                    <td>{items.inGameSLP}</td>
+                                                                    <td>{items.sharedSLP}</td>
+                                                                    <td>{items.totalSLP}</td>
+                                                                    <td>{(items.totalSLP * this.state.slpCurrentValue).toFixed(2)}</td>
                                                                 </tr>
                                                             </MDBTableBody>
                                                         </MDBTable>
@@ -543,7 +569,7 @@ class Home extends React.Component {
                                                         <MDBTable bordered striped responsive>
                                                             <MDBTableHead color="rgba-teal-strong" textWhite>
                                                                 <tr>
-                                                                    <th colSpan="5" className="text-center font-weight-bold">Small Love Potion</th>
+                                                                    <th colSpan="5" className="text-center font-weight-bold">Smooth Love Potion</th>
                                                                 </tr>
                                                             </MDBTableHead>
                                                             <MDBTableBody>
@@ -564,10 +590,10 @@ class Home extends React.Component {
                                                                 </tr>
                                                                 <tr className="text-center">
                                                                     <td>0</td>
-                                                                    <td>{items.total}</td>
-                                                                    <td>{Math.floor(items.total * ("0."+items.details.scholar))}</td>
-                                                                    <td>{Math.floor(items.total * ("0."+items.details.scholar))}</td>
-                                                                    <td>{(Math.floor(items.total * ("0."+items.details.scholar)) * this.state.slpCurrentValue).toFixed(2)}</td>
+                                                                    <td>{items.inGameSLP}</td>
+                                                                    <td>{items.sharedSLP}</td>
+                                                                    <td>{items.totalSLP}</td>
+                                                                    <td>{(Math.floor(items.totalSLP * ("0."+items.details.scholar)) * this.state.slpCurrentValue).toFixed(2)}</td>
                                                                 </tr>
                                                             </MDBTableBody>
                                                         </MDBTable>

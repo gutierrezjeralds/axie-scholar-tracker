@@ -160,6 +160,13 @@ class Home extends React.Component {
                         result.last_claimed_item_at_add = moment.unix(result.last_claimed_item_at).add(1, 'days');
                         result.details = details;
                         result.ranking = ranking;
+                        if (result.blockchain_related === null || result.blockchain_related.signature === null) {
+                            result.blockchain_related.signature = {
+                                amount: 0,
+                                timestamp: ""
+                            }
+                        }
+
                         this.state.playerItems.push(result);
                         this.setState({
                             playerRecords: this.state.playerItems

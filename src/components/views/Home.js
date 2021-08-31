@@ -3,7 +3,8 @@ import $ from 'jquery';
 import { CONSTANTS } from '../Constants';
 import { 
     MDBBox, MDBContainer, MDBRow, MDBCol, MDBCard, MDBCardBody, MDBCardTitle,
-    MDBTable, MDBTableBody, MDBTableHead
+    MDBTable, MDBTableBody, MDBTableHead,
+    MDBModal, MDBModalHeader, MDBModalBody
 } from "mdbreact";
 import Moment from 'react-moment';
 import moment from 'moment';
@@ -24,10 +25,14 @@ class Home extends React.Component {
             isPlayerLoaded: false,
             playerItems: [],
             playerRecords: [],
-            singlePlayerItems: [],
-            singlePlayerRecords: [],
+            specifPlayerItems: [], // Specific user input
+            specifPlayerRecords: [], // Specific user input
             totalManagerSLP: 0,
-            totalSponsorSLP: 0
+            totalSponsorSLP: 0,
+            isModalEarningOpen: false,
+            modalEarningTitle: "",
+            modalEarningFilter: "",
+            modalEarningDetails: []
         }
     }
 
@@ -35,6 +40,21 @@ class Home extends React.Component {
         this.pageRefresh();
         this.getCoingecko();
         this.getRecord();
+    }
+
+    // Adding comma in number x replacement in toLocaleString()
+    numberWithCommas = (x) => {
+        return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    }
+
+    // Modal Toggle for view of Manager and Sponsor's Earning
+    modalEarningToggle = (title, filters, playerDetails) => () => {
+        this.setState({
+            isModalEarningOpen: !this.state.isModalEarningOpen,
+            modalEarningTitle: title,
+            modalEarningFilter: filters,
+            modalEarningDetails: playerDetails
+        });
     }
 
     // Page reload
@@ -200,6 +220,7 @@ class Home extends React.Component {
                                 // Set new Shared SLP
                                 const managerShare = details.manager === "100" ? 1 : "0." + details.manager;
                                 result.sharedManagerSLP = Math.floor(result.inGameSLP * managerShare);
+
                                 // Set new Total Manager's Earning
                                 this.setState({
                                     totalManagerSLP: this.state.totalManagerSLP + result.sharedManagerSLP
@@ -210,6 +231,7 @@ class Home extends React.Component {
                                 // Set new Shared SLP
                                 const sponsorShare = "0." + details.sponsor;
                                 result.sharedSponsorSLP = Math.floor(result.inGameSLP * sponsorShare);
+
                                 // Set new Total Sponsor's Earning
                                 this.setState({
                                     totalSponsorSLP: this.state.totalSponsorSLP + result.sharedSponsorSLP
@@ -233,9 +255,9 @@ class Home extends React.Component {
 
                         if (ethAddress === userEthAddress) {
                             // Get ETH Address based on Credential
-                            this.state.singlePlayerItems.push(result);
+                            this.state.specifPlayerItems.push(result);
                             this.setState({
-                                singlePlayerRecords: this.state.singlePlayerItems
+                                specifPlayerRecords: this.state.specifPlayerItems
                             })
                         }
 
@@ -350,6 +372,10 @@ class Home extends React.Component {
         });
     }
 
+    onManagerEarningHandle = () => {
+        
+    }
+
     // Render Coingecko details
     renderCoingecko() {
         if (this.state.slpCurrentValue > 0) {
@@ -415,8 +441,8 @@ class Home extends React.Component {
                                 {
                                     // Display Manager's Earing
                                     this.state.totalManagerSLP > 0 ? (
-                                        <MDBBox tag="span" className="blue-whale d-block">
-                                            {CONSTANTS.MESSAGE.MANAGER_EARNING}: {CONSTANTS.MESSAGE.SLP} {this.state.totalManagerSLP} (&#8369; {(this.state.totalManagerSLP * this.state.slpCurrentValue).toFixed(2)})
+                                        <MDBBox tag="span" className="blue-whale d-block cursor-pointer" onClick={this.modalEarningToggle(CONSTANTS.MESSAGE.VIEW_MANAGER_EARNING, CONSTANTS.MESSAGE.MANAGER, this.state.playerRecords)}>
+                                            {CONSTANTS.MESSAGE.MANAGER_EARNING}: {CONSTANTS.MESSAGE.SLP} {this.state.totalManagerSLP} (&#8369; {this.numberWithCommas((this.state.totalManagerSLP * this.state.slpCurrentValue).toFixed(2))})
                                         </MDBBox>
                                     ) : ("")
                                 }
@@ -425,7 +451,7 @@ class Home extends React.Component {
                                     // Display Sponsor's Earing
                                     this.state.totalSponsorSLP > 0 ? (
                                         <MDBBox tag="span" className="blue-whale d-block">
-                                            {CONSTANTS.MESSAGE.SPONSOR_EARNING}: {CONSTANTS.MESSAGE.SLP} {this.state.totalSponsorSLP} (&#8369; {(this.state.totalSponsorSLP * this.state.slpCurrentValue).toFixed(2)})
+                                            {CONSTANTS.MESSAGE.SPONSOR_EARNING}: {CONSTANTS.MESSAGE.SLP} {this.state.totalSponsorSLP} (&#8369; {this.numberWithCommas((this.state.totalSponsorSLP * this.state.slpCurrentValue).toFixed(2))})
                                         </MDBBox>
                                     ) : ("")
                                 }
@@ -446,8 +472,8 @@ class Home extends React.Component {
                                 {
                                     // Display Sponsor's Earing
                                     this.state.totalSponsorSLP > 0 ? (
-                                        <MDBBox tag="span" className="blue-whale d-block">
-                                            {CONSTANTS.MESSAGE.SPONSOR_EARNING}: {CONSTANTS.MESSAGE.SLP} {this.state.totalSponsorSLP} (&#8369; {(this.state.totalSponsorSLP * this.state.slpCurrentValue).toFixed(2)})
+                                        <MDBBox tag="span" className="blue-whale d-block cursor-pointer" onClick={this.modalEarningToggle(CONSTANTS.MESSAGE.VIEW_SPONSOR_EARNING, CONSTANTS.MESSAGE.SPONSOR, this.state.specifPlayerRecords)}>
+                                            {CONSTANTS.MESSAGE.SPONSOR_EARNING}: {CONSTANTS.MESSAGE.SLP} {this.state.totalSponsorSLP} (&#8369; {this.numberWithCommas((this.state.totalSponsorSLP * this.state.slpCurrentValue).toFixed(2))})
                                         </MDBBox>
                                     ) : ("")
                                 }
@@ -459,15 +485,77 @@ class Home extends React.Component {
         }
     }
 
+    // Render Modal for viewing of Manager and Sponsor's Earning
+    renderModalEarnings() {
+        return (
+            <MDBModal isOpen={this.state.isModalEarningOpen} size="lg">
+                <MDBModalHeader toggle={this.modalEarningToggle("", "", "")}>{this.state.modalEarningTitle}</MDBModalHeader>
+                <MDBModalBody>
+                    <MDBTable bordered striped responsive>
+                        <MDBTableHead color="rgba-teal-strong" textWhite>
+                            <tr>
+                                <th colSpan="4" className="text-center font-weight-bold">{CONSTANTS.MESSAGE.MANAGER_EARNING}</th>
+                            </tr>
+                        </MDBTableHead>
+                        <MDBTableBody>
+                            <tr className="text-center">
+                                <td rowSpan="2" className="font-weight-bold v-align-middle text-uppercase">{CONSTANTS.MESSAGE.TOTAL_EARNINGS}</td>
+                                <td colSpan="3" className="font-weight-bold">{CONSTANTS.MESSAGE.SLP}: {this.state.modalEarningFilter === CONSTANTS.MESSAGE.MANAGER ? this.state.totalManagerSLP : this.state.totalSponsorSLP}</td>
+                            </tr>
+                            <tr className="text-center">
+                                <td colSpan="3" className="font-weight-bold">
+                                    <span>&#8369; </span>
+                                    {this.state.modalEarningFilter === CONSTANTS.MESSAGE.MANAGER ? (
+                                        // Manager's Earning
+                                        this.numberWithCommas((this.state.totalManagerSLP * this.state.slpCurrentValue).toFixed(2))
+                                    ) : (
+                                        // Sponsor's Earning
+                                        this.numberWithCommas((this.state.totalSponsorSLP * this.state.slpCurrentValue).toFixed(2))
+                                    )}
+                                </td>
+                            </tr>
+                            <tr className="text-center">
+                                <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.NAME}</td>
+                                <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.INGAME} {CONSTANTS.MESSAGE.SLP}</td>
+                                <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.SHARED} {CONSTANTS.MESSAGE.SLP}</td>
+                                <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.EARNING}</td>
+                            </tr>
+                            {
+                                Object.keys(this.state.modalEarningDetails).length > 0 ? (
+                                    this.state.modalEarningDetails.sort((a, b) =>  b.inGameSLP - a.inGameSLP ).map(items => (
+                                        <tr className="text-center">
+                                            <td>{items.ranking.name} ({this.state.modalEarningFilter === CONSTANTS.MESSAGE.MANAGER ? items.details.manager : items.details.sponsor}%)</td>
+                                            <td>{items.inGameSLP}</td>
+                                            <td>{this.state.modalEarningFilter === CONSTANTS.MESSAGE.MANAGER ? items.sharedManagerSLP : items.sharedSponsorSLP}</td>
+                                            <td>
+                                                {this.state.modalEarningFilter === CONSTANTS.MESSAGE.MANAGER ? (
+                                                    // Manager's Earning
+                                                    this.numberWithCommas((items.sharedManagerSLP * this.state.slpCurrentValue).toFixed(2))
+                                                ) : (
+                                                    // Sponsor's Earning
+                                                    this.numberWithCommas((items.sharedSponsorSLP * this.state.slpCurrentValue).toFixed(2))
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : ("")
+                            }
+                        </MDBTableBody>
+                    </MDBTable>
+                </MDBModalBody>
+            </MDBModal>
+        )
+    }
+
     // Render single player details
     renderSingleDetails() {
         if ( this.state.isPlayerLoaded && this.state.isLoaded && !this.state.error ) {
-            if (Object.keys(this.state.singlePlayerRecords).length > 0) {
+            if (Object.keys(this.state.specifPlayerRecords).length > 0) {
                 return (
                     <React.Fragment>
                         {
                             // Scholar display x single display
-                            this.state.singlePlayerRecords.map(items => (
+                            this.state.specifPlayerRecords.map(items => (
                                 <MDBCol key={items.client_id} sm="12" md="6" lg="4" className="my-3">
                                     <MDBCard className="z-depth-2">
                                         <MDBCardBody className="black-text">
@@ -502,7 +590,6 @@ class Home extends React.Component {
                                                             <tr className="text-center">
                                                                 <td colSpan="2" rowSpan="2" className="font-weight-bold v-align-middle text-uppercase">{CONSTANTS.MESSAGE.CLAIMON}</td>
                                                                 <td colSpan="3" className="font-weight-bold">{<Moment format="MMM DD, YYYY HH:MM A" add={{ days: 14 }} unix>{items.last_claimed_item_at}</Moment>}</td>
-                                                                
                                                             </tr>
                                                             <tr className="text-center">
                                                                 <td colSpan="3" className="font-weight-bold">{<Moment durationFromNow>{items.last_claimed_item_at_add}</Moment>}</td>
@@ -519,7 +606,7 @@ class Home extends React.Component {
                                                                 <td>{items.inGameSLP}</td>
                                                                 <td>{items.sharedSLP}</td>
                                                                 <td>{items.totalSLP}</td>
-                                                                <td>{(items.totalSLP * this.state.slpCurrentValue).toFixed(2)}</td>
+                                                                <td>{this.numberWithCommas((items.totalSLP * this.state.slpCurrentValue).toFixed(2))}</td>
                                                             </tr>
                                                         </MDBTableBody>
                                                     </MDBTable>
@@ -579,7 +666,6 @@ class Home extends React.Component {
                                                             <tr className="text-center">
                                                                 <td colSpan="2" rowSpan="2" className="font-weight-bold v-align-middle text-uppercase">{CONSTANTS.MESSAGE.CLAIMON}</td>
                                                                 <td colSpan="3" className="font-weight-bold">{<Moment format="MMM DD, YYYY HH:MM A" add={{ days: 14 }} unix>{items.last_claimed_item_at}</Moment>}</td>
-                                                                
                                                             </tr>
                                                             <tr className="text-center">
                                                                 <td colSpan="3" className="font-weight-bold">{<Moment durationFromNow>{items.last_claimed_item_at_add}</Moment>}</td>
@@ -596,7 +682,7 @@ class Home extends React.Component {
                                                                 <td>{items.inGameSLP}</td>
                                                                 <td>{items.sharedSLP}</td>
                                                                 <td>{items.totalSLP}</td>
-                                                                <td>{(items.totalSLP * this.state.slpCurrentValue).toFixed(2)}</td>
+                                                                <td>{this.numberWithCommas((items.totalSLP * this.state.slpCurrentValue).toFixed(2))}</td>
                                                             </tr>
                                                         </MDBTableBody>
                                                     </MDBTable>
@@ -618,7 +704,7 @@ class Home extends React.Component {
             <React.Fragment>
                 <MDBRow className="justify-content-center align-self-center">
                     <MDBCol size="12" className="justify-content-center align-self-center text-center">
-                        <img src="/assets/images/axie_char.png" className="w-200px" alt="No Data Found" />
+                        <img src="/assets/images/axie_char.png" className="w-200px mt-5" alt="No Data Found" />
                         <MDBBox tag="span" className="d-block py-3 font-size-3rem font-family-architects-daughter red-text">{CONSTANTS.MESSAGE.SOMETHING_WENT_WRONG}</MDBBox>
                         <MDBBox tag="span" className="d-block font-size-3rem font-family-architects-daughter orange-text">{CONSTANTS.MESSAGE.NODATA_FOUND}</MDBBox>
                     </MDBCol>
@@ -670,7 +756,7 @@ class Home extends React.Component {
                             <MDBContainer fluid className="pt-3 pb-5 mb-5 position-relative">
                                 <MDBRow>
                                     {
-                                        Object.keys(this.state.singlePlayerRecords).length > 0 ? (
+                                        Object.keys(this.state.specifPlayerRecords).length > 0 ? (
                                             // Display Single data based on credential
                                             this.renderSingleDetails()
                                         ) : (
@@ -688,6 +774,9 @@ class Home extends React.Component {
                         )
                     )
                 }
+
+                {/* Render Modal */}
+                {this.renderModalEarnings()}
             </MDBBox>
         )
     }

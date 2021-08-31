@@ -38,8 +38,12 @@ const MESSAGE = {
     ADVENTURE: "Adventure",
     INGAME: "InGame",
     SHARE: "Share",
+    SHARED: "Shared",
     TOTAL: "Total",
-    EARNING: "Earning"
+    EARNING: "Earning",
+    TOTAL_EARNINGS: "Total Earnings",
+    CLOSE: "Close",
+    NAME: "Name"
 }
 
 export const CONSTANTS = {

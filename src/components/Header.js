@@ -1,9 +1,11 @@
 import React from 'react'
+import { CONSTANTS } from './Constants';
 import {
     MDBBox, MDBNavbar, MDBNavbarBrand, MDBNavbarNav, MDBNavItem, MDBNavbarToggler, MDBCollapse, MDBContainer,
     MDBDropdown, MDBDropdownToggle, MDBDropdownMenu, MDBDropdownItem
 } from "mdbreact";
 import Cookies from 'js-cookie'
+import Manager from './views/Manager';
 
 class Header extends React.Component {
     constructor(props) {
@@ -23,7 +25,14 @@ class Header extends React.Component {
         // Logout x removed cookie
         Cookies.set('filter', '');
         // Reload page
-        window.location.reload(false);
+        window.location.reload();
+    }
+
+    onManagerEarningHandle(event) {
+        console.log(event)
+        return (
+            <Manager />
+        )
     }
 
     render() {
@@ -33,7 +42,7 @@ class Header extends React.Component {
                     <MDBContainer>
                         <MDBNavbarBrand>
                             <a href="/">
-                                <MDBBox tag="span" className="white-text d-dlock m-0 text-center font-size-1pt5rem z-depth-0 rounded-circle">Team Loki</MDBBox>
+                                <MDBBox tag="span" className="white-text d-dlock m-0 text-center font-size-1pt5rem z-depth-0 rounded-circle">{CONSTANTS.MESSAGE.TEAMLOKI}</MDBBox>
                             </a>
                         </MDBNavbarBrand>
                         <MDBNavbarToggler onClick={this.toggleCollapse} />
@@ -42,15 +51,15 @@ class Header extends React.Component {
                                 <MDBNavItem active>
                                     <MDBDropdown>
                                         <MDBDropdownToggle nav caret>
-                                            <MDBBox tag="span" className="mr-2">To the Moon</MDBBox>
+                                            <MDBBox tag="span" className="mr-2">{CONSTANTS.MESSAGE.TOTHE_MOON}</MDBBox>
                                         </MDBDropdownToggle>
                                         <MDBDropdownMenu>
                                             {
                                                 this.state.isUser === "Manager" ? (
-                                                    <MDBDropdownItem>View Manager Earnings</MDBDropdownItem>
+                                                    <MDBDropdownItem onClick={this.onManagerEarningHandle.bind(this, CONSTANTS.MESSAGE.MANAGER)}>{CONSTANTS.MESSAGE.VIEW_MANAGER_EARNING}</MDBDropdownItem>
                                                 ) : ("")
                                             }
-                                            <MDBDropdownItem onClick={this.onLogoutHandle.bind(this)}>Logout</MDBDropdownItem>
+                                            <MDBDropdownItem onClick={this.onLogoutHandle.bind(this)}>{CONSTANTS.MESSAGE.LOGIN}</MDBDropdownItem>
                                         </MDBDropdownMenu>
                                     </MDBDropdown>
                                 </MDBNavItem>

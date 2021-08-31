@@ -1,10 +1,11 @@
 import React from "react";
+import $ from 'jquery';
+import { CONSTANTS } from '../Constants';
 import {
     MDBContainer, MDBRow, MDBCol, MDBInput, MDBBox,
-    MDBCard, MDBCardBody, MDBCardTitle, MDBCardText
+    MDBCard, MDBCardBody, MDBCardTitle
 } from 'mdbreact';
 import Cookies from 'js-cookie'
-import $ from 'jquery';
 
 class Login extends React.Component {
     constructor(props) {
@@ -24,7 +25,7 @@ class Login extends React.Component {
         if (user && user !== undefined) {
             if (user === "TeamLoki2021") {
                 // Display all details
-                Cookies.set("filter", "Manager")
+                Cookies.set("filter", CONSTANTS.MESSAGE.MANAGER)
                 // Reload page
                 window.location.reload(false);
             } else {
@@ -37,13 +38,21 @@ class Login extends React.Component {
                 .then(
                     (result) => {
                         const validUser = result.find(valid => valid.email.toLowerCase() === user.toLowerCase() || valid.name.toLowerCase() === user.toLocaleLowerCase());
+                        const validSponsor = result.find(valid => valid.sponsor.toLowerCase() === user.toLowerCase());
                         if (validUser && validUser !== undefined && Object.keys(validUser).length > 0) {
                             // Display detail based on credential
                             Cookies.set("filter", user)
                             // Reload page
-                            window.location.reload(false);
+                            window.location.reload();
                         } else {
-                            alert("Invalid credential. Please try again.")
+                            if (validSponsor && validSponsor !== undefined && Object.keys(validSponsor).length > 0) {
+                                // Display detail based on credential
+                                Cookies.set("filter", user)
+                                // Reload page
+                                window.location.reload();
+                            } else {
+                                alert(CONSTANTS.MESSAGE.INVALID_CREDENTIAL)
+                            }
                         }
                     },
                     // Note: it's important to handle errors here
@@ -54,11 +63,11 @@ class Login extends React.Component {
                             isLoaded: true,
                             isNotif: true,
                             notifCat: "error",
-                            notifStr: "Unexpected error, please reload the page!",
+                            notifStr: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
                             error: true
                         })
                             
-                        console.error('Oh well, you failed. Here some thoughts on the error that occured:', error)
+                        console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, error)
                     }
                 )
                 .catch(
@@ -67,11 +76,11 @@ class Login extends React.Component {
                             isLoaded: true,
                             isNotif: true,
                             notifCat: "error",
-                            notifStr: "Unexpected error, please reload the page!",
+                            notifStr: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
                             error: true
                         })
                             
-                        console.error('Oh well, you failed. Here some thoughts on the error that occured:', err)
+                        console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
                     }
                 )
             }
@@ -86,17 +95,17 @@ class Login extends React.Component {
                         <MDBCol sm="12" md="6" lg="6" className="justify-content-center align-self-center">
                             <MDBCard className="z-depth-2 w-100">
                                 <MDBCardBody className="black-text">
-                                    <MDBCardTitle className="font-weight-bold font-family-architects-daughter text-center">Sign in</MDBCardTitle>
-                                    <MDBCardText>
+                                    <MDBCardTitle className="font-weight-bold font-family-architects-daughter text-center">{CONSTANTS.MESSAGE.SIGNIN}</MDBCardTitle>
+                                    <MDBBox tag="div">
                                         <form onSubmit={this.onLoginHandle.bind(this)}>
                                             <MDBBox tag="div" className="grey-text">
-                                                <MDBInput label="Type your username or email" name="user" icon="user" group type="text" />
+                                                <MDBInput label={CONSTANTS.MESSAGE.INPUT_USER} name="user" icon="user" group type="text" />
                                             </MDBBox>
                                             <MDBBox tag="div" className="text-center">
-                                                <button className="btn btn-default waves-effect waves-light">Login</button>
+                                                <button className="btn btn-default waves-effect waves-light">{CONSTANTS.MESSAGE.LOGIN}</button>
                                             </MDBBox>
                                         </form>
-                                    </MDBCardText>
+                                    </MDBBox>
                                 </MDBCardBody>
                             </MDBCard>
                         </MDBCol>

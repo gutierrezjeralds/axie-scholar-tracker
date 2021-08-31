@@ -1,11 +1,13 @@
 import React from "react";
 import $ from 'jquery';
+import { CONSTANTS } from '../Constants';
 import { 
-    MDBBox, MDBContainer, MDBRow, MDBCol, MDBCard, MDBCardBody, MDBCardTitle, MDBCardText,
+    MDBBox, MDBContainer, MDBRow, MDBCol, MDBCard, MDBCardBody, MDBCardTitle,
     MDBTable, MDBTableBody, MDBTableHead
 } from "mdbreact";
 import Moment from 'react-moment';
 import moment from 'moment';
+import Cookies from 'js-cookie'
 
 class Home extends React.Component {
     constructor(props) {
@@ -36,7 +38,7 @@ class Home extends React.Component {
     // Page reload
     pageRefresh = () => {
         setTimeout( function() {
-            window.location.reload(false);
+            window.location.reload();
         }, 120000);
     }
 
@@ -61,11 +63,11 @@ class Home extends React.Component {
                     isLoaded: true,
                     isNotif: true,
                     notifCat: "error",
-                    notifStr: "Unexpected error, please reload the page!",
+                    notifStr: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
                     error: true
                 })
                     
-                console.error('Oh well, you failed. Here some thoughts on the error that occured:', error)
+                console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, error)
             }
         )
         .catch(
@@ -74,11 +76,11 @@ class Home extends React.Component {
                     isLoaded: true,
                     isNotif: true,
                     notifCat: "error",
-                    notifStr: "Unexpected error, please reload the page!",
+                    notifStr: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
                     error: true
                 })
                     
-                console.error('Oh well, you failed. Here some thoughts on the error that occured:', err)
+                console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
             }
         )
     }
@@ -97,14 +99,20 @@ class Home extends React.Component {
                     const ethAddress = item.ethAddress ? `0x${item.ethAddress.substring(6)}` : "";
                     var userEthAddress = null;
 
-                    if (item.email.toLowerCase() === this.state.isUser.toLowerCase() || item.name.toLowerCase() === this.state.isUser.toLowerCase()) {
-                        // Get ETH Address based on Credential
-                        userEthAddress = ethAddress;
+                    if (item.email.toLowerCase() === this.state.isUser.toLowerCase() ||
+                        item.name.toLowerCase() === this.state.isUser.toLowerCase() ||
+                        item.sponsor.toLowerCase() === this.state.isUser.toLowerCase()) {
+                            // Get ETH Address based on Credential
+                            userEthAddress = ethAddress;
                     }
 
                     await this.getPlayerDetails(item, ethAddress, userEthAddress);
                     
                     if (index === result.length - 1) {
+                        // Adding Players Item Object in Cookies
+                        Cookies.set("playerItems", JSON.stringify(this.state.playerItems))
+                        console.log("playerItems", this.state.playerItems)
+                        
                         this.setState({
                             isLoaded: true,
                             isPlayerLoaded: true
@@ -112,7 +120,6 @@ class Home extends React.Component {
                     }
                     return true;
                 });
-                console.log("playerItems", this.state.playerItems)
             },
             // Note: it's important to handle errors here
             // instead of a catch() block so that we don't swallow
@@ -122,11 +129,11 @@ class Home extends React.Component {
                     isLoaded: true,
                     isNotif: true,
                     notifCat: "error",
-                    notifStr: "Unexpected error, please reload the page!",
+                    notifStr: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
                     error: true
                 })
                     
-                console.error('Oh well, you failed. Here some thoughts on the error that occured:', error)
+                console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, error)
             }
         )
         .catch(
@@ -135,11 +142,11 @@ class Home extends React.Component {
                     isLoaded: true,
                     isNotif: true,
                     notifCat: "error",
-                    notifStr: "Unexpected error, please reload the page!",
+                    notifStr: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
                     error: true
                 })
                     
-                console.error('Oh well, you failed. Here some thoughts on the error that occured:', err)
+                console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
             }
         )
     }
@@ -219,11 +226,11 @@ class Home extends React.Component {
                         isLoaded: true,
                         isNotif: true,
                         notifCat: "error",
-                        notifStr: "Unexpected error, please reload the page!",
+                        notifStr: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
                         error: true
                     })
                         
-                    console.error('Oh well, you failed. Here some thoughts on the error that occured:', error)
+                    console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, error)
                     return reject({error: true});
                 }
             )
@@ -233,11 +240,11 @@ class Home extends React.Component {
                         isLoaded: true,
                         isNotif: true,
                         notifCat: "error",
-                        notifStr: "Unexpected error, please reload the page!",
+                        notifStr: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
                         error: true
                     })
                         
-                    console.error('Oh well, you failed. Here some thoughts on the error that occured:', err)
+                    console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
                     return reject({error: true});
                 }
             )
@@ -246,11 +253,11 @@ class Home extends React.Component {
                 isLoaded: true,
                 isNotif: true,
                 notifCat: "error",
-                notifStr: "Unexpected error, please reload the page!",
+                notifStr: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
                 error: true
             })
                 
-            console.error('Oh well, you failed. Here some thoughts on the error that occured:', err)
+            console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
             return err;
         });
     }
@@ -281,11 +288,11 @@ class Home extends React.Component {
                         isLoaded: true,
                         isNotif: true,
                         notifCat: "error",
-                        notifStr: "Unexpected error, please reload the page!",
+                        notifStr: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
                         error: true
                     })
                         
-                    console.error('Oh well, you failed. Here some thoughts on the error that occured:', error)
+                    console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, error)
                     return reject({error: true})
                 }
             )
@@ -295,11 +302,11 @@ class Home extends React.Component {
                         isLoaded: true,
                         isNotif: true,
                         notifCat: "error",
-                        notifStr: "Unexpected error, please reload the page!",
+                        notifStr: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
                         error: true
                     })
                         
-                    console.error('Oh well, you failed. Here some thoughts on the error that occured:', err)
+                    console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
                     return reject({error: true});
                 }
             )
@@ -308,11 +315,11 @@ class Home extends React.Component {
                 isLoaded: true,
                 isNotif: true,
                 notifCat: "error",
-                notifStr: "Unexpected error, please reload the page!",
+                notifStr: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
                 error: true
             })
                 
-            console.error('Oh well, you failed. Here some thoughts on the error that occured:', err)
+            console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
             return err;
         });
     }
@@ -324,7 +331,7 @@ class Home extends React.Component {
                 <MDBCol size="12" className="">
                     <MDBBox tag="div" className="py-3 px-2 text-center pale-turquoise-bg">
                         <MDBBox tag="span" className="blue-whale">
-                            Page refresh automatically within 120 seconds.
+                            {CONSTANTS.MESSAGE.PAGE_REFRESH}
                         </MDBBox>
                     </MDBBox>
                 </MDBCol>
@@ -340,9 +347,9 @@ class Home extends React.Component {
                     <MDBCol size="12" className="my-3">
                         <MDBBox tag="div" className="py-3 px-2 text-center ice-bg">
                             <MDBBox tag="span" className="blue-whale">
-                                Prices are based on
-                                <a href="https://www.coingecko.com/en/coins/smooth-love-potion" target="_blank" rel="noreferrer"> CoinGecko. </a>
-                                Current exchange rate:
+                                {CONSTANTS.MESSAGE.PRICE_BASEON}
+                                <a href="https://www.coingecko.com/en/coins/smooth-love-potion" target="_blank" rel="noreferrer"> {CONSTANTS.MESSAGE.COINGECKO}. </a>
+                                {CONSTANTS.MESSAGE.CURRENT_EXCHANGERATE}:
                                 <strong> 1 SLP = {this.state.slpCurrentValue}</strong>
                             </MDBBox>
                         </MDBBox>
@@ -364,7 +371,7 @@ class Home extends React.Component {
                                     // Top ELO / MMR Rank
                                     this.state.playerRecords.sort((a, b) =>  a.ranking.rank - b.ranking.rank ).map((items, index) => (
                                         index === 0 ? (
-                                            <MDBBox key={items.client_id} tag="span" className="">Top MMR: <strong>{items.ranking.name} ({items.ranking.elo})</strong></MDBBox>
+                                            <MDBBox key={items.client_id} tag="span" className="">{CONSTANTS.MESSAGE.TOP_MMR}: <strong>{items.ranking.name} ({items.ranking.elo})</strong></MDBBox>
                                         ) : ("")
                                     ))
                                 }
@@ -373,7 +380,7 @@ class Home extends React.Component {
                                     // Top In Game SLP
                                     this.state.playerRecords.sort((a, b) =>  b.total - a.total ).map((items, index) => (
                                         index === 0 ? (
-                                            <MDBBox key={items.client_id} tag="span" className="ml-2">Top In Game SLP: <strong>{items.ranking.name} ({items.inGameSLP})</strong></MDBBox>
+                                            <MDBBox key={items.client_id} tag="span" className="ml-2">{CONSTANTS.MESSAGE.TOP_INGAME_SLP}: <strong>{items.ranking.name} ({items.inGameSLP})</strong></MDBBox>
                                         ) : ("")
                                     ))
                                 }
@@ -399,21 +406,21 @@ class Home extends React.Component {
                                         <MDBCard className="z-depth-2">
                                             <MDBCardBody className="black-text">
                                                 <MDBCardTitle className="font-weight-bold font-family-architects-daughter">{items.ranking.name}</MDBCardTitle>
-                                                <MDBCardText>
+                                                <MDBBox tag="div">
                                                     <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
-                                                        <MDBBox tag="span" className="font-weight-bold">MMR: </MDBBox>
+                                                        <MDBBox tag="span" className="font-weight-bold text-uupercase">{CONSTANTS.MESSAGE.MMR}: </MDBBox>
                                                         {(items.ranking.elo).toLocaleString()}
                                                     </MDBBox>
                                                     <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
-                                                        <MDBBox tag="span" className="font-weight-bold">Rank: </MDBBox>
+                                                        <MDBBox tag="span" className="font-weight-bold">{CONSTANTS.MESSAGE.RANK}: </MDBBox>
                                                         {(items.ranking.rank).toLocaleString()}
                                                     </MDBBox>
                                                     <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
-                                                        <MDBBox tag="span" className="font-weight-bold">Last Claimed SLP: </MDBBox>
+                                                        <MDBBox tag="span" className="font-weight-bold">{CONSTANTS.MESSAGE.LAST_CLAIMED_SLP}: </MDBBox>
                                                         {items.blockchain_related.signature.amount > 0 ? (items.blockchain_related.signature.amount) : ("")}
                                                     </MDBBox>
                                                     <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
-                                                        <MDBBox tag="span" className="font-weight-bold">Last Claimed At: </MDBBox>
+                                                        <MDBBox tag="span" className="font-weight-bold">{CONSTANTS.MESSAGE.LAST_CLAIMED_AT}: </MDBBox>
                                                         {items.blockchain_related.signature.amount > 0 ? (
                                                             <Moment format="MMM DD, YYYY HH:MM A" unix>{items.blockchain_related.signature.timestamp}</Moment>
                                                         ) : ("")}
@@ -422,12 +429,12 @@ class Home extends React.Component {
                                                         <MDBTable bordered striped responsive>
                                                             <MDBTableHead color="rgba-teal-strong" textWhite>
                                                                 <tr>
-                                                                    <th colSpan="5" className="text-center font-weight-bold">Smooth Love Potion</th>
+                                                                    <th colSpan="5" className="text-center font-weight-bold">{CONSTANTS.MESSAGE.SLP_DESC}</th>
                                                                 </tr>
                                                             </MDBTableHead>
                                                             <MDBTableBody>
                                                                 <tr className="text-center">
-                                                                    <td colSpan="2" rowSpan="2" className="font-weight-bold v-align-middle">CLAIM ON</td>
+                                                                    <td colSpan="2" rowSpan="2" className="font-weight-bold v-align-middle text-uppercase">{CONSTANTS.MESSAGE.CLAIMON}</td>
                                                                     <td colSpan="3" className="font-weight-bold">{<Moment format="MMM DD, YYYY HH:MM A" add={{ days: 14 }} unix>{items.last_claimed_item_at}</Moment>}</td>
                                                                     
                                                                 </tr>
@@ -435,11 +442,11 @@ class Home extends React.Component {
                                                                     <td colSpan="3" className="font-weight-bold">{<Moment durationFromNow>{items.last_claimed_item_at_add}</Moment>}</td>
                                                                 </tr>
                                                                 <tr className="text-center">
-                                                                    <td className="font-weight-bold" title="Adventure SLP Quest (Today)">ADV</td>
-                                                                    <td className="font-weight-bold" title="In Game SLP">INGAME</td>
-                                                                    <td className="font-weight-bold" title="In Game SLP Sharing">SHARE ({items.details.scholar}%)</td>
-                                                                    <td className="font-weight-bold" title="Ronin SLP + Sharing SLP">TOTAL</td>
-                                                                    <td className="font-weight-bold" title="PHP Currency">EARNING</td>
+                                                                    <td className="font-weight-bold text-uppercase" title="Adventure SLP Quest (Today)">{CONSTANTS.MESSAGE.ADV}</td>
+                                                                    <td className="font-weight-bold text-uppercase" title="In Game SLP">{CONSTANTS.MESSAGE.INGAME}</td>
+                                                                    <td className="font-weight-bold text-uppercase" title="In Game SLP Sharing">{CONSTANTS.MESSAGE.SHARE} ({items.details.scholar}%)</td>
+                                                                    <td className="font-weight-bold text-uppercase" title="Ronin SLP + Sharing SLP">{CONSTANTS.MESSAGE.TOTAL}</td>
+                                                                    <td className="font-weight-bold text-uppercase" title="PHP Currency">{CONSTANTS.MESSAGE.EARNING}</td>
                                                                 </tr>
                                                                 <tr className="text-center">
                                                                     <td>0</td>
@@ -451,7 +458,7 @@ class Home extends React.Component {
                                                             </MDBTableBody>
                                                         </MDBTable>
                                                     </MDBBox>
-                                                </MDBCardText>
+                                                </MDBBox>
                                             </MDBCardBody>
                                         </MDBCard>
                                     </MDBCol>
@@ -478,21 +485,21 @@ class Home extends React.Component {
                                         <MDBCard className="z-depth-2">
                                             <MDBCardBody className="black-text">
                                                 <MDBCardTitle className="font-weight-bold font-family-architects-daughter">{items.ranking.name}</MDBCardTitle>
-                                                <MDBCardText>
+                                                <MDBBox tag="div">
                                                     <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
-                                                        <MDBBox tag="span" className="font-weight-bold">MMR: </MDBBox>
+                                                        <MDBBox tag="span" className="font-weight-bold text-uupercase">{CONSTANTS.MESSAGE.MMR}: </MDBBox>
                                                         {(items.ranking.elo).toLocaleString()}
                                                     </MDBBox>
                                                     <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
-                                                        <MDBBox tag="span" className="font-weight-bold">Rank: </MDBBox>
+                                                        <MDBBox tag="span" className="font-weight-bold">{CONSTANTS.MESSAGE.RANK}: </MDBBox>
                                                         {(items.ranking.rank).toLocaleString()}
                                                     </MDBBox>
                                                     <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
-                                                        <MDBBox tag="span" className="font-weight-bold">Last Claimed SLP: </MDBBox>
+                                                        <MDBBox tag="span" className="font-weight-bold">{CONSTANTS.MESSAGE.LAST_CLAIMED_SLP}: </MDBBox>
                                                         {items.blockchain_related.signature.amount > 0 ? (items.blockchain_related.signature.amount) : ("")}
                                                     </MDBBox>
                                                     <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
-                                                        <MDBBox tag="span" className="font-weight-bold">Last Claimed At: </MDBBox>
+                                                        <MDBBox tag="span" className="font-weight-bold">{CONSTANTS.MESSAGE.LAST_CLAIMED_AT}: </MDBBox>
                                                         {items.blockchain_related.signature.amount > 0 ? (
                                                             <Moment format="MMM DD, YYYY HH:MM A" unix>{items.blockchain_related.signature.timestamp}</Moment>
                                                         ) : ("")}
@@ -501,24 +508,24 @@ class Home extends React.Component {
                                                         <MDBTable bordered striped responsive>
                                                             <MDBTableHead color="rgba-teal-strong" textWhite>
                                                                 <tr>
-                                                                    <th colSpan="5" className="text-center font-weight-bold">Smooth Love Potion</th>
+                                                                    <th colSpan="5" className="text-center font-weight-bold">{CONSTANTS.MESSAGE.SLP_DESC}</th>
                                                                 </tr>
                                                             </MDBTableHead>
                                                             <MDBTableBody>
                                                                 <tr className="text-center">
-                                                                    <td colSpan="2" rowSpan="2" className="font-weight-bold v-align-middle">CLAIM ON</td>
+                                                                    <td colSpan="2" rowSpan="2" className="font-weight-bold v-align-middle text-uppercase">{CONSTANTS.MESSAGE.CLAIMON}</td>
                                                                     <td colSpan="3" className="font-weight-bold">{<Moment format="MMM DD, YYYY HH:MM A" add={{ days: 14 }} unix>{items.last_claimed_item_at}</Moment>}</td>
                                                                     
                                                                 </tr>
                                                                 <tr className="text-center">
-                                                                <td colSpan="3" className="font-weight-bold">{<Moment durationFromNow>{items.last_claimed_item_at_add}</Moment>}</td>
+                                                                    <td colSpan="3" className="font-weight-bold">{<Moment durationFromNow>{items.last_claimed_item_at_add}</Moment>}</td>
                                                                 </tr>
                                                                 <tr className="text-center">
-                                                                    <td className="font-weight-bold" title="Adventure SLP Quest (Today)">ADV</td>
-                                                                    <td className="font-weight-bold" title="In Game SLP">INGAME</td>
-                                                                    <td className="font-weight-bold" title="In Game SLP Sharing">SHARE ({items.details.manager}%)</td>
-                                                                    <td className="font-weight-bold" title="Ronin SLP + Sharing SLP">TOTAL</td>
-                                                                    <td className="font-weight-bold" title="PHP Currency">EARNING</td>
+                                                                    <td className="font-weight-bold text-uppercase" title="Adventure SLP Quest (Today)">{CONSTANTS.MESSAGE.ADV}</td>
+                                                                    <td className="font-weight-bold text-uppercase" title="In Game SLP">{CONSTANTS.MESSAGE.INGAME}</td>
+                                                                    <td className="font-weight-bold text-uppercase" title="In Game SLP Sharing">{CONSTANTS.MESSAGE.SHARE} ({items.details.manager}%)</td>
+                                                                    <td className="font-weight-bold text-uppercase" title="Ronin SLP + Sharing SLP">{CONSTANTS.MESSAGE.TOTAL}</td>
+                                                                    <td className="font-weight-bold text-uppercase" title="PHP Currency">{CONSTANTS.MESSAGE.EARNING}</td>
                                                                 </tr>
                                                                 <tr className="text-center">
                                                                     <td>0</td>
@@ -530,7 +537,7 @@ class Home extends React.Component {
                                                             </MDBTableBody>
                                                         </MDBTable>
                                                     </MDBBox>
-                                                </MDBCardText>
+                                                </MDBBox>
                                             </MDBCardBody>
                                         </MDBCard>
                                     </MDBCol>
@@ -544,23 +551,23 @@ class Home extends React.Component {
                                 items.details.manager !== "100" ? (
                                     <MDBCol key={items.client_id} sm="12" md="6" lg="4" className="my-3">
                                         <MDBCard className="z-depth-2">
-                                        <MDBCardBody className="black-text">
+                                            <MDBCardBody className="black-text">
                                                 <MDBCardTitle className="font-weight-bold font-family-architects-daughter">{items.ranking.name}</MDBCardTitle>
-                                                <MDBCardText>
+                                                <MDBBox tag="div">
                                                     <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
-                                                        <MDBBox tag="span" className="font-weight-bold">MMR: </MDBBox>
+                                                        <MDBBox tag="span" className="font-weight-bold text-uupercase">{CONSTANTS.MESSAGE.MMR}: </MDBBox>
                                                         {(items.ranking.elo).toLocaleString()}
                                                     </MDBBox>
                                                     <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
-                                                        <MDBBox tag="span" className="font-weight-bold">Rank: </MDBBox>
+                                                        <MDBBox tag="span" className="font-weight-bold">{CONSTANTS.MESSAGE.RANK}: </MDBBox>
                                                         {(items.ranking.rank).toLocaleString()}
                                                     </MDBBox>
                                                     <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
-                                                        <MDBBox tag="span" className="font-weight-bold">Last Claimed SLP: </MDBBox>
+                                                        <MDBBox tag="span" className="font-weight-bold">{CONSTANTS.MESSAGE.LAST_CLAIMED_SLP}: </MDBBox>
                                                         {items.blockchain_related.signature.amount > 0 ? (items.blockchain_related.signature.amount) : ("")}
                                                     </MDBBox>
                                                     <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
-                                                        <MDBBox tag="span" className="font-weight-bold">Last Claimed At: </MDBBox>
+                                                        <MDBBox tag="span" className="font-weight-bold">{CONSTANTS.MESSAGE.LAST_CLAIMED_AT}: </MDBBox>
                                                         {items.blockchain_related.signature.amount > 0 ? (
                                                             <Moment format="MMM DD, YYYY HH:MM A" unix>{items.blockchain_related.signature.timestamp}</Moment>
                                                         ) : ("")}
@@ -569,12 +576,12 @@ class Home extends React.Component {
                                                         <MDBTable bordered striped responsive>
                                                             <MDBTableHead color="rgba-teal-strong" textWhite>
                                                                 <tr>
-                                                                    <th colSpan="5" className="text-center font-weight-bold">Smooth Love Potion</th>
+                                                                    <th colSpan="5" className="text-center font-weight-bold">{CONSTANTS.MESSAGE.SLP_DESC}</th>
                                                                 </tr>
                                                             </MDBTableHead>
                                                             <MDBTableBody>
                                                                 <tr className="text-center">
-                                                                    <td colSpan="2" rowSpan="2" className="font-weight-bold v-align-middle">CLAIM ON</td>
+                                                                    <td colSpan="2" rowSpan="2" className="font-weight-bold v-align-middle text-uppercase">{CONSTANTS.MESSAGE.CLAIMON}</td>
                                                                     <td colSpan="3" className="font-weight-bold">{<Moment format="MMM DD, YYYY HH:MM A" add={{ days: 14 }} unix>{items.last_claimed_item_at}</Moment>}</td>
                                                                     
                                                                 </tr>
@@ -582,11 +589,11 @@ class Home extends React.Component {
                                                                     <td colSpan="3" className="font-weight-bold">{<Moment durationFromNow>{items.last_claimed_item_at_add}</Moment>}</td>
                                                                 </tr>
                                                                 <tr className="text-center">
-                                                                    <td className="font-weight-bold" title="Adventure SLP Quest (Today)">ADV</td>
-                                                                    <td className="font-weight-bold" title="In Game SLP">INGAME</td>
-                                                                    <td className="font-weight-bold" title="In Game SLP Sharing">SHARE ({items.details.scholar}%)</td>
-                                                                    <td className="font-weight-bold" title="Ronin SLP + Sharing SLP">TOTAL</td>
-                                                                    <td className="font-weight-bold" title="PHP Currency">EARNING</td>
+                                                                    <td className="font-weight-bold text-uppercase" title="Adventure SLP Quest (Today)">{CONSTANTS.MESSAGE.ADV}</td>
+                                                                    <td className="font-weight-bold text-uppercase" title="In Game SLP">{CONSTANTS.MESSAGE.INGAME}</td>
+                                                                    <td className="font-weight-bold text-uppercase" title="In Game SLP Sharing">{CONSTANTS.MESSAGE.SHARE} ({items.details.scholar}%)</td>
+                                                                    <td className="font-weight-bold text-uppercase" title="Ronin SLP + Sharing SLP">{CONSTANTS.MESSAGE.TOTAL}</td>
+                                                                    <td className="font-weight-bold text-uppercase" title="PHP Currency">{CONSTANTS.MESSAGE.EARNING}</td>
                                                                 </tr>
                                                                 <tr className="text-center">
                                                                     <td>0</td>
@@ -598,7 +605,7 @@ class Home extends React.Component {
                                                             </MDBTableBody>
                                                         </MDBTable>
                                                     </MDBBox>
-                                                </MDBCardText>
+                                                </MDBBox>
                                             </MDBCardBody>
                                         </MDBCard>
                                     </MDBCol>
@@ -616,9 +623,9 @@ class Home extends React.Component {
             <React.Fragment>
                 <MDBRow className="justify-content-center align-self-center">
                     <MDBCol size="12" className="justify-content-center align-self-center text-center">
-                        <img src="/assets/images/axie_char.png" className="w-200px" />
-                        <MDBBox tag="span" className="d-block py-3 font-size-3rem font-family-architects-daughter red-text">Something went wrong!</MDBBox>
-                        <MDBBox tag="span" className="d-block font-size-3rem font-family-architects-daughter orange-text">No Data Found.</MDBBox>
+                        <img src="/assets/images/axie_char.png" className="w-200px" alt="No Data Found" />
+                        <MDBBox tag="span" className="d-block py-3 font-size-3rem font-family-architects-daughter red-text">{CONSTANTS.MESSAGE.SOMETHING_WENT_WRONG}</MDBBox>
+                        <MDBBox tag="span" className="d-block font-size-3rem font-family-architects-daughter orange-text">{CONSTANTS.MESSAGE.NODATA_FOUND}</MDBBox>
                     </MDBCol>
                 </MDBRow>
             </React.Fragment>
@@ -626,7 +633,7 @@ class Home extends React.Component {
     }
 
     render() {
-        document.title = "Home | Team Loki Tracker";
+        document.title = CONSTANTS.MESSAGE.HOMETITLE;
         return (
             <MDBBox tag="div" className="home-wrapper">
                 {
@@ -635,7 +642,7 @@ class Home extends React.Component {
                     <MDBBox tag="div" className="loader-section">
                         <MDBBox tag="div" className="position-fixed z-index-9999 l-0 t-0 r-0 b-0 m-auto overflow-visible flex-center">
                             <MDBBox tag="span" className="loader-spin-dual-ring"></MDBBox>
-                            <MDBBox tag="span" className="ml-2 font-size-1rem white-text">Loading, please wait...</MDBBox>
+                            <MDBBox tag="span" className="ml-2 font-size-1rem white-text">{CONSTANTS.MESSAGE.LOADING_TEXT}</MDBBox>
                         </MDBBox>
                         <MDBBox tag="div" className="loader-backdrop position-fixed z-index-1040 l-0 t-0 r-0 b-0 black"></MDBBox>
                     </MDBBox>
@@ -652,31 +659,38 @@ class Home extends React.Component {
                 </MDBContainer>
 
                 {
-                    Object.keys(this.state.playerRecords).length <= 0 ? (
-                        // Empty Player details
+                    this.state.error && this.state.isLoaded ? (
+                        // Empty Player details x Error in Ajax
                         <MDBContainer fluid className="pt-3 pb-5 mb-5 position-relative">
                             {this.renderEmptyDetails()}
                         </MDBContainer>
                     ) : (
-                        // Diplay Player details
-                        <MDBContainer fluid className="pt-3 pb-5 mb-5 position-relative">
-                            <MDBRow>
-                                {
-                                    Object.keys(this.state.singlePlayerRecords).length > 0 ? (
-                                        // Display Single data based on credential
-                                        this.renderSingleDetails()
-                                    ) : (
-                                        Object.keys(this.state.playerRecords).length > 0 ? (
-                                            // Display all data
-                                            this.renderAllDetails()
+                        Object.keys(this.state.playerRecords).length <= 0 ? (
+                            // Empty Player details
+                            <MDBContainer fluid className="pt-3 pb-5 mb-5 position-relative">
+                                {this.renderEmptyDetails()}
+                            </MDBContainer>
+                        ) : (
+                            // Diplay Player details
+                            <MDBContainer fluid className="pt-3 pb-5 mb-5 position-relative">
+                                <MDBRow>
+                                    {
+                                        Object.keys(this.state.singlePlayerRecords).length > 0 ? (
+                                            // Display Single data based on credential
+                                            this.renderSingleDetails()
                                         ) : (
-                                            // Display no data
-                                            this.renderEmptyDetails()
+                                            Object.keys(this.state.playerRecords).length > 0 ? (
+                                                // Display all data
+                                                this.renderAllDetails()
+                                            ) : (
+                                                // Display no data
+                                                this.renderEmptyDetails()
+                                            )
                                         )
-                                    )
-                                }
-                            </MDBRow>
-                        </MDBContainer>
+                                    }
+                                </MDBRow>
+                            </MDBContainer>
+                        )
                     )
                 }
             </MDBBox>

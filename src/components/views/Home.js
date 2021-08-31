@@ -503,7 +503,7 @@ class Home extends React.Component {
                                 <td colSpan="3" className="font-weight-bold">{CONSTANTS.MESSAGE.SLP}: {this.state.modalEarningFilter === CONSTANTS.MESSAGE.MANAGER ? this.state.totalManagerSLP : this.state.totalSponsorSLP}</td>
                             </tr>
                             <tr className="text-center">
-                                <td colSpan="3" className="font-weight-bold">
+                                <td colSpan="3" className="font-weight-bold table-gray-bg">
                                     <span>&#8369; </span>
                                     {this.state.modalEarningFilter === CONSTANTS.MESSAGE.MANAGER ? (
                                         // Manager's Earning
@@ -592,7 +592,7 @@ class Home extends React.Component {
                                                                 <td colSpan="3" className="font-weight-bold">{<Moment format="MMM DD, YYYY HH:MM A" add={{ days: 14 }} unix>{items.last_claimed_item_at}</Moment>}</td>
                                                             </tr>
                                                             <tr className="text-center">
-                                                                <td colSpan="3" className="font-weight-bold">{<Moment durationFromNow>{items.last_claimed_item_at_add}</Moment>}</td>
+                                                                <td colSpan="3" className="font-weight-bold table-gray-bg">{<Moment durationFromNow>{items.last_claimed_item_at_add}</Moment>}</td>
                                                             </tr>
                                                             <tr className="text-center">
                                                                 <td className="font-weight-bold text-uppercase" title="Adventure SLP Quest (Today)">{CONSTANTS.MESSAGE.ADV}</td>
@@ -668,7 +668,7 @@ class Home extends React.Component {
                                                                 <td colSpan="3" className="font-weight-bold">{<Moment format="MMM DD, YYYY HH:MM A" add={{ days: 14 }} unix>{items.last_claimed_item_at}</Moment>}</td>
                                                             </tr>
                                                             <tr className="text-center">
-                                                                <td colSpan="3" className="font-weight-bold">{<Moment durationFromNow>{items.last_claimed_item_at_add}</Moment>}</td>
+                                                                <td colSpan="3" className="font-weight-bold table-gray-bg">{<Moment durationFromNow>{items.last_claimed_item_at_add}</Moment>}</td>
                                                             </tr>
                                                             <tr className="text-center">
                                                                 <td className="font-weight-bold text-uppercase" title="Adventure SLP Quest (Today)">{CONSTANTS.MESSAGE.ADV}</td>

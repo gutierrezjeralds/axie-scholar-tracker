@@ -612,7 +612,17 @@ class Home extends React.Component {
     }
 
     renderEmptyDetails() {
-
+        return (
+            <React.Fragment>
+                <MDBRow className="justify-content-center align-self-center">
+                    <MDBCol size="12" className="justify-content-center align-self-center text-center">
+                        <img src="/assets/images/axie_char.png" className="w-200px" />
+                        <MDBBox tag="span" className="d-block py-3 font-size-3rem font-family-architects-daughter red-text">Something went wrong!</MDBBox>
+                        <MDBBox tag="span" className="d-block font-size-3rem font-family-architects-daughter orange-text">No Data Found.</MDBBox>
+                    </MDBCol>
+                </MDBRow>
+            </React.Fragment>
+        )
     }
 
     render() {
@@ -645,9 +655,7 @@ class Home extends React.Component {
                     Object.keys(this.state.playerRecords).length <= 0 ? (
                         // Empty Player details
                         <MDBContainer fluid className="pt-3 pb-5 mb-5 position-relative">
-                            <MDBRow>
-                                No Details found.
-                            </MDBRow>
+                            {this.renderEmptyDetails()}
                         </MDBContainer>
                     ) : (
                         // Diplay Player details

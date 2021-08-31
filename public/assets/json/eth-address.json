@@ -6,7 +6,8 @@
         "email": "gutierrez.jeralds@yahoo.com",
         "manager": "100",
         "scholar": "0",
-        "sponsor": "0"
+        "sponsor": "0",
+        "sponsorName": ""
     },
     {
         "id": 2,
@@ -15,7 +16,8 @@
         "email": "vincejaspergutierrez@gmail.com",
         "manager": "50",
         "scholar": "50",
-        "sponsor": "0"
+        "sponsor": "0",
+        "sponsorName": ""
     },
     {
         "id": 3,
@@ -24,7 +26,8 @@
         "email": "pauljohnsgutierrez.052030@gmail.com",
         "manager": "50",
         "scholar": "50",
-        "sponsor": "0"
+        "sponsor": "0",
+        "sponsorName": ""
     },
     {
         "id": 4,
@@ -33,7 +36,8 @@
         "email": "isaiahlou@yahoo.com",
         "manager": "50",
         "scholar": "50",
-        "sponsor": "0"
+        "sponsor": "0",
+        "sponsorName": ""
     },
     {
         "id": 5,
@@ -42,6 +46,7 @@
         "email": "katigbakjangkarl@gmail.com",
         "manager": "50",
         "scholar": "50",
-        "sponsor": "0"
+        "sponsor": "0",
+        "sponsorName": ""
     }
 ]

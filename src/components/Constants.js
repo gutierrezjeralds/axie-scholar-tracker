@@ -19,6 +19,8 @@ const MESSAGE = {
     INPUT_USER: "Type your username or email",
     VIEW_MANAGER_EARNING: "View Manager Earnings",
     VIEW_SPONSOR_EARNING: "View Sponsor Earnings",
+    MANAGER_EARNING: "Manager Earnings",
+    SPONSOR_EARNING: "Sponsor Earnings",
     MANAGER: "Manager",
     SPONSOR: "Sponsor",
     SCHOLAR: "Scholar",

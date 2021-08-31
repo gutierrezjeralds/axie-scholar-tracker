@@ -5,7 +5,6 @@ import {
     MDBDropdown, MDBDropdownToggle, MDBDropdownMenu, MDBDropdownItem
 } from "mdbreact";
 import Cookies from 'js-cookie'
-import Manager from './views/Manager';
 
 class Header extends React.Component {
     constructor(props) {
@@ -28,13 +27,6 @@ class Header extends React.Component {
         window.location.reload();
     }
 
-    onManagerEarningHandle(event) {
-        console.log(event)
-        return (
-            <Manager />
-        )
-    }
-
     render() {
         return (
             <MDBBox tag="header">
@@ -54,12 +46,7 @@ class Header extends React.Component {
                                             <MDBBox tag="span" className="mr-2">{CONSTANTS.MESSAGE.TOTHE_MOON}</MDBBox>
                                         </MDBDropdownToggle>
                                         <MDBDropdownMenu>
-                                            {
-                                                this.state.isUser === "Manager" ? (
-                                                    <MDBDropdownItem onClick={this.onManagerEarningHandle.bind(this, CONSTANTS.MESSAGE.MANAGER)}>{CONSTANTS.MESSAGE.VIEW_MANAGER_EARNING}</MDBDropdownItem>
-                                                ) : ("")
-                                            }
-                                            <MDBDropdownItem onClick={this.onLogoutHandle.bind(this)}>{CONSTANTS.MESSAGE.LOGIN}</MDBDropdownItem>
+                                            <MDBDropdownItem onClick={this.onLogoutHandle.bind(this)}>{CONSTANTS.MESSAGE.LOGOUT}</MDBDropdownItem>
                                         </MDBDropdownMenu>
                                     </MDBDropdown>
                                 </MDBNavItem>

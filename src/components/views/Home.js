@@ -7,7 +7,6 @@ import {
 } from "mdbreact";
 import Moment from 'react-moment';
 import moment from 'moment';
-import Cookies from 'js-cookie'
 
 class Home extends React.Component {
     constructor(props) {
@@ -19,13 +18,16 @@ class Home extends React.Component {
             notifCat: "default",
             notifStr: "",
             isUser: this.props.user || "",
+            isSponsorName: "",
             slpCurrentValue: 0,
             isRecordLoaded: false,
             isPlayerLoaded: false,
             playerItems: [],
             playerRecords: [],
             singlePlayerItems: [],
-            singlePlayerRecords: []
+            singlePlayerRecords: [],
+            totalManagerSLP: 0,
+            totalSponsorSLP: 0
         }
     }
 
@@ -101,16 +103,20 @@ class Home extends React.Component {
 
                     if (item.email.toLowerCase() === this.state.isUser.toLowerCase() ||
                         item.name.toLowerCase() === this.state.isUser.toLowerCase() ||
-                        item.sponsor.toLowerCase() === this.state.isUser.toLowerCase()) {
+                        item.sponsorName.toLowerCase() === this.state.isUser.toLowerCase()) {
                             // Get ETH Address based on Credential
                             userEthAddress = ethAddress;
+                            if (item.sponsor !== "" || item.sponsor !== undefined) {
+                                // Set valid Sponsor Name
+                                this.setState({
+                                    isSponsorName: this.state.isUser
+                                })
+                            }
                     }
 
                     await this.getPlayerDetails(item, ethAddress, userEthAddress);
                     
                     if (index === result.length - 1) {
-                        // Adding Players Item Object in Cookies
-                        Cookies.set("playerItems", JSON.stringify(this.state.playerItems))
                         console.log("playerItems", this.state.playerItems)
                         
                         this.setState({
@@ -190,8 +196,28 @@ class Home extends React.Component {
                                 result.inGameSLP = totalSLP - roninBalance;
                             }
 
-                            // Set new Shared SLP
-                            if (details.manager !== "100") {
+                            if (details.manager === "100" || details.manager > 0) { // Condition for Manager
+                                // Set new Shared SLP
+                                const managerShare = details.manager === "100" ? 1 : "0." + details.manager;
+                                result.sharedManagerSLP = Math.floor(result.inGameSLP * managerShare);
+                                // Set new Total Manager's Earning
+                                this.setState({
+                                    totalManagerSLP: this.state.totalManagerSLP + result.sharedManagerSLP
+                                })
+                            }
+
+                            if (details.sponsor !== "0" || details.sponsor > 0) { // Condition for Sponsor
+                                // Set new Shared SLP
+                                const sponsorShare = "0." + details.sponsor;
+                                result.sharedSponsorSLP = Math.floor(result.inGameSLP * sponsorShare);
+                                // Set new Total Sponsor's Earning
+                                this.setState({
+                                    totalSponsorSLP: this.state.totalSponsorSLP + result.sharedSponsorSLP
+                                })
+                            }
+
+                            if (details.scholar !== "0" || details.scholar > 0) { // Condition for Scholar Players
+                                // Set new Shared SLP
                                 const iskoShare = "0." + details.scholar;
                                 result.sharedSLP = Math.floor(result.inGameSLP * iskoShare);
                             }
@@ -324,33 +350,18 @@ class Home extends React.Component {
         });
     }
 
-    // Render details for page refresh
-    renderPageRefresh() {
-        return (
-            <React.Fragment>
-                <MDBCol size="12" className="">
-                    <MDBBox tag="div" className="py-3 px-2 text-center pale-turquoise-bg">
-                        <MDBBox tag="span" className="blue-whale">
-                            {CONSTANTS.MESSAGE.PAGE_REFRESH}
-                        </MDBBox>
-                    </MDBBox>
-                </MDBCol>
-            </React.Fragment>
-        )
-    }
-
     // Render Coingecko details
     renderCoingecko() {
         if (this.state.slpCurrentValue > 0) {
             return (
                 <React.Fragment>
-                    <MDBCol size="12" className="my-3">
-                        <MDBBox tag="div" className="py-3 px-2 text-center ice-bg">
+                    <MDBCol size="12" className="mb-3">
+                        <MDBBox tag="div" className="py-3 px-2 text-center pale-turquoise-bg">
                             <MDBBox tag="span" className="blue-whale">
                                 {CONSTANTS.MESSAGE.PRICE_BASEON}
                                 <a href="https://www.coingecko.com/en/coins/smooth-love-potion" target="_blank" rel="noreferrer"> {CONSTANTS.MESSAGE.COINGECKO}. </a>
                                 {CONSTANTS.MESSAGE.CURRENT_EXCHANGERATE}:
-                                <strong> 1 SLP = {this.state.slpCurrentValue}</strong>
+                                <strong> 1 {CONSTANTS.MESSAGE.SLP} = {this.state.slpCurrentValue}</strong>
                             </MDBBox>
                         </MDBBox>
                     </MDBCol>
@@ -365,8 +376,8 @@ class Home extends React.Component {
             if (Object.keys(this.state.playerRecords).length > 0) {
                 return (
                     <React.Fragment>
-                        <MDBCol size="12" className="">
-                            <MDBBox tag="div" className="py-3 px-2 text-center rgba-teal-strong">
+                        <MDBCol size="12" className="mb-3">
+                            <MDBBox tag="div" className="py-3 px-2 text-center ice-bg">
                                 {
                                     // Top ELO / MMR Rank
                                     this.state.playerRecords.sort((a, b) =>  a.ranking.rank - b.ranking.rank ).map((items, index) => (
@@ -392,6 +403,62 @@ class Home extends React.Component {
         }
     }
 
+    // Render Total Earnings of Manager and Sponsor
+    renderEarnings() {
+        if (this.state.isUser === CONSTANTS.MESSAGE.MANAGER) {
+            if (this.state.totalManagerSLP > 0 || this.state.totalSponsorSLP > 0) {
+                // Display Manager and Sponsor's Earning
+                return (
+                    <React.Fragment>
+                        <MDBCol size="12" className="">
+                            <MDBBox tag="div" className="py-3 px-2 text-center rgba-teal-strong">
+                                {
+                                    // Display Manager's Earing
+                                    this.state.totalManagerSLP > 0 ? (
+                                        <MDBBox tag="span" className="blue-whale d-block">
+                                            {CONSTANTS.MESSAGE.MANAGER_EARNING}: {CONSTANTS.MESSAGE.SLP} {this.state.totalManagerSLP} (&#8369; {(this.state.totalManagerSLP * this.state.slpCurrentValue).toFixed(2)})
+                                        </MDBBox>
+                                    ) : ("")
+                                }
+    
+                                {
+                                    // Display Sponsor's Earing
+                                    this.state.totalSponsorSLP > 0 ? (
+                                        <MDBBox tag="span" className="blue-whale d-block">
+                                            {CONSTANTS.MESSAGE.SPONSOR_EARNING}: {CONSTANTS.MESSAGE.SLP} {this.state.totalSponsorSLP} (&#8369; {(this.state.totalSponsorSLP * this.state.slpCurrentValue).toFixed(2)})
+                                        </MDBBox>
+                                    ) : ("")
+                                }
+                            </MDBBox>
+                        </MDBCol>
+                    </React.Fragment>
+                )
+            }
+        }
+
+        if (this.state.isUser === this.state.isSponsorName) {
+            if (this.state.totalSponsorSLP > 0) {
+                // Display Sponsor's Earning
+                return (
+                    <React.Fragment>
+                        <MDBCol size="12" className="">
+                            <MDBBox tag="div" className="py-3 px-2 text-center rgba-teal-strong">
+                                {
+                                    // Display Sponsor's Earing
+                                    this.state.totalSponsorSLP > 0 ? (
+                                        <MDBBox tag="span" className="blue-whale d-block">
+                                            {CONSTANTS.MESSAGE.SPONSOR_EARNING}: {CONSTANTS.MESSAGE.SLP} {this.state.totalSponsorSLP} (&#8369; {(this.state.totalSponsorSLP * this.state.slpCurrentValue).toFixed(2)})
+                                        </MDBBox>
+                                    ) : ("")
+                                }
+                            </MDBBox>
+                        </MDBCol>
+                    </React.Fragment>
+                )
+            }
+        }
+    }
+
     // Render single player details
     renderSingleDetails() {
         if ( this.state.isPlayerLoaded && this.state.isLoaded && !this.state.error ) {
@@ -401,68 +468,66 @@ class Home extends React.Component {
                         {
                             // Scholar display x single display
                             this.state.singlePlayerRecords.map(items => (
-                                items.details.manager !== "100" ? (
-                                    <MDBCol key={items.client_id} sm="12" md="6" lg="4" className="my-3">
-                                        <MDBCard className="z-depth-2">
-                                            <MDBCardBody className="black-text">
-                                                <MDBCardTitle className="font-weight-bold font-family-architects-daughter">{items.ranking.name}</MDBCardTitle>
-                                                <MDBBox tag="div">
-                                                    <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
-                                                        <MDBBox tag="span" className="font-weight-bold text-uupercase">{CONSTANTS.MESSAGE.MMR}: </MDBBox>
-                                                        {(items.ranking.elo).toLocaleString()}
-                                                    </MDBBox>
-                                                    <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
-                                                        <MDBBox tag="span" className="font-weight-bold">{CONSTANTS.MESSAGE.RANK}: </MDBBox>
-                                                        {(items.ranking.rank).toLocaleString()}
-                                                    </MDBBox>
-                                                    <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
-                                                        <MDBBox tag="span" className="font-weight-bold">{CONSTANTS.MESSAGE.LAST_CLAIMED_SLP}: </MDBBox>
-                                                        {items.blockchain_related.signature.amount > 0 ? (items.blockchain_related.signature.amount) : ("")}
-                                                    </MDBBox>
-                                                    <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
-                                                        <MDBBox tag="span" className="font-weight-bold">{CONSTANTS.MESSAGE.LAST_CLAIMED_AT}: </MDBBox>
-                                                        {items.blockchain_related.signature.amount > 0 ? (
-                                                            <Moment format="MMM DD, YYYY HH:MM A" unix>{items.blockchain_related.signature.timestamp}</Moment>
-                                                        ) : ("")}
-                                                    </MDBBox>
-                                                    <MDBBox tag="div" className="mt-3">
-                                                        <MDBTable bordered striped responsive>
-                                                            <MDBTableHead color="rgba-teal-strong" textWhite>
-                                                                <tr>
-                                                                    <th colSpan="5" className="text-center font-weight-bold">{CONSTANTS.MESSAGE.SLP_DESC}</th>
-                                                                </tr>
-                                                            </MDBTableHead>
-                                                            <MDBTableBody>
-                                                                <tr className="text-center">
-                                                                    <td colSpan="2" rowSpan="2" className="font-weight-bold v-align-middle text-uppercase">{CONSTANTS.MESSAGE.CLAIMON}</td>
-                                                                    <td colSpan="3" className="font-weight-bold">{<Moment format="MMM DD, YYYY HH:MM A" add={{ days: 14 }} unix>{items.last_claimed_item_at}</Moment>}</td>
-                                                                    
-                                                                </tr>
-                                                                <tr className="text-center">
-                                                                    <td colSpan="3" className="font-weight-bold">{<Moment durationFromNow>{items.last_claimed_item_at_add}</Moment>}</td>
-                                                                </tr>
-                                                                <tr className="text-center">
-                                                                    <td className="font-weight-bold text-uppercase" title="Adventure SLP Quest (Today)">{CONSTANTS.MESSAGE.ADV}</td>
-                                                                    <td className="font-weight-bold text-uppercase" title="In Game SLP">{CONSTANTS.MESSAGE.INGAME}</td>
-                                                                    <td className="font-weight-bold text-uppercase" title="In Game SLP Sharing">{CONSTANTS.MESSAGE.SHARE} ({items.details.scholar}%)</td>
-                                                                    <td className="font-weight-bold text-uppercase" title="Ronin SLP + Sharing SLP">{CONSTANTS.MESSAGE.TOTAL}</td>
-                                                                    <td className="font-weight-bold text-uppercase" title="PHP Currency">{CONSTANTS.MESSAGE.EARNING}</td>
-                                                                </tr>
-                                                                <tr className="text-center">
-                                                                    <td>0</td>
-                                                                    <td>{items.inGameSLP}</td>
-                                                                    <td>{items.sharedSLP}</td>
-                                                                    <td>{items.totalSLP}</td>
-                                                                    <td>{(items.totalSLP * this.state.slpCurrentValue).toFixed(2)}</td>
-                                                                </tr>
-                                                            </MDBTableBody>
-                                                        </MDBTable>
-                                                    </MDBBox>
+                                <MDBCol key={items.client_id} sm="12" md="6" lg="4" className="my-3">
+                                    <MDBCard className="z-depth-2">
+                                        <MDBCardBody className="black-text">
+                                            <MDBCardTitle className="font-weight-bold font-family-architects-daughter">{items.ranking.name}</MDBCardTitle>
+                                            <MDBBox tag="div">
+                                                <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
+                                                    <MDBBox tag="span" className="font-weight-bold text-uupercase">{CONSTANTS.MESSAGE.MMR}: </MDBBox>
+                                                    {(items.ranking.elo).toLocaleString()}
                                                 </MDBBox>
-                                            </MDBCardBody>
-                                        </MDBCard>
-                                    </MDBCol>
-                                ) : ("")
+                                                <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
+                                                    <MDBBox tag="span" className="font-weight-bold">{CONSTANTS.MESSAGE.RANK}: </MDBBox>
+                                                    {(items.ranking.rank).toLocaleString()}
+                                                </MDBBox>
+                                                <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
+                                                    <MDBBox tag="span" className="font-weight-bold">{CONSTANTS.MESSAGE.LAST_CLAIMED_SLP}: </MDBBox>
+                                                    {items.blockchain_related.signature.amount > 0 ? (items.blockchain_related.signature.amount) : ("")}
+                                                </MDBBox>
+                                                <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
+                                                    <MDBBox tag="span" className="font-weight-bold">{CONSTANTS.MESSAGE.LAST_CLAIMED_AT}: </MDBBox>
+                                                    {items.blockchain_related.signature.amount > 0 ? (
+                                                        <Moment format="MMM DD, YYYY HH:MM A" unix>{items.blockchain_related.signature.timestamp}</Moment>
+                                                    ) : ("")}
+                                                </MDBBox>
+                                                <MDBBox tag="div" className="mt-3">
+                                                    <MDBTable bordered striped responsive>
+                                                        <MDBTableHead color="rgba-teal-strong" textWhite>
+                                                            <tr>
+                                                                <th colSpan="5" className="text-center font-weight-bold">{CONSTANTS.MESSAGE.SLP_DESC}</th>
+                                                            </tr>
+                                                        </MDBTableHead>
+                                                        <MDBTableBody>
+                                                            <tr className="text-center">
+                                                                <td colSpan="2" rowSpan="2" className="font-weight-bold v-align-middle text-uppercase">{CONSTANTS.MESSAGE.CLAIMON}</td>
+                                                                <td colSpan="3" className="font-weight-bold">{<Moment format="MMM DD, YYYY HH:MM A" add={{ days: 14 }} unix>{items.last_claimed_item_at}</Moment>}</td>
+                                                                
+                                                            </tr>
+                                                            <tr className="text-center">
+                                                                <td colSpan="3" className="font-weight-bold">{<Moment durationFromNow>{items.last_claimed_item_at_add}</Moment>}</td>
+                                                            </tr>
+                                                            <tr className="text-center">
+                                                                <td className="font-weight-bold text-uppercase" title="Adventure SLP Quest (Today)">{CONSTANTS.MESSAGE.ADV}</td>
+                                                                <td className="font-weight-bold text-uppercase" title="In Game SLP">{CONSTANTS.MESSAGE.INGAME}</td>
+                                                                <td className="font-weight-bold text-uppercase" title="In Game SLP Sharing">{CONSTANTS.MESSAGE.SHARE} ({items.details.manager === "100" ? items.details.manager : items.details.scholar}%)</td>
+                                                                <td className="font-weight-bold text-uppercase" title="Ronin SLP + Sharing SLP">{CONSTANTS.MESSAGE.TOTAL}</td>
+                                                                <td className="font-weight-bold text-uppercase" title="PHP Currency">{CONSTANTS.MESSAGE.EARNING}</td>
+                                                            </tr>
+                                                            <tr className="text-center">
+                                                                <td>0</td>
+                                                                <td>{items.inGameSLP}</td>
+                                                                <td>{items.sharedSLP}</td>
+                                                                <td>{items.totalSLP}</td>
+                                                                <td>{(items.totalSLP * this.state.slpCurrentValue).toFixed(2)}</td>
+                                                            </tr>
+                                                        </MDBTableBody>
+                                                    </MDBTable>
+                                                </MDBBox>
+                                            </MDBBox>
+                                        </MDBCardBody>
+                                    </MDBCard>
+                                </MDBCol>
                             ))
                         }
                     </React.Fragment>
@@ -478,138 +543,68 @@ class Home extends React.Component {
                 return (
                     <React.Fragment>
                         {
-                            // Manager display x always on top
-                            this.state.playerRecords.map(items => (
-                                items.details.manager === "100" ? (
-                                    <MDBCol key={items.client_id} sm="12" md="6" lg="4" className="my-3">
-                                        <MDBCard className="z-depth-2">
-                                            <MDBCardBody className="black-text">
-                                                <MDBCardTitle className="font-weight-bold font-family-architects-daughter">{items.ranking.name}</MDBCardTitle>
-                                                <MDBBox tag="div">
-                                                    <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
-                                                        <MDBBox tag="span" className="font-weight-bold text-uupercase">{CONSTANTS.MESSAGE.MMR}: </MDBBox>
-                                                        {(items.ranking.elo).toLocaleString()}
-                                                    </MDBBox>
-                                                    <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
-                                                        <MDBBox tag="span" className="font-weight-bold">{CONSTANTS.MESSAGE.RANK}: </MDBBox>
-                                                        {(items.ranking.rank).toLocaleString()}
-                                                    </MDBBox>
-                                                    <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
-                                                        <MDBBox tag="span" className="font-weight-bold">{CONSTANTS.MESSAGE.LAST_CLAIMED_SLP}: </MDBBox>
-                                                        {items.blockchain_related.signature.amount > 0 ? (items.blockchain_related.signature.amount) : ("")}
-                                                    </MDBBox>
-                                                    <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
-                                                        <MDBBox tag="span" className="font-weight-bold">{CONSTANTS.MESSAGE.LAST_CLAIMED_AT}: </MDBBox>
-                                                        {items.blockchain_related.signature.amount > 0 ? (
-                                                            <Moment format="MMM DD, YYYY HH:MM A" unix>{items.blockchain_related.signature.timestamp}</Moment>
-                                                        ) : ("")}
-                                                    </MDBBox>
-                                                    <MDBBox tag="div" className="mt-3">
-                                                        <MDBTable bordered striped responsive>
-                                                            <MDBTableHead color="rgba-teal-strong" textWhite>
-                                                                <tr>
-                                                                    <th colSpan="5" className="text-center font-weight-bold">{CONSTANTS.MESSAGE.SLP_DESC}</th>
-                                                                </tr>
-                                                            </MDBTableHead>
-                                                            <MDBTableBody>
-                                                                <tr className="text-center">
-                                                                    <td colSpan="2" rowSpan="2" className="font-weight-bold v-align-middle text-uppercase">{CONSTANTS.MESSAGE.CLAIMON}</td>
-                                                                    <td colSpan="3" className="font-weight-bold">{<Moment format="MMM DD, YYYY HH:MM A" add={{ days: 14 }} unix>{items.last_claimed_item_at}</Moment>}</td>
-                                                                    
-                                                                </tr>
-                                                                <tr className="text-center">
-                                                                    <td colSpan="3" className="font-weight-bold">{<Moment durationFromNow>{items.last_claimed_item_at_add}</Moment>}</td>
-                                                                </tr>
-                                                                <tr className="text-center">
-                                                                    <td className="font-weight-bold text-uppercase" title="Adventure SLP Quest (Today)">{CONSTANTS.MESSAGE.ADV}</td>
-                                                                    <td className="font-weight-bold text-uppercase" title="In Game SLP">{CONSTANTS.MESSAGE.INGAME}</td>
-                                                                    <td className="font-weight-bold text-uppercase" title="In Game SLP Sharing">{CONSTANTS.MESSAGE.SHARE} ({items.details.manager}%)</td>
-                                                                    <td className="font-weight-bold text-uppercase" title="Ronin SLP + Sharing SLP">{CONSTANTS.MESSAGE.TOTAL}</td>
-                                                                    <td className="font-weight-bold text-uppercase" title="PHP Currency">{CONSTANTS.MESSAGE.EARNING}</td>
-                                                                </tr>
-                                                                <tr className="text-center">
-                                                                    <td>0</td>
-                                                                    <td>{items.inGameSLP}</td>
-                                                                    <td>{items.sharedSLP}</td>
-                                                                    <td>{items.totalSLP}</td>
-                                                                    <td>{(items.totalSLP * this.state.slpCurrentValue).toFixed(2)}</td>
-                                                                </tr>
-                                                            </MDBTableBody>
-                                                        </MDBTable>
-                                                    </MDBBox>
-                                                </MDBBox>
-                                            </MDBCardBody>
-                                        </MDBCard>
-                                    </MDBCol>
-                                ) : ("")
-                            ))
-                        }
-
-                        {
                             // Scholar display x sort by ELO Ranking
                             this.state.playerRecords.sort((a, b) =>  a.ranking.rank - b.ranking.rank ).map(items => (
-                                items.details.manager !== "100" ? (
-                                    <MDBCol key={items.client_id} sm="12" md="6" lg="4" className="my-3">
-                                        <MDBCard className="z-depth-2">
-                                            <MDBCardBody className="black-text">
-                                                <MDBCardTitle className="font-weight-bold font-family-architects-daughter">{items.ranking.name}</MDBCardTitle>
-                                                <MDBBox tag="div">
-                                                    <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
-                                                        <MDBBox tag="span" className="font-weight-bold text-uupercase">{CONSTANTS.MESSAGE.MMR}: </MDBBox>
-                                                        {(items.ranking.elo).toLocaleString()}
-                                                    </MDBBox>
-                                                    <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
-                                                        <MDBBox tag="span" className="font-weight-bold">{CONSTANTS.MESSAGE.RANK}: </MDBBox>
-                                                        {(items.ranking.rank).toLocaleString()}
-                                                    </MDBBox>
-                                                    <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
-                                                        <MDBBox tag="span" className="font-weight-bold">{CONSTANTS.MESSAGE.LAST_CLAIMED_SLP}: </MDBBox>
-                                                        {items.blockchain_related.signature.amount > 0 ? (items.blockchain_related.signature.amount) : ("")}
-                                                    </MDBBox>
-                                                    <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
-                                                        <MDBBox tag="span" className="font-weight-bold">{CONSTANTS.MESSAGE.LAST_CLAIMED_AT}: </MDBBox>
-                                                        {items.blockchain_related.signature.amount > 0 ? (
-                                                            <Moment format="MMM DD, YYYY HH:MM A" unix>{items.blockchain_related.signature.timestamp}</Moment>
-                                                        ) : ("")}
-                                                    </MDBBox>
-                                                    <MDBBox tag="div" className="mt-3">
-                                                        <MDBTable bordered striped responsive>
-                                                            <MDBTableHead color="rgba-teal-strong" textWhite>
-                                                                <tr>
-                                                                    <th colSpan="5" className="text-center font-weight-bold">{CONSTANTS.MESSAGE.SLP_DESC}</th>
-                                                                </tr>
-                                                            </MDBTableHead>
-                                                            <MDBTableBody>
-                                                                <tr className="text-center">
-                                                                    <td colSpan="2" rowSpan="2" className="font-weight-bold v-align-middle text-uppercase">{CONSTANTS.MESSAGE.CLAIMON}</td>
-                                                                    <td colSpan="3" className="font-weight-bold">{<Moment format="MMM DD, YYYY HH:MM A" add={{ days: 14 }} unix>{items.last_claimed_item_at}</Moment>}</td>
-                                                                    
-                                                                </tr>
-                                                                <tr className="text-center">
-                                                                    <td colSpan="3" className="font-weight-bold">{<Moment durationFromNow>{items.last_claimed_item_at_add}</Moment>}</td>
-                                                                </tr>
-                                                                <tr className="text-center">
-                                                                    <td className="font-weight-bold text-uppercase" title="Adventure SLP Quest (Today)">{CONSTANTS.MESSAGE.ADV}</td>
-                                                                    <td className="font-weight-bold text-uppercase" title="In Game SLP">{CONSTANTS.MESSAGE.INGAME}</td>
-                                                                    <td className="font-weight-bold text-uppercase" title="In Game SLP Sharing">{CONSTANTS.MESSAGE.SHARE} ({items.details.scholar}%)</td>
-                                                                    <td className="font-weight-bold text-uppercase" title="Ronin SLP + Sharing SLP">{CONSTANTS.MESSAGE.TOTAL}</td>
-                                                                    <td className="font-weight-bold text-uppercase" title="PHP Currency">{CONSTANTS.MESSAGE.EARNING}</td>
-                                                                </tr>
-                                                                <tr className="text-center">
-                                                                    <td>0</td>
-                                                                    <td>{items.inGameSLP}</td>
-                                                                    <td>{items.sharedSLP}</td>
-                                                                    <td>{items.totalSLP}</td>
-                                                                    <td>{(items.totalSLP * this.state.slpCurrentValue).toFixed(2)}</td>
-                                                                </tr>
-                                                            </MDBTableBody>
-                                                        </MDBTable>
-                                                    </MDBBox>
+                                <MDBCol key={items.client_id} sm="12" md="6" lg="4" className="my-3">
+                                    <MDBCard className="z-depth-2">
+                                        <MDBCardBody className="black-text">
+                                            <MDBCardTitle className="font-weight-bold font-family-architects-daughter">{items.ranking.name}</MDBCardTitle>
+                                            <MDBBox tag="div">
+                                                <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
+                                                    <MDBBox tag="span" className="font-weight-bold text-uupercase">{CONSTANTS.MESSAGE.MMR}: </MDBBox>
+                                                    {(items.ranking.elo).toLocaleString()}
                                                 </MDBBox>
-                                            </MDBCardBody>
-                                        </MDBCard>
-                                    </MDBCol>
-                                ) : ("")
+                                                <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
+                                                    <MDBBox tag="span" className="font-weight-bold">{CONSTANTS.MESSAGE.RANK}: </MDBBox>
+                                                    {(items.ranking.rank).toLocaleString()}
+                                                </MDBBox>
+                                                <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
+                                                    <MDBBox tag="span" className="font-weight-bold">{CONSTANTS.MESSAGE.LAST_CLAIMED_SLP}: </MDBBox>
+                                                    {items.blockchain_related.signature.amount > 0 ? (items.blockchain_related.signature.amount) : ("")}
+                                                </MDBBox>
+                                                <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
+                                                    <MDBBox tag="span" className="font-weight-bold">{CONSTANTS.MESSAGE.LAST_CLAIMED_AT}: </MDBBox>
+                                                    {items.blockchain_related.signature.amount > 0 ? (
+                                                        <Moment format="MMM DD, YYYY HH:MM A" unix>{items.blockchain_related.signature.timestamp}</Moment>
+                                                    ) : ("")}
+                                                </MDBBox>
+                                                <MDBBox tag="div" className="mt-3">
+                                                    <MDBTable bordered striped responsive>
+                                                        <MDBTableHead color="rgba-teal-strong" textWhite>
+                                                            <tr>
+                                                                <th colSpan="5" className="text-center font-weight-bold">{CONSTANTS.MESSAGE.SLP_DESC}</th>
+                                                            </tr>
+                                                        </MDBTableHead>
+                                                        <MDBTableBody>
+                                                            <tr className="text-center">
+                                                                <td colSpan="2" rowSpan="2" className="font-weight-bold v-align-middle text-uppercase">{CONSTANTS.MESSAGE.CLAIMON}</td>
+                                                                <td colSpan="3" className="font-weight-bold">{<Moment format="MMM DD, YYYY HH:MM A" add={{ days: 14 }} unix>{items.last_claimed_item_at}</Moment>}</td>
+                                                                
+                                                            </tr>
+                                                            <tr className="text-center">
+                                                                <td colSpan="3" className="font-weight-bold">{<Moment durationFromNow>{items.last_claimed_item_at_add}</Moment>}</td>
+                                                            </tr>
+                                                            <tr className="text-center">
+                                                                <td className="font-weight-bold text-uppercase" title="Adventure SLP Quest (Today)">{CONSTANTS.MESSAGE.ADV}</td>
+                                                                <td className="font-weight-bold text-uppercase" title="In Game SLP">{CONSTANTS.MESSAGE.INGAME}</td>
+                                                                <td className="font-weight-bold text-uppercase" title="In Game SLP Sharing">{CONSTANTS.MESSAGE.SHARE} ({items.details.manager === "100" ? items.details.manager : items.details.scholar}%)</td>
+                                                                <td className="font-weight-bold text-uppercase" title="Ronin SLP + Sharing SLP">{CONSTANTS.MESSAGE.TOTAL}</td>
+                                                                <td className="font-weight-bold text-uppercase" title="PHP Currency">{CONSTANTS.MESSAGE.EARNING}</td>
+                                                            </tr>
+                                                            <tr className="text-center">
+                                                                <td>0</td>
+                                                                <td>{items.inGameSLP}</td>
+                                                                <td>{items.sharedSLP}</td>
+                                                                <td>{items.totalSLP}</td>
+                                                                <td>{(items.totalSLP * this.state.slpCurrentValue).toFixed(2)}</td>
+                                                            </tr>
+                                                        </MDBTableBody>
+                                                    </MDBTable>
+                                                </MDBBox>
+                                            </MDBBox>
+                                        </MDBCardBody>
+                                    </MDBCard>
+                                </MDBCol>
                             ))
                         }
                     </React.Fragment>
@@ -652,9 +647,9 @@ class Home extends React.Component {
                 {/* Render Notification Bar for Page refresh, Coingecko details and Top Scholar */}
                 <MDBContainer fluid className="pt-5 mt-5 position-relative">
                     <MDBRow>
-                        {this.renderPageRefresh()}
                         {this.renderCoingecko()}
                         {this.renderTopScholar()}
+                        {this.renderEarnings()}
                     </MDBRow>
                 </MDBContainer>
 

@@ -27,7 +27,7 @@ class Login extends React.Component {
                 // Display all details
                 Cookies.set("filter", CONSTANTS.MESSAGE.MANAGER)
                 // Reload page
-                window.location.reload(false);
+                window.location.reload();
             } else {
                 // Get Record Data from table / json
                 $.ajax({
@@ -38,7 +38,7 @@ class Login extends React.Component {
                 .then(
                     (result) => {
                         const validUser = result.find(valid => valid.email.toLowerCase() === user.toLowerCase() || valid.name.toLowerCase() === user.toLocaleLowerCase());
-                        const validSponsor = result.find(valid => valid.sponsor.toLowerCase() === user.toLowerCase());
+                        const validSponsor = result.find(valid => valid.sponsorName.toLowerCase() === user.toLowerCase());
                         if (validUser && validUser !== undefined && Object.keys(validUser).length > 0) {
                             // Display detail based on credential
                             Cookies.set("filter", user)

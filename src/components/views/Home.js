@@ -443,7 +443,7 @@ class Home extends React.Component {
                                 {CONSTANTS.MESSAGE.PRICE_BASEON}
                                 <a href="https://www.coingecko.com/en/coins/smooth-love-potion" target="_blank" rel="noreferrer"> {CONSTANTS.MESSAGE.COINGECKO}. </a>
                                 {CONSTANTS.MESSAGE.CURRENT_EXCHANGERATE}:
-                                <MDBBox tag="span" className="d-block">
+                                <MDBBox tag="span" className="">
                                     <strong> 1 {CONSTANTS.MESSAGE.SLP} = {this.state.slpCurrentValue}</strong>
                                     <strong> and 1 {CONSTANTS.MESSAGE.AXS} = {this.state.axsCurrentValue}</strong>
                                 </MDBBox>

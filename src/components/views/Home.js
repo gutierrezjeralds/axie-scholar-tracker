@@ -43,7 +43,7 @@ class Home extends React.Component {
     }
 
     componentDidMount() {
-        this.pageRefresh();
+        this.pageRefresh(120000); // Refresh in 2 minutes
         this.getCoingecko();
         this.getRecord();
     }
@@ -64,10 +64,10 @@ class Home extends React.Component {
     }
 
     // Page reload
-    pageRefresh = () => {
+    pageRefresh = (time) => {
         setTimeout( function() {
             window.location.reload();
-        }, 120000);
+        }, time);
     }
 
     // Get Coingecko data / json
@@ -904,6 +904,7 @@ class Home extends React.Component {
                         // Empty Player details x Error in Ajax
                         <MDBContainer fluid className="pt-3 pb-5 mb-5 position-relative">
                             {this.renderEmptyDetails()}
+                            {this.pageRefresh(2000)} {/* Refresh in 2 seconds if there's an error */}
                         </MDBContainer>
                     ) : (
                         Object.keys(this.state.playerRecords).length <= 0 ? (

@@ -57,7 +57,9 @@ const MESSAGE = {
     INGAME_SLP: "InGame SLP",
     INGAME_SLP_SHARING: "In Game SLP Sharing",
     RONIN_PLUS_SHARING_SLP: "Ronin SLP + Sharing SLP",
-    PHP_CURRENCY: "PHP Currency"
+    PHP_CURRENCY: "PHP Currency",
+    AVERAGE: "Average",
+    AVERAGE_SLP_PERDAY: "Average SLP per day"
 }
 
 export const CONSTANTS = {

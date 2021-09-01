@@ -40,7 +40,7 @@ class Home extends React.Component {
         }
     }
 
-    UNSAFE_componentWillMount() {
+    componentDidMount() {
         this.pageRefresh();
         this.getCoingecko();
         this.getRecord();
@@ -184,9 +184,9 @@ class Home extends React.Component {
                     
                     if (index === result.length - 1) {
                         // Get Top User MMR and SLP
-                        if (Object.keys(this.state.playerItems).length > 0) {
-                            const getTopUserMMR = this.state.playerItems.reduce((max, obj) => (obj.ranking.elo > max.ranking.elo) ? obj : max);
-                            const getTopUserSLP = this.state.playerItems.reduce((max, obj) => (obj.inGameSLP > max.inGameSLP) ? obj : max);
+                        if (Object.keys(this.state.playerRecords).length > 0) {
+                            const getTopUserMMR = this.state.playerRecords.reduce((obj, max) => (obj.ranking.elo > max.ranking.elo) ? obj : max);
+                            const getTopUserSLP = this.state.playerRecords.reduce((obj, max) => (obj.inGameSLP > max.inGameSLP) ? obj : max);
                             this.setState({
                                 topUserMMR: getTopUserMMR,
                                 topUserSLP: getTopUserSLP
@@ -198,7 +198,7 @@ class Home extends React.Component {
                             isPlayerLoaded: true
                         })
 
-                        console.log("playerItems", this.state.playerItems)
+                        // console.log("playerItems", this.state.playerItems)
                     }
                     return true;
                 });
@@ -655,8 +655,8 @@ class Home extends React.Component {
                                                             <tr className="text-center">
                                                                 <td className="font-weight-bold text-uppercase">
                                                                     <MDBTooltip domElement tag="span" placement="top">
-                                                                        <span>{CONSTANTS.MESSAGE.ADV}</span>
-                                                                        <span>{CONSTANTS.MESSAGE.ADV_QUEST_TODAY}</span>
+                                                                        <span>{CONSTANTS.MESSAGE.AVERAGE}</span>
+                                                                        <span>{CONSTANTS.MESSAGE.AVERAGE_SLP_PERDAY}</span>
                                                                     </MDBTooltip>
                                                                 </td>
                                                                 <td className="font-weight-bold text-uppercase">
@@ -685,7 +685,7 @@ class Home extends React.Component {
                                                                 </td>
                                                             </tr>
                                                             <tr className="text-center">
-                                                                <td>0</td>
+                                                                <td>{Math.floor(items.inGameSLP / items.claim_on_days)}</td>
                                                                 <td>{items.inGameSLP}</td>
                                                                 <td>{items.sharedSLP}</td>
                                                                 <td>{items.totalSLP}</td>
@@ -730,7 +730,7 @@ class Home extends React.Component {
                     <React.Fragment>
                         {
                             // Scholar display x sort by ELO Ranking
-                            this.state.playerRecords.sort((a, b) =>  a.ranking.rank - b.ranking.rank ).map(items => (
+                            this.state.playerRecords.sort((a, b) =>  a.ranking.rank - b.ranking.rank ).map((items) => (
                                 <MDBCol key={items.client_id} sm="12" md="6" lg="4" className="my-3">
                                     <MDBCard className="z-depth-2">
                                         <MDBCardBody className="black-text">
@@ -771,7 +771,12 @@ class Home extends React.Component {
                                                                             <span>{CONSTANTS.MESSAGE.TOP_INGAME_SLP}</span>
                                                                         </MDBTooltip>
                                                                     </MDBBox>
-                                                                ) : ("")
+                                                                ) : (
+                                                                    // Display MRR detail
+                                                                    <MDBBox tag="span" className="float-right mt-2 font-size-pt9rem font-family-default font-weight-normal">
+                                                                        <MDBBox tag="span" className="font-weight-bold">{CONSTANTS.MESSAGE.MMR}:</MDBBox> {(items.ranking.elo).toLocaleString()}
+                                                                    </MDBBox>
+                                                                )
                                                             )
                                                         )
                                                     ) : ("")
@@ -796,8 +801,8 @@ class Home extends React.Component {
                                                             <tr className="text-center">
                                                                 <td className="font-weight-bold text-uppercase">
                                                                     <MDBTooltip domElement tag="span" placement="top">
-                                                                        <span>{CONSTANTS.MESSAGE.ADV}</span>
-                                                                        <span>{CONSTANTS.MESSAGE.ADV_QUEST_TODAY}</span>
+                                                                        <span>{CONSTANTS.MESSAGE.AVERAGE}</span>
+                                                                        <span>{CONSTANTS.MESSAGE.AVERAGE_SLP_PERDAY}</span>
                                                                     </MDBTooltip>
                                                                 </td>
                                                                 <td className="font-weight-bold text-uppercase">
@@ -826,7 +831,7 @@ class Home extends React.Component {
                                                                 </td>
                                                             </tr>
                                                             <tr className="text-center">
-                                                                <td>0</td>
+                                                                <td>{Math.floor(items.inGameSLP / items.claim_on_days)}</td>
                                                                 <td>{items.inGameSLP}</td>
                                                                 <td>{items.sharedSLP}</td>
                                                                 <td>{items.totalSLP}</td>

@@ -1,7 +1,13 @@
 // Common class
 // Font size
+.font-size-pt9rem{
+    font-size: $size-pt9rem !important;
+}
 .font-size-1rem{
     font-size: $size-1rem !important;
+}
+.font-size-1pt2rem{
+    font-size: $size-1pt2rem !important;
 }
 .font-size-1pt3rem{
     font-size: $size-1pt3rem !important;
@@ -85,6 +91,9 @@
     }
 }
 // Font family
+.font-family-default {
+    font-family: $family-roboto, $family-sans-serif !important;
+}
 .font-family-fantasy{
     font-family: $family-fantasy, $family-roboto, $family-sans-serif !important;
 }

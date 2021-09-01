@@ -4,7 +4,8 @@ import { CONSTANTS } from '../Constants';
 import { 
     MDBBox, MDBContainer, MDBRow, MDBCol, MDBCard, MDBCardBody, MDBCardTitle,
     MDBTable, MDBTableBody, MDBTableHead,
-    MDBModal, MDBModalHeader, MDBModalBody
+    MDBModal, MDBModalHeader, MDBModalBody,
+    MDBIcon
 } from "mdbreact";
 import Moment from 'react-moment';
 import moment from 'moment';
@@ -32,7 +33,9 @@ class Home extends React.Component {
             isModalEarningOpen: false,
             modalEarningTitle: "",
             modalEarningFilter: "",
-            modalEarningDetails: []
+            modalEarningDetails: [],
+            topUserMMR: "",
+            topUserSLP: ""
         }
     }
 
@@ -137,12 +140,22 @@ class Home extends React.Component {
                     await this.getPlayerDetails(item, ethAddress, userEthAddress);
                     
                     if (index === result.length - 1) {
-                        console.log("playerItems", this.state.playerItems)
+                        // Get Top User MMR and SLP
+                        if (Object.keys(this.state.playerItems).length > 0) {
+                            const getTopUserMMR = this.state.playerItems.reduce((max, obj) => (obj.ranking.elo > max.ranking.elo) ? obj : max);
+                            const getTopUserSLP = this.state.playerItems.reduce((max, obj) => (obj.inGameSLP > max.inGameSLP) ? obj : max);
+                            this.setState({
+                                topUserMMR: getTopUserMMR,
+                                topUserSLP: getTopUserSLP
+                            })
+                        }
                         
                         this.setState({
                             isLoaded: true,
                             isPlayerLoaded: true
                         })
+
+                        console.log("playerItems", this.state.playerItems)
                     }
                     return true;
                 });
@@ -399,27 +412,27 @@ class Home extends React.Component {
     // Render Top scholar x ELO Ranking and SLP Earning
     renderTopScholar() {
         if ( this.state.isPlayerLoaded && this.state.isLoaded && !this.state.error ) {
-            if (Object.keys(this.state.playerRecords).length > 0) {
+            if (Object.keys(this.state.playerRecords).length > 0 && (this.state.topUserMMR !== "" && this.state.topUserSLP !== "")) {
                 return (
                     <React.Fragment>
                         <MDBCol size="12" className="mb-3">
                             <MDBBox tag="div" className="py-3 px-2 text-center ice-bg">
                                 {
                                     // Top ELO / MMR Rank
-                                    this.state.playerRecords.sort((a, b) =>  a.ranking.rank - b.ranking.rank ).map((items, index) => (
-                                        index === 0 ? (
-                                            <MDBBox key={items.client_id} tag="span" className="">{CONSTANTS.MESSAGE.TOP_MMR}: <strong>{items.ranking.name} ({items.ranking.elo})</strong></MDBBox>
-                                        ) : ("")
-                                    ))
+                                    this.state.topUserMMR !== "" && Object.keys(this.state.topUserMMR).length > 0 ? (
+                                        <React.Fragment>
+                                            <MDBBox key={this.state.topUserMMR.client_id} tag="span" className="">{CONSTANTS.MESSAGE.TOP_MMR}: <strong>{this.state.topUserMMR.ranking.name} ({this.state.topUserMMR.ranking.elo})</strong></MDBBox>
+                                        </React.Fragment>
+                                    ) : ("")
                                 }
 
                                 {
                                     // Top In Game SLP
-                                    this.state.playerRecords.sort((a, b) =>  b.total - a.total ).map((items, index) => (
-                                        index === 0 ? (
-                                            <MDBBox key={items.client_id} tag="span" className="ml-2">{CONSTANTS.MESSAGE.TOP_INGAME_SLP}: <strong>{items.ranking.name} ({items.inGameSLP})</strong></MDBBox>
-                                        ) : ("")
-                                    ))
+                                    this.state.topUserSLP !== "" && Object.keys(this.state.topUserSLP).length > 0 ? (
+                                        <React.Fragment>
+                                            <MDBBox key={this.state.topUserSLP.client_id} tag="span" className="ml-2">{CONSTANTS.MESSAGE.TOP_INGAME_SLP}: <strong>{this.state.topUserSLP.ranking.name} ({this.state.topUserSLP.inGameSLP})</strong></MDBBox>
+                                        </React.Fragment>
+                                    ) : ("")
                                 }
                             </MDBBox>
                         </MDBCol>
@@ -561,24 +574,6 @@ class Home extends React.Component {
                                         <MDBCardBody className="black-text">
                                             <MDBCardTitle className="font-weight-bold font-family-architects-daughter">{items.ranking.name}</MDBCardTitle>
                                             <MDBBox tag="div">
-                                                <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
-                                                    <MDBBox tag="span" className="font-weight-bold text-uupercase">{CONSTANTS.MESSAGE.MMR}: </MDBBox>
-                                                    {(items.ranking.elo).toLocaleString()}
-                                                </MDBBox>
-                                                <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
-                                                    <MDBBox tag="span" className="font-weight-bold">{CONSTANTS.MESSAGE.RANK}: </MDBBox>
-                                                    {(items.ranking.rank).toLocaleString()}
-                                                </MDBBox>
-                                                <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
-                                                    <MDBBox tag="span" className="font-weight-bold">{CONSTANTS.MESSAGE.LAST_CLAIMED_SLP}: </MDBBox>
-                                                    {items.blockchain_related.signature.amount > 0 ? (items.blockchain_related.signature.amount) : ("")}
-                                                </MDBBox>
-                                                <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
-                                                    <MDBBox tag="span" className="font-weight-bold">{CONSTANTS.MESSAGE.LAST_CLAIMED_AT}: </MDBBox>
-                                                    {items.blockchain_related.signature.amount > 0 ? (
-                                                        <Moment format="MMM DD, YYYY HH:MM A" unix>{items.blockchain_related.signature.timestamp}</Moment>
-                                                    ) : ("")}
-                                                </MDBBox>
                                                 <MDBBox tag="div" className="mt-3">
                                                     <MDBTable bordered striped responsive>
                                                         <MDBTableHead color="rgba-teal-strong" textWhite>
@@ -607,6 +602,22 @@ class Home extends React.Component {
                                                                 <td>{items.sharedSLP}</td>
                                                                 <td>{items.totalSLP}</td>
                                                                 <td>{this.numberWithCommas((items.totalSLP * this.state.slpCurrentValue).toFixed(2))}</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td colSpan="5" className="text-center font-weight-bold rgba-teal-strong white-text">{CONSTANTS.MESSAGE.ARENAGAME_STATUS}</td>
+                                                            </tr>
+                                                            <tr className="text-center">
+                                                                <td className="font-weight-bold text-uppercase table-gray-bg">{CONSTANTS.MESSAGE.WIN}</td>
+                                                                <td className="font-weight-bold text-uppercase table-gray-bg">{CONSTANTS.MESSAGE.LOSE}</td>
+                                                                <td className="font-weight-bold text-uppercase table-gray-bg">{CONSTANTS.MESSAGE.DRAW}</td>
+                                                                <td className="font-weight-bold text-uppercase table-gray-bg">{CONSTANTS.MESSAGE.MMR}</td>
+                                                                <td className="font-weight-bold text-uppercase table-gray-bg">{CONSTANTS.MESSAGE.RANK}</td>
+                                                            </tr><tr className="text-center">
+                                                                <td className="white-bg">{items.ranking.win_total}</td>
+                                                                <td className="white-bg">{items.ranking.lose_total}</td>
+                                                                <td className="white-bg">{items.ranking.draw_total}</td>
+                                                                <td className="white-bg">{(items.ranking.elo).toLocaleString()}</td>
+                                                                <td className="white-bg">{(items.ranking.rank).toLocaleString()}</td>
                                                             </tr>
                                                         </MDBTableBody>
                                                     </MDBTable>
@@ -635,26 +646,34 @@ class Home extends React.Component {
                                 <MDBCol key={items.client_id} sm="12" md="6" lg="4" className="my-3">
                                     <MDBCard className="z-depth-2">
                                         <MDBCardBody className="black-text">
-                                            <MDBCardTitle className="font-weight-bold font-family-architects-daughter">{items.ranking.name}</MDBCardTitle>
+                                            <MDBCardTitle className="font-weight-bold font-family-architects-daughter">
+                                                {items.ranking.name}
+                                                {
+                                                    this.state.topUserMMR !== "" && Object.keys(this.state.topUserMMR).length > 0 && this.state.topUserSLP !== "" && Object.keys(this.state.topUserSLP).length ? (
+                                                        this.state.topUserMMR.ranking.name === items.ranking.name && this.state.topUserSLP.ranking.name === items.ranking.name ? (
+                                                            // Top user MMR and SLP
+                                                            <MDBBox tag="span" className="float-right">
+                                                                <MDBIcon icon="crown" />
+                                                            </MDBBox>
+                                                        ) : (
+                                                            this.state.topUserMMR.ranking.name === items.ranking.name ? (
+                                                                // Top user MMR
+                                                                <MDBBox tag="span" className="float-right">
+                                                                    <MDBIcon icon="certificate" />
+                                                                </MDBBox>
+                                                            ) : (
+                                                                this.state.topUserSLP.ranking.name === items.ranking.name ? (
+                                                                    // Top user SLP
+                                                                    <MDBBox tag="span" className="float-right">
+                                                                        <MDBIcon icon="gem" />
+                                                                    </MDBBox>
+                                                                ) : ("")
+                                                            )
+                                                        )
+                                                    ) : ("")
+                                                }
+                                            </MDBCardTitle>
                                             <MDBBox tag="div">
-                                                <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
-                                                    <MDBBox tag="span" className="font-weight-bold text-uupercase">{CONSTANTS.MESSAGE.MMR}: </MDBBox>
-                                                    {(items.ranking.elo).toLocaleString()}
-                                                </MDBBox>
-                                                <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
-                                                    <MDBBox tag="span" className="font-weight-bold">{CONSTANTS.MESSAGE.RANK}: </MDBBox>
-                                                    {(items.ranking.rank).toLocaleString()}
-                                                </MDBBox>
-                                                <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
-                                                    <MDBBox tag="span" className="font-weight-bold">{CONSTANTS.MESSAGE.LAST_CLAIMED_SLP}: </MDBBox>
-                                                    {items.blockchain_related.signature.amount > 0 ? (items.blockchain_related.signature.amount) : ("")}
-                                                </MDBBox>
-                                                <MDBBox tag="span" className="text-left black-text w-100 position-relative d-block">
-                                                    <MDBBox tag="span" className="font-weight-bold">{CONSTANTS.MESSAGE.LAST_CLAIMED_AT}: </MDBBox>
-                                                    {items.blockchain_related.signature.amount > 0 ? (
-                                                        <Moment format="MMM DD, YYYY HH:MM A" unix>{items.blockchain_related.signature.timestamp}</Moment>
-                                                    ) : ("")}
-                                                </MDBBox>
                                                 <MDBBox tag="div" className="mt-3">
                                                     <MDBTable bordered striped responsive>
                                                         <MDBTableHead color="rgba-teal-strong" textWhite>
@@ -683,6 +702,22 @@ class Home extends React.Component {
                                                                 <td>{items.sharedSLP}</td>
                                                                 <td>{items.totalSLP}</td>
                                                                 <td>{this.numberWithCommas((items.totalSLP * this.state.slpCurrentValue).toFixed(2))}</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td colSpan="5" className="text-center font-weight-bold rgba-teal-strong white-text">{CONSTANTS.MESSAGE.ARENAGAME_STATUS}</td>
+                                                            </tr>
+                                                            <tr className="text-center">
+                                                                <td className="font-weight-bold text-uppercase table-gray-bg">{CONSTANTS.MESSAGE.WIN}</td>
+                                                                <td className="font-weight-bold text-uppercase table-gray-bg">{CONSTANTS.MESSAGE.LOSE}</td>
+                                                                <td className="font-weight-bold text-uppercase table-gray-bg">{CONSTANTS.MESSAGE.DRAW}</td>
+                                                                <td className="font-weight-bold text-uppercase table-gray-bg">{CONSTANTS.MESSAGE.MMR}</td>
+                                                                <td className="font-weight-bold text-uppercase table-gray-bg">{CONSTANTS.MESSAGE.RANK}</td>
+                                                            </tr><tr className="text-center">
+                                                                <td className="white-bg">{items.ranking.win_total}</td>
+                                                                <td className="white-bg">{items.ranking.lose_total}</td>
+                                                                <td className="white-bg">{items.ranking.draw_total}</td>
+                                                                <td className="white-bg">{(items.ranking.elo).toLocaleString()}</td>
+                                                                <td className="white-bg">{(items.ranking.rank).toLocaleString()}</td>
                                                             </tr>
                                                         </MDBTableBody>
                                                     </MDBTable>

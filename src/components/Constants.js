@@ -43,7 +43,11 @@ const MESSAGE = {
     EARNING: "Earning",
     TOTAL_EARNINGS: "Total Earnings",
     CLOSE: "Close",
-    NAME: "Name"
+    NAME: "Name",
+    ARENAGAME_STATUS: "Arena Game Status",
+    WIN: "Win",
+    LOSE: "Lose",
+    DRAW: "Draw"
 }
 
 export const CONSTANTS = {

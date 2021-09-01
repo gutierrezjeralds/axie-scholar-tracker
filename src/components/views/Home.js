@@ -678,7 +678,12 @@ class Home extends React.Component {
                                                                 </td>
                                                                 <td className="font-weight-bold text-uppercase">
                                                                     <MDBTooltip domElement tag="span" placement="top">
-                                                                        <span>{CONSTANTS.MESSAGE.SHARE} ({items.details.manager === "100" ? items.details.manager : items.details.scholar}%)</span>
+                                                                        <span>
+                                                                            {CONSTANTS.MESSAGE.SHARE}
+                                                                            <span className="font-size-pt8rem ml-1">
+                                                                                ({items.details.manager === "100" ? items.details.manager : items.details.scholar}%)
+                                                                            </span>
+                                                                        </span>
                                                                         <span>{CONSTANTS.MESSAGE.INGAME_SLP_SHARING}</span>
                                                                     </MDBTooltip>
                                                                 </td>
@@ -804,7 +809,12 @@ class Home extends React.Component {
                                                                 </td>
                                                                 <td className="font-weight-bold text-uppercase">
                                                                     <MDBTooltip domElement tag="span" placement="top">
-                                                                        <span>{CONSTANTS.MESSAGE.SHARE} ({items.details.manager === "100" ? items.details.manager : items.details.scholar}%)</span>
+                                                                        <span>
+                                                                            {CONSTANTS.MESSAGE.SHARE}
+                                                                            <span className="font-size-pt8rem ml-1">
+                                                                                ({items.details.manager === "100" ? items.details.manager : items.details.scholar}%)
+                                                                            </span>
+                                                                        </span>
                                                                         <span>{CONSTANTS.MESSAGE.INGAME_SLP_SHARING}</span>
                                                                     </MDBTooltip>
                                                                 </td>
@@ -904,7 +914,7 @@ class Home extends React.Component {
                         // Empty Player details x Error in Ajax
                         <MDBContainer fluid className="pt-3 pb-5 mb-5 position-relative">
                             {this.renderEmptyDetails()}
-                            {this.pageRefresh(2000)} {/* Refresh in 2 seconds if there's an error */}
+                            {this.pageRefresh(5000)} {/* Refresh in 5 seconds if there's an error */}
                         </MDBContainer>
                     ) : (
                         Object.keys(this.state.playerRecords).length <= 0 ? (

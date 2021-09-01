@@ -22,6 +22,7 @@ class Home extends React.Component {
             isUser: this.props.user || "",
             isSponsorName: "",
             slpCurrentValue: 0,
+            axsCurrentValue: 0,
             isRecordLoaded: false,
             isPlayerLoaded: false,
             playerItems: [],
@@ -69,6 +70,7 @@ class Home extends React.Component {
 
     // Get Coingecko data / json
     getCoingecko = () => {
+        // Get Current SLP Value
         $.ajax({
             url: "https://api.coingecko.com/api/v3/coins/smooth-love-potion?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false",
             dataType: "json",
@@ -78,6 +80,47 @@ class Home extends React.Component {
             (result) => {
                 this.setState({
                     slpCurrentValue: result.market_data.current_price.php
+                })
+            },
+            // Note: it's important to handle errors here
+            // instead of a catch() block so that we don't swallow
+            // exceptions from actual bugs in components.
+            (error) => {
+                this.setState({
+                    isLoaded: true,
+                    isNotif: true,
+                    notifCat: "error",
+                    notifStr: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
+                    error: true
+                })
+                    
+                console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, error)
+            }
+        )
+        .catch(
+            (err) => {
+                this.setState({
+                    isLoaded: true,
+                    isNotif: true,
+                    notifCat: "error",
+                    notifStr: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
+                    error: true
+                })
+                    
+                console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
+            }
+        )
+
+        // Get Current AXS Value
+        $.ajax({
+            url: "https://api.coingecko.com/api/v3/coins/axie-infinity?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false",
+            dataType: "json",
+            cache: false
+        })
+        .then(
+            (result) => {
+                this.setState({
+                    axsCurrentValue: result.market_data.current_price.php
                 })
             },
             // Note: it's important to handle errors here
@@ -400,7 +443,10 @@ class Home extends React.Component {
                                 {CONSTANTS.MESSAGE.PRICE_BASEON}
                                 <a href="https://www.coingecko.com/en/coins/smooth-love-potion" target="_blank" rel="noreferrer"> {CONSTANTS.MESSAGE.COINGECKO}. </a>
                                 {CONSTANTS.MESSAGE.CURRENT_EXCHANGERATE}:
-                                <strong> 1 {CONSTANTS.MESSAGE.SLP} = {this.state.slpCurrentValue}</strong>
+                                <MDBBox tag="span" className="d-block">
+                                    <strong> 1 {CONSTANTS.MESSAGE.SLP} = {this.state.slpCurrentValue}</strong>
+                                    <strong> and 1 {CONSTANTS.MESSAGE.AXS} = {this.state.axsCurrentValue}</strong>
+                                </MDBBox>
                             </MDBBox>
                         </MDBBox>
                     </MDBCol>

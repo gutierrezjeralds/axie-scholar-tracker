@@ -25,6 +25,7 @@ const MESSAGE = {
     SPONSOR: "Sponsor",
     SCHOLAR: "Scholar",
     SLP: "SLP",
+    AXS: "AXS",
     SLP_DESC: "Smooth Love Potion",
     TOP_MMR: "Top MMR",
     TOP_INGAME_SLP: "Top In Game SLP",

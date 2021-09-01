@@ -50,7 +50,14 @@ const MESSAGE = {
     WIN: "Win",
     LOSE: "Lose",
     DRAW: "Draw",
-    DAYS: "Day(s)"
+    DAYS: "Day(s)",
+    OPEN_MARKETPLACE_PROFILE: "Open marketplace profile",
+    OF: "of",
+    ADV_QUEST_TODAY: "Adventure SLP Quest (Today)",
+    INGAME_SLP: "InGame SLP",
+    INGAME_SLP_SHARING: "In Game SLP Sharing",
+    RONIN_PLUS_SHARING_SLP: "Ronin SLP + Sharing SLP",
+    PHP_CURRENCY: "PHP Currency"
 }
 
 export const CONSTANTS = {

@@ -5,7 +5,7 @@ import {
     MDBBox, MDBContainer, MDBRow, MDBCol, MDBCard, MDBCardBody, MDBCardTitle,
     MDBTable, MDBTableBody, MDBTableHead,
     MDBModal, MDBModalHeader, MDBModalBody,
-    MDBIcon
+    MDBIcon, MDBTooltip
 } from "mdbreact";
 import Moment from 'react-moment';
 import moment from 'moment';
@@ -626,7 +626,16 @@ class Home extends React.Component {
                                 <MDBCol key={items.client_id} sm="12" md="6" lg="4" className="my-3">
                                     <MDBCard className="z-depth-2">
                                         <MDBCardBody className="black-text">
-                                            <MDBCardTitle className="font-weight-bold font-family-architects-daughter">{items.ranking.name}</MDBCardTitle>
+                                            <MDBCardTitle className="font-weight-bold font-family-architects-daughter">
+                                                <MDBTooltip domElement tag="span" placement="top">
+                                                    <span>
+                                                        <a href={"https://marketplace.axieinfinity.com/profile/" + items.details.ethAddress + "/axie"} target="_blank" rel="noreferrer" className="black-text">
+                                                            {items.ranking.name}
+                                                        </a>
+                                                    </span>
+                                                    <span>{CONSTANTS.MESSAGE.OPEN_MARKETPLACE_PROFILE} {CONSTANTS.MESSAGE.OF} {items.ranking.name}</span>
+                                                </MDBTooltip>
+                                            </MDBCardTitle>
                                             <MDBBox tag="div">
                                                 <MDBBox tag="div" className="mt-3">
                                                     <MDBTable bordered striped responsive>
@@ -644,11 +653,36 @@ class Home extends React.Component {
                                                                 <td colSpan="3" className="font-weight-bold table-gray-bg">{items.claim_on_days} {CONSTANTS.MESSAGE.DAYS}</td>
                                                             </tr>
                                                             <tr className="text-center">
-                                                                <td className="font-weight-bold text-uppercase" title="Adventure SLP Quest (Today)">{CONSTANTS.MESSAGE.ADV}</td>
-                                                                <td className="font-weight-bold text-uppercase" title="In Game SLP">{CONSTANTS.MESSAGE.INGAME}</td>
-                                                                <td className="font-weight-bold text-uppercase" title="In Game SLP Sharing">{CONSTANTS.MESSAGE.SHARE} ({items.details.manager === "100" ? items.details.manager : items.details.scholar}%)</td>
-                                                                <td className="font-weight-bold text-uppercase" title="Ronin SLP + Sharing SLP">{CONSTANTS.MESSAGE.TOTAL}</td>
-                                                                <td className="font-weight-bold text-uppercase" title="PHP Currency">{CONSTANTS.MESSAGE.EARNING}</td>
+                                                                <td className="font-weight-bold text-uppercase">
+                                                                    <MDBTooltip domElement tag="span" placement="top">
+                                                                        <span>{CONSTANTS.MESSAGE.ADV}</span>
+                                                                        <span>{CONSTANTS.MESSAGE.ADV_QUEST_TODAY}</span>
+                                                                    </MDBTooltip>
+                                                                </td>
+                                                                <td className="font-weight-bold text-uppercase">
+                                                                    <MDBTooltip domElement tag="span" placement="top">
+                                                                        <span>{CONSTANTS.MESSAGE.INGAME}</span>
+                                                                        <span>{CONSTANTS.MESSAGE.INGAME_SLP}</span>
+                                                                    </MDBTooltip>
+                                                                </td>
+                                                                <td className="font-weight-bold text-uppercase">
+                                                                    <MDBTooltip domElement tag="span" placement="top">
+                                                                        <span>{CONSTANTS.MESSAGE.SHARE} ({items.details.manager === "100" ? items.details.manager : items.details.scholar}%)</span>
+                                                                        <span>{CONSTANTS.MESSAGE.INGAME_SLP_SHARING}</span>
+                                                                    </MDBTooltip>
+                                                                </td>
+                                                                <td className="font-weight-bold text-uppercase">
+                                                                    <MDBTooltip domElement tag="span" placement="top">
+                                                                        <span>{CONSTANTS.MESSAGE.TOTAL}</span>
+                                                                        <span>{CONSTANTS.MESSAGE.RONIN_PLUS_SHARING_SLP}</span>
+                                                                    </MDBTooltip>
+                                                                </td>
+                                                                <td className="font-weight-bold text-uppercase">
+                                                                    <MDBTooltip domElement tag="span" placement="top">
+                                                                        <span>{CONSTANTS.MESSAGE.EARNING}</span>
+                                                                        <span>{CONSTANTS.MESSAGE.PHP_CURRENCY}</span>
+                                                                    </MDBTooltip>
+                                                                </td>
                                                             </tr>
                                                             <tr className="text-center">
                                                                 <td>0</td>
@@ -701,25 +735,41 @@ class Home extends React.Component {
                                     <MDBCard className="z-depth-2">
                                         <MDBCardBody className="black-text">
                                             <MDBCardTitle className="font-weight-bold font-family-architects-daughter">
-                                                {items.ranking.name}
+                                                <MDBTooltip domElement tag="span" placement="top">
+                                                    <span>
+                                                        <a href={"https://marketplace.axieinfinity.com/profile/" + items.details.ethAddress + "/axie"} target="_blank" rel="noreferrer" className="black-text">
+                                                            {items.ranking.name}
+                                                        </a>
+                                                    </span>
+                                                    <span>{CONSTANTS.MESSAGE.OPEN_MARKETPLACE_PROFILE} {CONSTANTS.MESSAGE.OF} {items.ranking.name}</span>
+                                                </MDBTooltip>
                                                 {
                                                     this.state.topUserMMR !== "" && Object.keys(this.state.topUserMMR).length > 0 && this.state.topUserSLP !== "" && Object.keys(this.state.topUserSLP).length ? (
                                                         this.state.topUserMMR.ranking.name === items.ranking.name && this.state.topUserSLP.ranking.name === items.ranking.name ? (
                                                             // Top user MMR and SLP
                                                             <MDBBox tag="span" className="float-right">
-                                                                <MDBIcon title={CONSTANTS.MESSAGE.TOP_MMR_SLP} icon="crown" />
+                                                                <MDBTooltip domElement tag="span" placement="top">
+                                                                    <span><MDBIcon icon="crown" /></span>
+                                                                    <span>{CONSTANTS.MESSAGE.TOP_MMR_SLP}</span>
+                                                                </MDBTooltip>
                                                             </MDBBox>
                                                         ) : (
                                                             this.state.topUserMMR.ranking.name === items.ranking.name ? (
                                                                 // Top user MMR
                                                                 <MDBBox tag="span" className="float-right">
-                                                                    <MDBIcon title={CONSTANTS.MESSAGE.TOP_MMR} icon="certificate" />
+                                                                    <MDBTooltip domElement tag="span" placement="top">
+                                                                        <span><MDBIcon icon="certificate" /></span>
+                                                                        <span>{CONSTANTS.MESSAGE.TOP_MMR}</span>
+                                                                    </MDBTooltip>
                                                                 </MDBBox>
                                                             ) : (
                                                                 this.state.topUserSLP.ranking.name === items.ranking.name ? (
                                                                     // Top user SLP
                                                                     <MDBBox tag="span" className="float-right">
-                                                                        <MDBIcon title={CONSTANTS.MESSAGE.TOP_INGAME_SLP} icon="gem" />
+                                                                        <MDBTooltip domElement tag="span" placement="top">
+                                                                            <span><MDBIcon icon="gem" /></span>
+                                                                            <span>{CONSTANTS.MESSAGE.TOP_INGAME_SLP}</span>
+                                                                        </MDBTooltip>
                                                                     </MDBBox>
                                                                 ) : ("")
                                                             )
@@ -744,11 +794,36 @@ class Home extends React.Component {
                                                                 <td colSpan="3" className="font-weight-bold table-gray-bg">{items.claim_on_days} {CONSTANTS.MESSAGE.DAYS}</td>
                                                             </tr>
                                                             <tr className="text-center">
-                                                                <td className="font-weight-bold text-uppercase" title="Adventure SLP Quest (Today)">{CONSTANTS.MESSAGE.ADV}</td>
-                                                                <td className="font-weight-bold text-uppercase" title="In Game SLP">{CONSTANTS.MESSAGE.INGAME}</td>
-                                                                <td className="font-weight-bold text-uppercase" title="In Game SLP Sharing">{CONSTANTS.MESSAGE.SHARE} ({items.details.manager === "100" ? items.details.manager : items.details.scholar}%)</td>
-                                                                <td className="font-weight-bold text-uppercase" title="Ronin SLP + Sharing SLP">{CONSTANTS.MESSAGE.TOTAL}</td>
-                                                                <td className="font-weight-bold text-uppercase" title="PHP Currency">{CONSTANTS.MESSAGE.EARNING}</td>
+                                                                <td className="font-weight-bold text-uppercase">
+                                                                    <MDBTooltip domElement tag="span" placement="top">
+                                                                        <span>{CONSTANTS.MESSAGE.ADV}</span>
+                                                                        <span>{CONSTANTS.MESSAGE.ADV_QUEST_TODAY}</span>
+                                                                    </MDBTooltip>
+                                                                </td>
+                                                                <td className="font-weight-bold text-uppercase">
+                                                                    <MDBTooltip domElement tag="span" placement="top">
+                                                                        <span>{CONSTANTS.MESSAGE.INGAME}</span>
+                                                                        <span>{CONSTANTS.MESSAGE.INGAME_SLP}</span>
+                                                                    </MDBTooltip>
+                                                                </td>
+                                                                <td className="font-weight-bold text-uppercase">
+                                                                    <MDBTooltip domElement tag="span" placement="top">
+                                                                        <span>{CONSTANTS.MESSAGE.SHARE} ({items.details.manager === "100" ? items.details.manager : items.details.scholar}%)</span>
+                                                                        <span>{CONSTANTS.MESSAGE.INGAME_SLP_SHARING}</span>
+                                                                    </MDBTooltip>
+                                                                </td>
+                                                                <td className="font-weight-bold text-uppercase">
+                                                                    <MDBTooltip domElement tag="span" placement="top">
+                                                                        <span>{CONSTANTS.MESSAGE.TOTAL}</span>
+                                                                        <span>{CONSTANTS.MESSAGE.RONIN_PLUS_SHARING_SLP}</span>
+                                                                    </MDBTooltip>
+                                                                </td>
+                                                                <td className="font-weight-bold text-uppercase">
+                                                                    <MDBTooltip domElement tag="span" placement="top">
+                                                                        <span>{CONSTANTS.MESSAGE.EARNING}</span>
+                                                                        <span>{CONSTANTS.MESSAGE.PHP_CURRENCY}</span>
+                                                                    </MDBTooltip>
+                                                                </td>
                                                             </tr>
                                                             <tr className="text-center">
                                                                 <td>0</td>

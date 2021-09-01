@@ -680,7 +680,7 @@ class Home extends React.Component {
                                                                     <MDBTooltip domElement tag="span" placement="top">
                                                                         <span>
                                                                             {CONSTANTS.MESSAGE.SHARE}
-                                                                            <span className="font-size-pt8rem ml-1">
+                                                                            <span className="font-size-pt7rem ml-1">
                                                                                 ({items.details.manager === "100" ? items.details.manager : items.details.scholar}%)
                                                                             </span>
                                                                         </span>
@@ -811,7 +811,7 @@ class Home extends React.Component {
                                                                     <MDBTooltip domElement tag="span" placement="top">
                                                                         <span>
                                                                             {CONSTANTS.MESSAGE.SHARE}
-                                                                            <span className="font-size-pt8rem ml-1">
+                                                                            <span className="font-size-pt7rem ml-1">
                                                                                 ({items.details.manager === "100" ? items.details.manager : items.details.scholar}%)
                                                                             </span>
                                                                         </span>

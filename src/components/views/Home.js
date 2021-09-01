@@ -247,10 +247,18 @@ class Home extends React.Component {
                     const ranking = await this.getPlayerRanking(ethAddress);
                     if (!ranking.error) {
                         result.last_claimed_item_at_add = moment.unix(result.last_claimed_item_at).add(1, 'days');
+                        result.claim_on_days = 0;
                         result.details = details;
                         result.ranking = ranking;
                         result.inGameSLP = result.total;
                         result.totalSLP = result.total;
+
+                        // Set new value for Claim On (Days) x last_claimed_item_at_add - current date
+                        const lastClaimedDate = new Date(moment.unix(result.last_claimed_item_at)).getTime();
+                        const currentDate = new Date().getTime();
+                        if (currentDate > lastClaimedDate) {
+                            result.claim_on_days = Math.round((currentDate - lastClaimedDate) / (1000 * 3600 * 24)).toFixed(0);
+                        }
 
                         if (result.blockchain_related === null || result.blockchain_related.signature === null) {
                             // Adding empty object
@@ -633,7 +641,7 @@ class Home extends React.Component {
                                                                 <td colSpan="3" className="font-weight-bold">{<Moment format="MMM DD, YYYY HH:MM A" add={{ days: 14 }} unix>{items.last_claimed_item_at}</Moment>}</td>
                                                             </tr>
                                                             <tr className="text-center">
-                                                                <td colSpan="3" className="font-weight-bold table-gray-bg">{<Moment durationFromNow>{items.last_claimed_item_at_add}</Moment>}</td>
+                                                                <td colSpan="3" className="font-weight-bold table-gray-bg">{items.claim_on_days} {CONSTANTS.MESSAGE.DAYS}</td>
                                                             </tr>
                                                             <tr className="text-center">
                                                                 <td className="font-weight-bold text-uppercase" title="Adventure SLP Quest (Today)">{CONSTANTS.MESSAGE.ADV}</td>
@@ -733,7 +741,7 @@ class Home extends React.Component {
                                                                 <td colSpan="3" className="font-weight-bold">{<Moment format="MMM DD, YYYY HH:MM A" add={{ days: 14 }} unix>{items.last_claimed_item_at}</Moment>}</td>
                                                             </tr>
                                                             <tr className="text-center">
-                                                                <td colSpan="3" className="font-weight-bold table-gray-bg">{<Moment durationFromNow>{items.last_claimed_item_at_add}</Moment>}</td>
+                                                                <td colSpan="3" className="font-weight-bold table-gray-bg">{items.claim_on_days} {CONSTANTS.MESSAGE.DAYS}</td>
                                                             </tr>
                                                             <tr className="text-center">
                                                                 <td className="font-weight-bold text-uppercase" title="Adventure SLP Quest (Today)">{CONSTANTS.MESSAGE.ADV}</td>

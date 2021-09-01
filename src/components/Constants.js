@@ -49,7 +49,8 @@ const MESSAGE = {
     ARENAGAME_STATUS: "Arena Game Status",
     WIN: "Win",
     LOSE: "Lose",
-    DRAW: "Draw"
+    DRAW: "Draw",
+    DAYS: "Day(s)"
 }
 
 export const CONSTANTS = {

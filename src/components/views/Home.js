@@ -35,6 +35,8 @@ class Home extends React.Component {
             modalEarningTitle: "",
             modalEarningFilter: "",
             modalEarningDetails: [],
+            topMMR: 0, // For condition of getting top user
+            topSLP: 0, // For condition of getting top user
             topUserMMR: "",
             topUserSLP: ""
         }
@@ -183,22 +185,12 @@ class Home extends React.Component {
                     await this.getPlayerDetails(item, ethAddress, userEthAddress);
                     
                     if (index === result.length - 1) {
-                        // Get Top User MMR and SLP
-                        if (Object.keys(this.state.playerRecords).length > 0) {
-                            const getTopUserMMR = this.state.playerRecords.reduce((obj, max) => (obj.ranking.elo > max.ranking.elo) ? obj : max);
-                            const getTopUserSLP = this.state.playerRecords.reduce((obj, max) => (obj.inGameSLP > max.inGameSLP) ? obj : max);
-                            this.setState({
-                                topUserMMR: getTopUserMMR,
-                                topUserSLP: getTopUserSLP
-                            })
-                        }
-                        
                         this.setState({
                             isLoaded: true,
                             isPlayerLoaded: true
                         })
 
-                        // console.log("playerItems", this.state.playerItems)
+                        console.log("playerItems", this.state.playerItems)
                     }
                     return true;
                 });
@@ -310,6 +302,25 @@ class Home extends React.Component {
 
                             // Set new total SLP x computed base on Shared SLP plus total SLP
                             result.totalSLP = roninBalance + result.sharedSLP;
+                        }
+
+                        // Get Top User MMR and SLP
+                        if (result.ranking.rank > this.state.topMMR || result.inGameSLP > this.state.topSLP) {
+                            if (result.ranking.rank > this.state.topMMR) {
+                                // Set Top User MMR
+                                this.setState({
+                                    topMMR: result.ranking.elo,
+                                    topUserMMR: result.ranking.name
+                                })
+                            }
+
+                            if (result.inGameSLP > this.state.topSLP) {
+                                // Set Top User SLP
+                                this.setState({
+                                    topSLP: result.inGameSLP,
+                                    topUserSLP: result.ranking.name
+                                })
+                            }
                         }
 
                         this.state.playerItems.push(result);
@@ -473,18 +484,18 @@ class Home extends React.Component {
                             <MDBBox tag="div" className="py-3 px-2 text-center ice-bg">
                                 {
                                     // Top ELO / MMR Rank
-                                    this.state.topUserMMR !== "" && Object.keys(this.state.topUserMMR).length > 0 ? (
+                                    this.state.topUserMMR !== "" ? (
                                         <React.Fragment>
-                                            <MDBBox key={this.state.topUserMMR.client_id} tag="span" className="">{CONSTANTS.MESSAGE.TOP_MMR}: <strong>{this.state.topUserMMR.ranking.name} ({this.state.topUserMMR.ranking.elo})</strong></MDBBox>
+                                            <MDBBox tag="span" className="">{CONSTANTS.MESSAGE.TOP_MMR}: <strong>{this.state.topUserMMR} ({this.state.topMMR})</strong></MDBBox>
                                         </React.Fragment>
                                     ) : ("")
                                 }
 
                                 {
                                     // Top In Game SLP
-                                    this.state.topUserSLP !== "" && Object.keys(this.state.topUserSLP).length > 0 ? (
+                                    this.state.topUserSLP !== "" ? (
                                         <React.Fragment>
-                                            <MDBBox key={this.state.topUserSLP.client_id} tag="span" className="ml-2">{CONSTANTS.MESSAGE.TOP_INGAME_SLP}: <strong>{this.state.topUserSLP.ranking.name} ({this.state.topUserSLP.inGameSLP})</strong></MDBBox>
+                                            <MDBBox tag="span" className="ml-2">{CONSTANTS.MESSAGE.TOP_INGAME_SLP}: <strong>{this.state.topUserSLP} ({this.state.topSLP})</strong></MDBBox>
                                         </React.Fragment>
                                     ) : ("")
                                 }
@@ -744,8 +755,8 @@ class Home extends React.Component {
                                                     <span>{CONSTANTS.MESSAGE.OPEN_MARKETPLACE_PROFILE} {CONSTANTS.MESSAGE.OF} {items.ranking.name}</span>
                                                 </MDBTooltip>
                                                 {
-                                                    this.state.topUserMMR !== "" && Object.keys(this.state.topUserMMR).length > 0 && this.state.topUserSLP !== "" && Object.keys(this.state.topUserSLP).length ? (
-                                                        this.state.topUserMMR.ranking.name === items.ranking.name && this.state.topUserSLP.ranking.name === items.ranking.name ? (
+                                                    this.state.topUserMMR !== "" && this.state.topUserSLP !== "" ? (
+                                                        this.state.topUserMMR === items.ranking.name && this.state.topUserSLP === items.ranking.name ? (
                                                             // Top user MMR and SLP
                                                             <MDBBox tag="span" className="float-right">
                                                                 <MDBTooltip domElement tag="span" placement="top">
@@ -754,30 +765,10 @@ class Home extends React.Component {
                                                                 </MDBTooltip>
                                                             </MDBBox>
                                                         ) : (
-                                                            this.state.topUserMMR.ranking.name === items.ranking.name ? (
-                                                                // Top user MMR
-                                                                <MDBBox tag="span" className="float-right">
-                                                                    <MDBTooltip domElement tag="span" placement="top">
-                                                                        <span><MDBIcon icon="certificate" /></span>
-                                                                        <span>{CONSTANTS.MESSAGE.TOP_MMR}</span>
-                                                                    </MDBTooltip>
-                                                                </MDBBox>
-                                                            ) : (
-                                                                this.state.topUserSLP.ranking.name === items.ranking.name ? (
-                                                                    // Top user SLP
-                                                                    <MDBBox tag="span" className="float-right">
-                                                                        <MDBTooltip domElement tag="span" placement="top">
-                                                                            <span><MDBIcon icon="gem" /></span>
-                                                                            <span>{CONSTANTS.MESSAGE.TOP_INGAME_SLP}</span>
-                                                                        </MDBTooltip>
-                                                                    </MDBBox>
-                                                                ) : (
-                                                                    // Display MRR detail
-                                                                    <MDBBox tag="span" className="float-right mt-2 font-size-pt9rem font-family-default font-weight-normal">
-                                                                        <MDBBox tag="span" className="font-weight-bold">{CONSTANTS.MESSAGE.MMR}:</MDBBox> {(items.ranking.elo).toLocaleString()}
-                                                                    </MDBBox>
-                                                                )
-                                                            )
+                                                            // Display MRR detail
+                                                            <MDBBox tag="span" className="float-right mt-2 font-size-pt9rem font-family-default font-weight-normal">
+                                                                <MDBBox tag="span" className="font-weight-bold">{CONSTANTS.MESSAGE.MMR}:</MDBBox> {(items.ranking.elo).toLocaleString()}
+                                                            </MDBBox>
                                                         )
                                                     ) : ("")
                                                 }

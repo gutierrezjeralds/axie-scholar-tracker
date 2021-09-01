@@ -477,27 +477,27 @@ class Home extends React.Component {
     // Render Top scholar x ELO Ranking and SLP Earning
     renderTopScholar() {
         if ( this.state.isPlayerLoaded && this.state.isLoaded && !this.state.error ) {
-            if (Object.keys(this.state.playerRecords).length > 0 && (this.state.topUserMMR !== "" && this.state.topUserSLP !== "")) {
+            if (Object.keys(this.state.playerRecords).length > 0) {
                 return (
                     <React.Fragment>
                         <MDBCol size="12" className="mb-3">
                             <MDBBox tag="div" className="py-3 px-2 text-center ice-bg">
                                 {
                                     // Top ELO / MMR Rank
-                                    this.state.topUserMMR !== "" ? (
-                                        <React.Fragment>
-                                            <MDBBox tag="span" className="">{CONSTANTS.MESSAGE.TOP_MMR}: <strong>{this.state.topUserMMR} ({this.state.topMMR})</strong></MDBBox>
-                                        </React.Fragment>
-                                    ) : ("")
+                                    this.state.playerRecords.sort((a, b) =>  a.ranking.rank - b.ranking.rank ).map((items, index) => (
+                                        index === 0 ? (
+                                            <MDBBox key={items.client_id} tag="span" className="">{CONSTANTS.MESSAGE.TOP_MMR}: <strong>{items.ranking.name} ({items.ranking.elo})</strong></MDBBox>
+                                        ) : ("")
+                                    ))
                                 }
 
                                 {
                                     // Top In Game SLP
-                                    this.state.topUserSLP !== "" ? (
-                                        <React.Fragment>
-                                            <MDBBox tag="span" className="ml-2">{CONSTANTS.MESSAGE.TOP_INGAME_SLP}: <strong>{this.state.topUserSLP} ({this.state.topSLP})</strong></MDBBox>
-                                        </React.Fragment>
-                                    ) : ("")
+                                    this.state.playerRecords.sort((a, b) =>  b.total - a.total ).map((items, index) => (
+                                        index === 0 ? (
+                                            <MDBBox key={items.client_id} tag="span" className="ml-2">{CONSTANTS.MESSAGE.TOP_INGAME_SLP}: <strong>{items.ranking.name} ({items.inGameSLP})</strong></MDBBox>
+                                        ) : ("")
+                                    ))
                                 }
                             </MDBBox>
                         </MDBCol>

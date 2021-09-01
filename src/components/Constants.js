@@ -28,6 +28,7 @@ const MESSAGE = {
     SLP_DESC: "Smooth Love Potion",
     TOP_MMR: "Top MMR",
     TOP_INGAME_SLP: "Top In Game SLP",
+    TOP_MMR_SLP: "Top MMR and SLP",
     MMR: "MMR",
     ELO: "ELO",
     RANK: "Rank",

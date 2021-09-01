@@ -653,19 +653,19 @@ class Home extends React.Component {
                                                         this.state.topUserMMR.ranking.name === items.ranking.name && this.state.topUserSLP.ranking.name === items.ranking.name ? (
                                                             // Top user MMR and SLP
                                                             <MDBBox tag="span" className="float-right">
-                                                                <MDBIcon icon="crown" />
+                                                                <MDBIcon title={CONSTANTS.MESSAGE.TOP_MMR_SLP} icon="crown" />
                                                             </MDBBox>
                                                         ) : (
                                                             this.state.topUserMMR.ranking.name === items.ranking.name ? (
                                                                 // Top user MMR
                                                                 <MDBBox tag="span" className="float-right">
-                                                                    <MDBIcon icon="certificate" />
+                                                                    <MDBIcon title={CONSTANTS.MESSAGE.TOP_MMR} icon="certificate" />
                                                                 </MDBBox>
                                                             ) : (
                                                                 this.state.topUserSLP.ranking.name === items.ranking.name ? (
                                                                     // Top user SLP
                                                                     <MDBBox tag="span" className="float-right">
-                                                                        <MDBIcon icon="gem" />
+                                                                        <MDBIcon title={CONSTANTS.MESSAGE.TOP_INGAME_SLP} icon="gem" />
                                                                     </MDBBox>
                                                                 ) : ("")
                                                             )

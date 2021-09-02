@@ -398,6 +398,13 @@ class Home extends React.Component {
                     if (result.success && result.items.length > 0) {
                         const player = result.items.find(client => client.client_id === ethAddress);
                         if (Object.keys(player).length > 0) {
+                            // Adding Win Rate
+                            player.win_rate = 0;
+                            if (player.win_total > 0 || player.lose_total > 0 || player.draw_total > 0) {
+                                const winRate = ( (player.win_total / (player.win_total + player.lose_total + player.draw_total)) * 100 ).toFixed(2);
+                                player.win_rate = winRate.toString() === "100.00" ? 100 : winRate;
+                            }
+                            // Return
                             return resolve(player);
                         }
                     }
@@ -646,6 +653,10 @@ class Home extends React.Component {
                                                     </span>
                                                     <span>{CONSTANTS.MESSAGE.OPEN_MARKETPLACE_PROFILE} {CONSTANTS.MESSAGE.OF} {items.ranking.name}</span>
                                                 </MDBTooltip>
+                                                {/* Display MRR detail */}
+                                                <MDBBox tag="span" className="float-right font-family-default font-weight-normal">
+                                                    <MDBBox tag="span" className="font-weight-bold">{CONSTANTS.MESSAGE.MMR}:</MDBBox> {(items.ranking.elo).toLocaleString()}
+                                                </MDBBox>
                                             </MDBCardTitle>
                                             <MDBBox tag="div">
                                                 <MDBBox tag="div" className="mt-3">
@@ -714,13 +725,13 @@ class Home extends React.Component {
                                                                 <td className="font-weight-bold text-uppercase table-gray-bg">{CONSTANTS.MESSAGE.WIN}</td>
                                                                 <td className="font-weight-bold text-uppercase table-gray-bg">{CONSTANTS.MESSAGE.LOSE}</td>
                                                                 <td className="font-weight-bold text-uppercase table-gray-bg">{CONSTANTS.MESSAGE.DRAW}</td>
-                                                                <td className="font-weight-bold text-uppercase table-gray-bg">{CONSTANTS.MESSAGE.MMR}</td>
+                                                                <td className="font-weight-bold text-uppercase table-gray-bg">{CONSTANTS.MESSAGE.WIN_RATE}</td>
                                                                 <td className="font-weight-bold text-uppercase table-gray-bg">{CONSTANTS.MESSAGE.RANK}</td>
                                                             </tr><tr className="text-center">
                                                                 <td className="white-bg">{items.ranking.win_total}</td>
                                                                 <td className="white-bg">{items.ranking.lose_total}</td>
                                                                 <td className="white-bg">{items.ranking.draw_total}</td>
-                                                                <td className="white-bg">{(items.ranking.elo).toLocaleString()}</td>
+                                                                <td className="white-bg">{items.ranking.win_rate}%</td>
                                                                 <td className="white-bg">{(items.ranking.rank).toLocaleString()}</td>
                                                             </tr>
                                                         </MDBTableBody>
@@ -771,7 +782,7 @@ class Home extends React.Component {
                                                             </MDBBox>
                                                         ) : (
                                                             // Display MRR detail
-                                                            <MDBBox tag="span" className="float-right mt-2 font-size-pt9rem font-family-default font-weight-normal">
+                                                            <MDBBox tag="span" className="float-right mt-1 font-size-1rem font-family-default font-weight-normal">
                                                                 <MDBBox tag="span" className="font-weight-bold">{CONSTANTS.MESSAGE.MMR}:</MDBBox> {(items.ranking.elo).toLocaleString()}
                                                             </MDBBox>
                                                         )
@@ -845,13 +856,13 @@ class Home extends React.Component {
                                                                 <td className="font-weight-bold text-uppercase table-gray-bg">{CONSTANTS.MESSAGE.WIN}</td>
                                                                 <td className="font-weight-bold text-uppercase table-gray-bg">{CONSTANTS.MESSAGE.LOSE}</td>
                                                                 <td className="font-weight-bold text-uppercase table-gray-bg">{CONSTANTS.MESSAGE.DRAW}</td>
-                                                                <td className="font-weight-bold text-uppercase table-gray-bg">{CONSTANTS.MESSAGE.MMR}</td>
+                                                                <td className="font-weight-bold text-uppercase table-gray-bg">{CONSTANTS.MESSAGE.WIN_RATE}</td>
                                                                 <td className="font-weight-bold text-uppercase table-gray-bg">{CONSTANTS.MESSAGE.RANK}</td>
                                                             </tr><tr className="text-center">
                                                                 <td className="white-bg">{items.ranking.win_total}</td>
                                                                 <td className="white-bg">{items.ranking.lose_total}</td>
                                                                 <td className="white-bg">{items.ranking.draw_total}</td>
-                                                                <td className="white-bg">{(items.ranking.elo).toLocaleString()}</td>
+                                                                <td className="white-bg">{items.ranking.win_rate}%</td>
                                                                 <td className="white-bg">{(items.ranking.rank).toLocaleString()}</td>
                                                             </tr>
                                                         </MDBTableBody>

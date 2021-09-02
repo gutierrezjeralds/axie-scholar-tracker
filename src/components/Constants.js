@@ -50,6 +50,7 @@ const MESSAGE = {
     WIN: "Win",
     LOSE: "Lose",
     DRAW: "Draw",
+    WIN_RATE: "Win Rate",
     DAYS: "Day(s)",
     OPEN_MARKETPLACE_PROFILE: "Open marketplace profile",
     OF: "of",

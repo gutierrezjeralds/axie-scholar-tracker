@@ -60,7 +60,9 @@ const MESSAGE = {
     RONIN_PLUS_SHARING_SLP: "Ronin SLP + Sharing SLP",
     PHP_CURRENCY: "PHP Currency",
     AVERAGE: "Average",
-    AVERAGE_SLP_PERDAY: "Average SLP per day"
+    AVERAGE_SLP_PERDAY: "Average SLP per day",
+    AVERAGE_SLP_PERDAY_V2: "Average SLP / Day",
+    SHARE_SLP: "Share SLP"
 }
 
 export const CONSTANTS = {

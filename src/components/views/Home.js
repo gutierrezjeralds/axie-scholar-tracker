@@ -302,24 +302,24 @@ class Home extends React.Component {
 
                             // Set new total SLP x computed base on Shared SLP plus total SLP
                             result.totalSLP = roninBalance + result.sharedSLP;
-                        }
 
-                        // Get Top User MMR and SLP
-                        if (result.ranking.rank > this.state.topMMR || result.inGameSLP > this.state.topSLP) {
-                            if (result.ranking.rank > this.state.topMMR) {
-                                // Set Top User MMR
-                                this.setState({
-                                    topMMR: result.ranking.elo,
-                                    topUserMMR: result.ranking.name
-                                })
-                            }
-
-                            if (result.inGameSLP > this.state.topSLP) {
-                                // Set Top User SLP
-                                this.setState({
-                                    topSLP: result.inGameSLP,
-                                    topUserSLP: result.ranking.name
-                                })
+                            // Get Top User MMR and SLP
+                            if (result.ranking.rank > this.state.topMMR || result.inGameSLP > this.state.topSLP) {
+                                if (result.ranking.rank > this.state.topMMR) {
+                                    // Set Top User MMR
+                                    this.setState({
+                                        topMMR: result.ranking.elo,
+                                        topUserMMR: details.name
+                                    })
+                                }
+    
+                                if (result.inGameSLP > this.state.topSLP) {
+                                    // Set Top User SLP
+                                    this.setState({
+                                        topSLP: result.inGameSLP,
+                                        topUserSLP: details.name
+                                    })
+                                }
                             }
                         }
 
@@ -493,7 +493,7 @@ class Home extends React.Component {
                                     // Top ELO / MMR Rank
                                     this.state.playerRecords.sort((a, b) =>  a.ranking.rank - b.ranking.rank ).map((items, index) => (
                                         index === 0 ? (
-                                            <MDBBox key={items.client_id} tag="span" className="">{CONSTANTS.MESSAGE.TOP_MMR}: <strong>{items.ranking.name} ({items.ranking.elo})</strong></MDBBox>
+                                            <MDBBox key={items.client_id} tag="span" className="">{CONSTANTS.MESSAGE.TOP_MMR}: <strong>{items.details.name} ({items.ranking.elo})</strong></MDBBox>
                                         ) : ("")
                                     ))
                                 }
@@ -502,7 +502,7 @@ class Home extends React.Component {
                                     // Top In Game SLP
                                     this.state.playerRecords.sort((a, b) =>  b.total - a.total ).map((items, index) => (
                                         index === 0 ? (
-                                            <MDBBox key={items.client_id} tag="span" className="ml-2">{CONSTANTS.MESSAGE.TOP_INGAME_SLP}: <strong>{items.ranking.name} ({items.inGameSLP})</strong></MDBBox>
+                                            <MDBBox key={items.client_id} tag="span" className="ml-2">{CONSTANTS.MESSAGE.TOP_INGAME_SLP}: <strong>{items.details.name} ({items.inGameSLP})</strong></MDBBox>
                                         ) : ("")
                                     ))
                                 }
@@ -609,7 +609,7 @@ class Home extends React.Component {
                                 Object.keys(this.state.modalEarningDetails).length > 0 ? (
                                     this.state.modalEarningDetails.sort((a, b) =>  b.inGameSLP - a.inGameSLP ).map(items => (
                                         <tr className="text-center">
-                                            <td>{items.ranking.name} ({this.state.modalEarningFilter === CONSTANTS.MESSAGE.MANAGER ? items.details.manager : items.details.sponsor}%)</td>
+                                            <td>{items.details.name} ({this.state.modalEarningFilter === CONSTANTS.MESSAGE.MANAGER ? items.details.manager : items.details.sponsor}%)</td>
                                             <td>{items.inGameSLP}</td>
                                             <td>{this.state.modalEarningFilter === CONSTANTS.MESSAGE.MANAGER ? items.sharedManagerSLP : items.sharedSponsorSLP}</td>
                                             <td>
@@ -648,10 +648,10 @@ class Home extends React.Component {
                                                 <MDBTooltip domElement tag="span" placement="top">
                                                     <span>
                                                         <a href={"https://marketplace.axieinfinity.com/profile/" + items.details.ethAddress + "/axie"} target="_blank" rel="noreferrer" className="black-text">
-                                                            {items.ranking.name}
+                                                            {items.details.name}
                                                         </a>
                                                     </span>
-                                                    <span>{CONSTANTS.MESSAGE.OPEN_MARKETPLACE_PROFILE} {CONSTANTS.MESSAGE.OF} {items.ranking.name}</span>
+                                                    <span>{CONSTANTS.MESSAGE.OPEN_MARKETPLACE_PROFILE} {CONSTANTS.MESSAGE.OF} {items.details.name}</span>
                                                 </MDBTooltip>
                                                 {/* Display MRR detail */}
                                                 <MDBBox tag="span" className="float-right font-family-default font-weight-normal">
@@ -765,14 +765,14 @@ class Home extends React.Component {
                                                 <MDBTooltip domElement tag="span" placement="top">
                                                     <span>
                                                         <a href={"https://marketplace.axieinfinity.com/profile/" + items.details.ethAddress + "/axie"} target="_blank" rel="noreferrer" className="black-text">
-                                                            {items.ranking.name}
+                                                            {items.details.name}
                                                         </a>
                                                     </span>
-                                                    <span>{CONSTANTS.MESSAGE.OPEN_MARKETPLACE_PROFILE} {CONSTANTS.MESSAGE.OF} {items.ranking.name}</span>
+                                                    <span>{CONSTANTS.MESSAGE.OPEN_MARKETPLACE_PROFILE} {CONSTANTS.MESSAGE.OF} {items.details.name}</span>
                                                 </MDBTooltip>
                                                 {
                                                     this.state.topUserMMR !== "" && this.state.topUserSLP !== "" ? (
-                                                        this.state.topUserMMR === items.ranking.name && this.state.topUserSLP === items.ranking.name ? (
+                                                        this.state.topUserMMR === items.details.name && this.state.topUserSLP === items.details.name ? (
                                                             // Top user MMR and SLP
                                                             <MDBBox tag="span" className="float-right">
                                                                 <MDBTooltip domElement tag="span" placement="top">

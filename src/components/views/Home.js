@@ -281,6 +281,15 @@ class Home extends React.Component {
                                 this.setState({
                                     totalManagerSLP: this.state.totalManagerSLP + result.sharedManagerSLP
                                 })
+
+                                if (details.manager === "100") {
+                                    // Set new Shared SLP
+                                    if (roninBalance > totalSLP) {
+                                        result.sharedSLP = Math.floor(roninBalance - totalSLP);
+                                    } else {
+                                        result.sharedSLP = Math.floor(totalSLP - roninBalance);
+                                    }
+                                }
                             }
 
                             if (details.sponsor !== "0" || details.sponsor > 0) { // Condition for Sponsor
@@ -296,7 +305,7 @@ class Home extends React.Component {
 
                             if (details.scholar !== "0" || details.scholar > 0) { // Condition for Scholar Players
                                 // Set new Shared SLP
-                                const iskoShare = "0." + details.scholar;
+                                const iskoShare = details.scholar === "100" ? 1 : "0." + details.scholar;
                                 result.sharedSLP = Math.floor(result.inGameSLP * iskoShare);
                             }
 
@@ -573,62 +582,64 @@ class Home extends React.Component {
     // Render Modal for viewing of Manager and Sponsor's Earning
     renderModalEarnings() {
         return (
-            <MDBModal isOpen={this.state.isModalEarningOpen} size="lg">
-                <MDBModalHeader toggle={this.modalEarningToggle("", "", "")}>{this.state.modalEarningTitle}</MDBModalHeader>
-                <MDBModalBody>
-                    <MDBTable bordered striped responsive>
-                        <MDBTableHead color="rgba-teal-strong" textWhite>
-                            <tr>
-                                <th colSpan="4" className="text-center font-weight-bold">{CONSTANTS.MESSAGE.MANAGER_EARNING}</th>
-                            </tr>
-                        </MDBTableHead>
-                        <MDBTableBody>
-                            <tr className="text-center">
-                                <td rowSpan="2" className="font-weight-bold v-align-middle text-uppercase">{CONSTANTS.MESSAGE.TOTAL_EARNINGS}</td>
-                                <td colSpan="3" className="font-weight-bold">{CONSTANTS.MESSAGE.SLP}: {this.state.modalEarningFilter === CONSTANTS.MESSAGE.MANAGER ? this.state.totalManagerSLP : this.state.totalSponsorSLP}</td>
-                            </tr>
-                            <tr className="text-center">
-                                <td colSpan="3" className="font-weight-bold table-gray-bg">
-                                    <span>&#8369; </span>
-                                    {this.state.modalEarningFilter === CONSTANTS.MESSAGE.MANAGER ? (
-                                        // Manager's Earning
-                                        this.numberWithCommas((this.state.totalManagerSLP * this.state.slpCurrentValue).toFixed(2))
-                                    ) : (
-                                        // Sponsor's Earning
-                                        this.numberWithCommas((this.state.totalSponsorSLP * this.state.slpCurrentValue).toFixed(2))
-                                    )}
-                                </td>
-                            </tr>
-                            <tr className="text-center">
-                                <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.NAME}</td>
-                                <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.INGAME} {CONSTANTS.MESSAGE.SLP}</td>
-                                <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.SHARED} {CONSTANTS.MESSAGE.SLP}</td>
-                                <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.EARNING}</td>
-                            </tr>
-                            {
-                                Object.keys(this.state.modalEarningDetails).length > 0 ? (
-                                    this.state.modalEarningDetails.sort((a, b) =>  b.inGameSLP - a.inGameSLP ).map(items => (
-                                        <tr className="text-center">
-                                            <td>{items.details.name} ({this.state.modalEarningFilter === CONSTANTS.MESSAGE.MANAGER ? items.details.manager : items.details.sponsor}%)</td>
-                                            <td>{items.inGameSLP}</td>
-                                            <td>{this.state.modalEarningFilter === CONSTANTS.MESSAGE.MANAGER ? items.sharedManagerSLP : items.sharedSponsorSLP}</td>
-                                            <td>
-                                                {this.state.modalEarningFilter === CONSTANTS.MESSAGE.MANAGER ? (
-                                                    // Manager's Earning
-                                                    this.numberWithCommas((items.sharedManagerSLP * this.state.slpCurrentValue).toFixed(2))
-                                                ) : (
-                                                    // Sponsor's Earning
-                                                    this.numberWithCommas((items.sharedSponsorSLP * this.state.slpCurrentValue).toFixed(2))
-                                                )}
-                                            </td>
-                                        </tr>
-                                    ))
-                                ) : ("")
-                            }
-                        </MDBTableBody>
-                    </MDBTable>
-                </MDBModalBody>
-            </MDBModal>
+            <React.Fragment>
+                <MDBModal isOpen={this.state.isModalEarningOpen} size="lg">
+                    <MDBModalHeader toggle={this.modalEarningToggle("", "", "")}>{this.state.modalEarningTitle}</MDBModalHeader>
+                    <MDBModalBody>
+                        <MDBTable bordered striped responsive>
+                            <MDBTableHead color="rgba-teal-strong" textWhite>
+                                <tr>
+                                    <th colSpan="4" className="text-center font-weight-bold">{CONSTANTS.MESSAGE.MANAGER_EARNING}</th>
+                                </tr>
+                            </MDBTableHead>
+                            <MDBTableBody>
+                                <tr className="text-center">
+                                    <td rowSpan="2" className="font-weight-bold v-align-middle text-uppercase">{CONSTANTS.MESSAGE.TOTAL_EARNINGS}</td>
+                                    <td colSpan="3" className="font-weight-bold">{CONSTANTS.MESSAGE.SLP}: {this.state.modalEarningFilter === CONSTANTS.MESSAGE.MANAGER ? this.state.totalManagerSLP : this.state.totalSponsorSLP}</td>
+                                </tr>
+                                <tr className="text-center">
+                                    <td colSpan="3" className="font-weight-bold table-gray-bg">
+                                        <span>&#8369; </span>
+                                        {this.state.modalEarningFilter === CONSTANTS.MESSAGE.MANAGER ? (
+                                            // Manager's Earning
+                                            this.numberWithCommas((this.state.totalManagerSLP * this.state.slpCurrentValue).toFixed(2))
+                                        ) : (
+                                            // Sponsor's Earning
+                                            this.numberWithCommas((this.state.totalSponsorSLP * this.state.slpCurrentValue).toFixed(2))
+                                        )}
+                                    </td>
+                                </tr>
+                                <tr className="text-center">
+                                    <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.NAME}</td>
+                                    <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.INGAME} {CONSTANTS.MESSAGE.SLP}</td>
+                                    <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.SHARED} {CONSTANTS.MESSAGE.SLP}</td>
+                                    <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.EARNING}</td>
+                                </tr>
+                                {
+                                    Object.keys(this.state.modalEarningDetails).length > 0 ? (
+                                        this.state.modalEarningDetails.sort((a, b) =>  b.inGameSLP - a.inGameSLP ).map(items => (
+                                            <tr key={items.client_id} className="text-center">
+                                                <td>{items.details.name} ({this.state.modalEarningFilter === CONSTANTS.MESSAGE.MANAGER ? items.details.manager : items.details.sponsor}%)</td>
+                                                <td>{items.inGameSLP}</td>
+                                                <td>{this.state.modalEarningFilter === CONSTANTS.MESSAGE.MANAGER ? items.sharedManagerSLP : items.sharedSponsorSLP}</td>
+                                                <td>
+                                                    {this.state.modalEarningFilter === CONSTANTS.MESSAGE.MANAGER ? (
+                                                        // Manager's Earning
+                                                        this.numberWithCommas((items.sharedManagerSLP * this.state.slpCurrentValue).toFixed(2))
+                                                    ) : (
+                                                        // Sponsor's Earning
+                                                        this.numberWithCommas((items.sharedSponsorSLP * this.state.slpCurrentValue).toFixed(2))
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        ))
+                                    ) : ("")
+                                }
+                            </MDBTableBody>
+                        </MDBTable>
+                    </MDBModalBody>
+                </MDBModal>
+            </React.Fragment>
         )
     }
 

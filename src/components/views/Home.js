@@ -35,6 +35,8 @@ class Home extends React.Component {
             modalEarningTitle: "",
             modalEarningFilter: "",
             modalEarningDetails: [],
+            isModalMMRRankOpen: false,
+            modalMMRRankDetails: [],
             topMMR: 0, // For condition of getting top user
             topSLP: 0, // For condition of getting top user
             topUserMMR: "",
@@ -62,6 +64,14 @@ class Home extends React.Component {
             modalEarningDetails: playerDetails
         });
     }
+
+    // Modal Toggle for view details of MMR Ranking
+    modalMMRRankToggle = (playerDetails) => () => {
+        this.setState({
+            isModalMMRRankOpen: !this.state.isModalMMRRankOpen,
+            modalMMRRankDetails: playerDetails
+        });
+    } 
 
     // Page reload
     pageRefresh = (time) => {
@@ -463,10 +473,6 @@ class Home extends React.Component {
         });
     }
 
-    onManagerEarningHandle = () => {
-        
-    }
-
     // Render Coingecko details
     renderCoingecko() {
         if (this.state.slpCurrentValue > 0) {
@@ -497,7 +503,8 @@ class Home extends React.Component {
                 return (
                     <React.Fragment>
                         <MDBCol size="12" className="mb-3">
-                            <MDBBox tag="div" className="py-3 px-2 text-center ice-bg">
+                            <MDBBox tag="div" className="py-3 px-2 text-center ice-bg cursor-pointer" onClick={this.modalMMRRankToggle(this.state.playerRecords)}>
+                                <MDBIcon icon="mouse-pointer" className="mr-1" />
                                 {
                                     // Top ELO / MMR Rank
                                     this.state.playerRecords.sort((a, b) =>  a.ranking.rank - b.ranking.rank ).map((items, index) => (
@@ -521,6 +528,44 @@ class Home extends React.Component {
                 )
             }
         }
+    }
+
+    // Render Modal for viewing of MMR Ranking
+    renderModalMMRRank() {
+        return (
+            <React.Fragment>
+                <MDBModal isOpen={this.state.isModalMMRRankOpen} size="lg">
+                    <MDBModalHeader toggle={this.modalMMRRankToggle("", "", "")}>{CONSTANTS.MESSAGE.TOP_MMR}</MDBModalHeader>
+                    <MDBModalBody>
+                        <MDBTable bordered striped responsive>
+                            <MDBTableHead color="rgba-teal-strong" textWhite>
+                                <tr>
+                                    <th colSpan="3" className="text-center font-weight-bold">{CONSTANTS.MESSAGE.RANKING}</th>
+                                </tr>
+                            </MDBTableHead>
+                            <MDBTableBody>
+                                <tr className="text-center">
+                                    <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.NAME}</td>
+                                    <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.MMR}</td>
+                                    <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.RANK}</td>
+                                </tr>
+                                {
+                                    Object.keys(this.state.modalMMRRankDetails).length > 0 ? (
+                                        this.state.modalMMRRankDetails.sort((a, b) =>  a.ranking.rank - b.ranking.rank ).map(items => (
+                                            <tr key={items.client_id} className="text-center">
+                                                <td>{items.details.name}</td>
+                                                <td>{(items.ranking.elo).toLocaleString()}</td>
+                                                <td>{(items.ranking.rank).toLocaleString()}</td>
+                                            </tr>
+                                        ))
+                                    ) : ("")
+                                }
+                            </MDBTableBody>
+                        </MDBTable>
+                    </MDBModalBody>
+                </MDBModal>
+            </React.Fragment>
+        )
     }
 
     // Render Total Earnings of Manager and Sponsor
@@ -970,6 +1015,7 @@ class Home extends React.Component {
 
                 {/* Render Modal */}
                 {this.renderModalEarnings()}
+                {this.renderModalMMRRank()}
             </MDBBox>
         )
     }

@@ -33,6 +33,7 @@ const MESSAGE = {
     MMR: "MMR",
     ELO: "ELO",
     RANK: "Rank",
+    RANKING: "Ranking",
     LAST_CLAIMED_SLP: "Last Claimed SLP",
     LAST_CLAIMED_AT: "Last Claimed At",
     CLAIMON: "Claim On",

@@ -27,6 +27,8 @@ class Home extends React.Component {
             isPlayerLoaded: false,
             playerItems: [],
             playerRecords: [],
+            playerAllItems: [],
+            playerAllRecords: [],
             totalManagerSLP: 0,
             totalSponsorSLP: 0,
             isModalEarningOpen: false,
@@ -340,6 +342,12 @@ class Home extends React.Component {
                             }
                         }
 
+                        // Get all ETH Address x for other display x MMR Ranking x etc
+                        this.state.playerAllItems.push(result);
+                        this.setState({
+                            playerAllRecords: this.state.playerAllItems
+                        })
+
                         if (this.state.isUser === CONSTANTS.MESSAGE.MANAGER) {
                             // Get all ETH Address
                             this.state.playerItems.push(result);
@@ -500,15 +508,15 @@ class Home extends React.Component {
     // Render Top scholar x ELO Ranking and SLP Earning
     renderTopScholar() {
         if ( this.state.isPlayerLoaded && this.state.isLoaded && !this.state.error ) {
-            if (Object.keys(this.state.playerRecords).length > 0) {
+            if (Object.keys(this.state.playerAllRecords).length > 0) {
                 return (
                     <React.Fragment>
                         <MDBCol size="12" className="mb-3">
-                            <MDBBox tag="div" className="py-3 px-2 text-center ice-bg cursor-pointer" onClick={this.modalMMRRankToggle(this.state.playerRecords)}>
+                            <MDBBox tag="div" className="py-3 px-2 text-center ice-bg cursor-pointer" onClick={this.modalMMRRankToggle(this.state.playerAllRecords)}>
                                 <MDBIcon icon="mouse-pointer" className="mr-1" />
                                 {
                                     // Top ELO / MMR Rank
-                                    this.state.playerRecords.sort((a, b) =>  a.ranking.rank - b.ranking.rank ).map((items, index) => (
+                                    this.state.playerAllRecords.sort((a, b) =>  a.ranking.rank - b.ranking.rank ).map((items, index) => (
                                         index === 0 ? (
                                             <MDBBox key={items.client_id} tag="span" className="">{CONSTANTS.MESSAGE.TOP_MMR}: <strong>{items.details.name} ({items.ranking.elo})</strong></MDBBox>
                                         ) : ("")

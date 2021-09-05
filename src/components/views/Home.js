@@ -509,7 +509,7 @@ class Home extends React.Component {
 
                                 {
                                     // Top In Game SLP
-                                    this.state.playerRecords.sort((a, b) =>  b.total - a.total ).map((items, index) => (
+                                    this.state.playerRecords.sort((a, b) =>  b.inGameSLP - a.inGameSLP ).map((items, index) => (
                                         index === 0 ? (
                                             <MDBBox key={items.client_id} tag="span" className="ml-2">{CONSTANTS.MESSAGE.TOP_INGAME_SLP}: <strong>{items.details.name} ({items.inGameSLP})</strong></MDBBox>
                                         ) : ("")

@@ -38,7 +38,7 @@ class Header extends React.Component {
                             </a>
                         </MDBNavbarBrand>
                         <MDBNavbarToggler onClick={this.toggleCollapse} />
-                        <MDBCollapse id="navbarCollapse3" isOpen={this.state.isOpen} navbar>
+                        <MDBCollapse id="navbarCollapse3" isOpen={this.state.isOpen} navbar className="justify-content-end">
                             <MDBNavbarNav right>
                                 <MDBNavItem active>
                                     <MDBDropdown>

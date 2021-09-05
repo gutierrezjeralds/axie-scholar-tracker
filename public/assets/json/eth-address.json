@@ -7,7 +7,19 @@
         "manager": "100",
         "scholar": "0",
         "sponsor": "0",
-        "sponsorName": ""
+        "sponsorName": "",
+        "claimedEarning": [
+            {
+                "date": "2021-08-14",
+                "slp": "4023",
+                "slpPrice": "9.47"
+            },
+            {
+                "date": "2021-08-29",
+                "slp": "2237",
+                "slpPrice": "6.76"
+            }
+        ]
     },
     {
         "id": 2,
@@ -17,7 +29,19 @@
         "manager": "50",
         "scholar": "50",
         "sponsor": "0",
-        "sponsorName": ""
+        "sponsorName": "",
+        "claimedEarning": [
+            {
+                "date": "2021-08-14",
+                "slp": "1604",
+                "slpPrice": "9.47"
+            },
+            {
+                "date": "2021-08-29",
+                "slp": "1429",
+                "slpPrice": "Hold"
+            }
+        ]
     },
     {
         "id": 3,
@@ -27,7 +51,19 @@
         "manager": "50",
         "scholar": "50",
         "sponsor": "0",
-        "sponsorName": ""
+        "sponsorName": "",
+        "claimedEarning": [
+            {
+                "date": "2021-08-14",
+                "slp": "1090",
+                "slpPrice": "9.47"
+            },
+            {
+                "date": "2021-08-29",
+                "slp": "1075",
+                "slpPrice": "6.76"
+            }
+        ]
     },
     {
         "id": 4,
@@ -37,7 +73,14 @@
         "manager": "50",
         "scholar": "50",
         "sponsor": "0",
-        "sponsorName": ""
+        "sponsorName": "",
+        "claimedEarning": [
+            {
+                "date": "2021-08-29",
+                "slp": "1247",
+                "slpPrice": "6.76"
+            }
+        ]
     },
     {
         "id": 5,
@@ -47,6 +90,7 @@
         "manager": "50",
         "scholar": "50",
         "sponsor": "0",
-        "sponsorName": ""
+        "sponsorName": "",
+        "claimedEarning": []
     }
 ]

@@ -31,6 +31,7 @@ class Home extends React.Component {
             playerAllRecords: [],
             totalManagerSLP: 0,
             totalSponsorSLP: 0,
+            counterTotalManagerSLP: 0,
             isModalEarningOpen: false,
             modalEarningTitle: "",
             modalEarningFilter: "",
@@ -298,17 +299,25 @@ class Home extends React.Component {
                                 result.inGameSLP = totalSLP - roninBalance;
                             }
 
-                            if (details.manager === "100" || details.manager > 0) { // Condition for Manager
+                            if (details.manager == 100 || details.manager > 0) { // Condition for Manager
                                 // Set new Shared SLP
-                                const managerShare = details.manager === "100" ? 1 : "0." + details.manager;
+                                const managerShare = details.manager == 100 ? 1 : "0." + details.manager;
                                 result.sharedManagerSLP = Math.floor(result.inGameSLP * managerShare);
 
                                 // Set new Total Manager's Earning
-                                this.setState({
-                                    totalManagerSLP: this.state.totalManagerSLP + result.sharedManagerSLP
-                                })
+                                if (this.state.counterTotalManagerSLP == 0) {
+                                    // Adding ronin balance in total Manage SLP
+                                    this.setState({
+                                        totalManagerSLP: this.state.totalManagerSLP + result.sharedManagerSLP + roninBalance,
+                                        counterTotalManagerSLP: 1
+                                    })
+                                } else {
+                                    this.setState({
+                                        totalManagerSLP: this.state.totalManagerSLP + result.sharedManagerSLP
+                                    })
+                                }
 
-                                if (details.manager === "100") {
+                                if (details.manager == 100) {
                                     // Set new Shared SLP
                                     if (roninBalance > totalSLP) {
                                         result.sharedSLP = Math.floor(roninBalance - totalSLP);
@@ -318,7 +327,7 @@ class Home extends React.Component {
                                 }
                             }
 
-                            if (details.sponsor !== "0" || details.sponsor > 0) { // Condition for Sponsor
+                            if (details.sponsor != 0 || details.sponsor > 0) { // Condition for Sponsor
                                 // Set new Shared SLP
                                 const sponsorShare = "0." + details.sponsor;
                                 result.sharedSponsorSLP = Math.floor(result.inGameSLP * sponsorShare);
@@ -329,9 +338,9 @@ class Home extends React.Component {
                                 })
                             }
 
-                            if (details.scholar !== "0" || details.scholar > 0) { // Condition for Scholar Players
+                            if (details.scholar != 0 || details.scholar > 0) { // Condition for Scholar Players
                                 // Set new Shared SLP
-                                const iskoShare = details.scholar === "100" ? 1 : "0." + details.scholar;
+                                const iskoShare = details.scholar == 100 ? 1 : "0." + details.scholar;
                                 result.sharedSLP = Math.floor(result.inGameSLP * iskoShare);
                             }
 
@@ -873,7 +882,7 @@ class Home extends React.Component {
                                                                         <span>
                                                                             {CONSTANTS.MESSAGE.SHARE}
                                                                             <span className="font-size-pt7rem ml-1">
-                                                                                ({items.details.manager === "100" ? items.details.manager : items.details.scholar}%)
+                                                                                ({items.details.manager == 100 ? items.details.manager : items.details.scholar}%)
                                                                             </span>
                                                                         </span>
                                                                         <span>{CONSTANTS.MESSAGE.INGAME_SLP_SHARING}</span>

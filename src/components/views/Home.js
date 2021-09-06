@@ -765,7 +765,7 @@ class Home extends React.Component {
                             <MDBTableHead color="rgba-teal-strong" textWhite>
                                 <tr>
                                     <th colSpan="4" className="text-center font-weight-bold">
-                                        <span>&#8369; </span>
+                                        <span>{CONSTANTS.MESSAGE.TOTAL}: &#8369; </span>
                                         {
                                             Object.keys(this.state.modalTotalIncomeDetails).length > 0 ? (
                                                 <React.Fragment>

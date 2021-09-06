@@ -95,7 +95,7 @@ class Home extends React.Component {
     // Page reload
     pageRefresh = (time) => {
         setTimeout( function() {
-            window.location.reload();
+            // window.location.reload();
         }, time);
     }
 
@@ -299,13 +299,13 @@ class Home extends React.Component {
                                 result.inGameSLP = totalSLP - roninBalance;
                             }
 
-                            if (details.manager == 100 || details.manager > 0) { // Condition for Manager
+                            if ((details.manager).toString() === "100" || details.manager > 0) { // Condition for Manager
                                 // Set new Shared SLP
-                                const managerShare = details.manager == 100 ? 1 : "0." + details.manager;
+                                const managerShare = (details.manager).toString() === "100" ? 1 : "0." + details.manager;
                                 result.sharedManagerSLP = Math.floor(result.inGameSLP * managerShare);
 
                                 // Set new Total Manager's Earning
-                                if (this.state.counterTotalManagerSLP == 0) {
+                                if ((this.state.counterTotalManagerSLP).toString() === "0") {
                                     // Adding ronin balance in total Manage SLP
                                     this.setState({
                                         totalManagerSLP: this.state.totalManagerSLP + result.sharedManagerSLP + roninBalance,
@@ -317,7 +317,7 @@ class Home extends React.Component {
                                     })
                                 }
 
-                                if (details.manager == 100) {
+                                if ((details.manager).toString() === "100") {
                                     // Set new Shared SLP
                                     if (roninBalance > totalSLP) {
                                         result.sharedSLP = Math.floor(roninBalance - totalSLP);
@@ -327,7 +327,7 @@ class Home extends React.Component {
                                 }
                             }
 
-                            if (details.sponsor != 0 || details.sponsor > 0) { // Condition for Sponsor
+                            if ((details.sponsor).toString() !== "0" || details.sponsor > 0) { // Condition for Sponsor
                                 // Set new Shared SLP
                                 const sponsorShare = "0." + details.sponsor;
                                 result.sharedSponsorSLP = Math.floor(result.inGameSLP * sponsorShare);
@@ -338,9 +338,9 @@ class Home extends React.Component {
                                 })
                             }
 
-                            if (details.scholar != 0 || details.scholar > 0) { // Condition for Scholar Players
+                            if ((details.scholar).toString() !== "0" || details.scholar > 0) { // Condition for Scholar Players
                                 // Set new Shared SLP
-                                const iskoShare = details.scholar == 100 ? 1 : "0." + details.scholar;
+                                const iskoShare = (details.scholar).toString() === "100" ? 1 : "0." + details.scholar;
                                 result.sharedSLP = Math.floor(result.inGameSLP * iskoShare);
                             }
 
@@ -566,7 +566,7 @@ class Home extends React.Component {
                                     // Top ELO / MMR Rank
                                     this.state.playerAllRecords.sort((a, b) =>  a.ranking.rank - b.ranking.rank ).map((items, index) => (
                                         index === 0 ? (
-                                            <MDBBox key={items.client_id} tag="span" className="">{CONSTANTS.MESSAGE.TOP_MMR}: <strong>{items.details.name} ({items.ranking.elo})</strong></MDBBox>
+                                            <MDBBox key={items.client_id} tag="span" className="d-block d-md-inline d-lg-inline">{CONSTANTS.MESSAGE.TOP_MMR}: <strong>{items.details.name} ({items.ranking.elo})</strong></MDBBox>
                                         ) : ("")
                                     ))
                                 }
@@ -575,7 +575,7 @@ class Home extends React.Component {
                                     // Top In Game SLP
                                     this.state.playerRecords.sort((a, b) =>  b.inGameSLP - a.inGameSLP ).map((items, index) => (
                                         index === 0 ? (
-                                            <MDBBox key={items.client_id} tag="span" className="ml-2">{CONSTANTS.MESSAGE.TOP_INGAME_SLP}: <strong>{items.details.name} ({items.inGameSLP})</strong></MDBBox>
+                                            <MDBBox key={items.client_id} tag="span" className="d-block d-md-inline d-lg-inline ml-2">{CONSTANTS.MESSAGE.TOP_INGAME_SLP}: <strong>{items.details.name} ({items.inGameSLP})</strong></MDBBox>
                                         ) : ("")
                                     ))
                                 }
@@ -882,7 +882,7 @@ class Home extends React.Component {
                                                                         <span>
                                                                             {CONSTANTS.MESSAGE.SHARE}
                                                                             <span className="font-size-pt7rem ml-1">
-                                                                                ({items.details.manager == 100 ? items.details.manager : items.details.scholar}%)
+                                                                                ({(items.details.manager).toString() === "100" ? items.details.manager : items.details.scholar}%)
                                                                             </span>
                                                                         </span>
                                                                         <span>{CONSTANTS.MESSAGE.INGAME_SLP_SHARING}</span>

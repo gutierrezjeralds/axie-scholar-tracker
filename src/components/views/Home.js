@@ -37,6 +37,8 @@ class Home extends React.Component {
             modalEarningDetails: [],
             isModalMMRRankOpen: false,
             modalMMRRankDetails: [],
+            isModalTotalIncomeOpen: false,
+            modalTotalIncomeDetails: [],
             topMMR: 0, // For condition of getting top user
             topSLP: 0, // For condition of getting top user
             topUserMMR: "",
@@ -71,7 +73,23 @@ class Home extends React.Component {
             isModalMMRRankOpen: !this.state.isModalMMRRankOpen,
             modalMMRRankDetails: playerDetails
         });
-    } 
+    }
+
+    // Modal Toggle for view of Total Income
+    modalTotalIncomeToggle = (cliendId, playerDetails) => () => {
+        let details = [];
+        if (cliendId && playerDetails.length > 0) {
+            const findDetail = playerDetails.find(items => items.client_id === cliendId);
+            if (Object.keys(findDetail).length > 0) {
+                details = [findDetail];
+            }
+        }
+
+        this.setState({
+            isModalTotalIncomeOpen: !this.state.isModalTotalIncomeOpen,
+            modalTotalIncomeDetails: details
+        });
+    }
 
     // Page reload
     pageRefresh = (time) => {
@@ -250,8 +268,6 @@ class Home extends React.Component {
                     if (!ranking.error) {
                         result.last_claimed_item_at_add = moment.unix(result.last_claimed_item_at).add(1, 'days');
                         result.claim_on_days = 0;
-                        result.details = details;
-                        result.ranking = ranking;
                         result.inGameSLP = result.total;
                         result.totalSLP = result.total;
 
@@ -323,11 +339,11 @@ class Home extends React.Component {
                             result.totalSLP = roninBalance + result.sharedSLP;
 
                             // Get Top User MMR and SLP
-                            if (result.ranking.rank > this.state.topMMR || result.inGameSLP > this.state.topSLP) {
-                                if (result.ranking.rank > this.state.topMMR) {
+                            if (ranking.rank > this.state.topMMR || result.inGameSLP > this.state.topSLP) {
+                                if (ranking.rank > this.state.topMMR) {
                                     // Set Top User MMR
                                     this.setState({
-                                        topMMR: result.ranking.elo,
+                                        topMMR: ranking.elo,
                                         topUserMMR: details.name
                                     })
                                 }
@@ -340,7 +356,31 @@ class Home extends React.Component {
                                     })
                                 }
                             }
+
+                            // Set new value for Total Income and Set value for Total Earning per claimed
+                            if (details.claimedEarning.length > 0) {
+                                details.claimedEarning.map((data, index) => {
+                                    const earnedSLP = data.slp;
+                                    const slpPrice = data.slpPrice;
+                                    const totalIncome = details.totalIncome;
+
+                                    details.claimedEarning[index].earning = 0;
+                                    if (slpPrice.toString() !== "hold") {
+                                        // Adding Total Earning
+                                        details.claimedEarning[index].earning = earnedSLP * slpPrice;
+                                        // Update Total Income
+                                        details.totalIncome = totalIncome + details.claimedEarning[index].earning;
+                                    }
+
+                                    // Return
+                                    return true;
+                                })
+                            }
                         }
+
+                        // Adding Player details and ranking in result object
+                        result.details = details;
+                        result.ranking = ranking;
 
                         // Get all ETH Address x for other display x MMR Ranking x etc
                         this.state.playerAllItems.push(result);
@@ -513,7 +553,6 @@ class Home extends React.Component {
                     <React.Fragment>
                         <MDBCol size="12" className="mb-3">
                             <MDBBox tag="div" className="py-3 px-2 text-center ice-bg cursor-pointer" onClick={this.modalMMRRankToggle(this.state.playerAllRecords)}>
-                                <MDBIcon icon="mouse-pointer" className="mr-1" />
                                 {
                                     // Top ELO / MMR Rank
                                     this.state.playerAllRecords.sort((a, b) =>  a.ranking.rank - b.ranking.rank ).map((items, index) => (
@@ -544,7 +583,7 @@ class Home extends React.Component {
         return (
             <React.Fragment>
                 <MDBModal isOpen={this.state.isModalMMRRankOpen} size="lg">
-                    <MDBModalHeader toggle={this.modalMMRRankToggle("", "", "")}>{CONSTANTS.MESSAGE.TOP_MMR}</MDBModalHeader>
+                    <MDBModalHeader toggle={this.modalMMRRankToggle("")}>{CONSTANTS.MESSAGE.TOP_MMR}</MDBModalHeader>
                     <MDBModalBody>
                         <MDBTable bordered striped responsive>
                             <MDBTableHead color="rgba-teal-strong" textWhite>
@@ -697,6 +736,66 @@ class Home extends React.Component {
         )
     }
 
+    // Render Modal for viewing of Total Income
+    renderModalTotalIncome() {
+        return (
+            <React.Fragment>
+                <MDBModal isOpen={this.state.isModalTotalIncomeOpen} size="lg">
+                    <MDBModalHeader toggle={this.modalTotalIncomeToggle("", "")}>
+                        <span>{CONSTANTS.MESSAGE.TOTALINCOME} {CONSTANTS.MESSAGE.OF} </span>
+                        {
+                            Object.keys(this.state.modalTotalIncomeDetails).length > 0 ? (
+                                <React.Fragment>
+                                    {(this.state.modalTotalIncomeDetails[0].details.name).toLocaleString()}
+                                </React.Fragment>
+                            ) : ("0")
+                        }
+                    </MDBModalHeader>
+                    <MDBModalBody>
+                        <MDBTable bordered striped responsive>
+                            <MDBTableHead color="rgba-teal-strong" textWhite>
+                                <tr>
+                                    <th colSpan="4" className="text-center font-weight-bold">
+                                        <span>&#8369; </span>
+                                        {
+                                            Object.keys(this.state.modalTotalIncomeDetails).length > 0 ? (
+                                                <React.Fragment>
+                                                    {(this.state.modalTotalIncomeDetails[0].details.totalIncome).toLocaleString()}
+                                                </React.Fragment>
+                                            ) : ("0")
+                                        }
+                                    </th>
+                                </tr>
+                            </MDBTableHead>
+                            <MDBTableBody>
+                                <tr className="text-center">
+                                    <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.DATE}</td>
+                                    <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.SLP}</td>
+                                    <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.SLP_PRICE}</td>
+                                    <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.EARNING}</td>
+                                </tr>
+                                {
+                                    Object.keys(this.state.modalTotalIncomeDetails).length > 0 ? (
+                                        Object.keys(this.state.modalTotalIncomeDetails[0].details.claimedEarning).length > 0 ? (
+                                            (this.state.modalTotalIncomeDetails[0].details.claimedEarning).sort((a, b) =>  b.id - a.id ).map(items => (
+                                                <tr key={items.id} className="text-center">
+                                                    <td>{<Moment format="MMM DD, YYYY">{items.date}</Moment>}</td>
+                                                    <td>{items.slp}</td>
+                                                    <td className="text-uppercase">{items.slpPrice}</td>
+                                                    <td>{(items.earning).toLocaleString()}</td>
+                                                </tr>
+                                            ))
+                                        ) : ("")
+                                    ) : ("")
+                                }
+                            </MDBTableBody>
+                        </MDBTable>
+                    </MDBModalBody>
+                </MDBModal>
+            </React.Fragment>
+        )
+    }
+
     // Render all players details
     renderAllDetails() {
         if ( this.state.isPlayerLoaded && this.state.isLoaded && !this.state.error ) {
@@ -739,7 +838,10 @@ class Home extends React.Component {
                                             </MDBCardTitle>
                                             <MDBBox tag="div">
                                                 <MDBBox tag="div" className="mt-3">
-                                                    <MDBTable bordered striped responsive>
+                                                    <MDBBox tag="u" className="text-decoration cursor-pointer"  onClick={this.modalTotalIncomeToggle(items.client_id, this.state.playerAllRecords)}>
+                                                        {CONSTANTS.MESSAGE.VIEW_TOTALINCOME}
+                                                    </MDBBox>
+                                                    <MDBTable className="mt-2" bordered striped responsive>
                                                         <MDBTableHead color="rgba-teal-strong" textWhite>
                                                             <tr>
                                                                 <th colSpan="5" className="text-center font-weight-bold">{CONSTANTS.MESSAGE.SLP_DESC}</th>
@@ -903,6 +1005,7 @@ class Home extends React.Component {
                 {/* Render Modal */}
                 {this.renderModalEarnings()}
                 {this.renderModalMMRRank()}
+                {this.renderModalTotalIncome()}
             </MDBBox>
         )
     }

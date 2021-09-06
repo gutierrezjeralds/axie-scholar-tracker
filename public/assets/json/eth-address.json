@@ -4,20 +4,23 @@
         "ethAddress": "ronin:c0a2796857293218ee40d0eb1fbcbf59f8f23efb",
         "name": "BunnyBalds",
         "email": "gutierrez.jeralds@yahoo.com",
-        "manager": "100",
-        "scholar": "0",
-        "sponsor": "0",
+        "manager": 100,
+        "scholar": 0,
+        "sponsor": 0,
         "sponsorName": "",
+        "totalIncome": 0,
         "claimedEarning": [
             {
+                "id": 1,
                 "date": "2021-08-14",
-                "slp": "4023",
-                "slpPrice": "9.47"
+                "slp": 4023,
+                "slpPrice": 9.47
             },
             {
+                "id": 2,
                 "date": "2021-08-29",
-                "slp": "2237",
-                "slpPrice": "6.76"
+                "slp": 2237,
+                "slpPrice": 6.76
             }
         ]
     },
@@ -26,20 +29,23 @@
         "ethAddress": "ronin:411bf3e5386c688920392dbfc8af6685405d12d8",
         "name": "taengpusa",
         "email": "vincejaspergutierrez@gmail.com",
-        "manager": "50",
-        "scholar": "50",
-        "sponsor": "0",
+        "manager": 50,
+        "scholar": 50,
+        "sponsor": 0,
         "sponsorName": "",
+        "totalIncome": 0,
         "claimedEarning": [
             {
+                "id": 1,
                 "date": "2021-08-14",
-                "slp": "1604",
-                "slpPrice": "9.47"
+                "slp": 1604,
+                "slpPrice": 9.47
             },
             {
+                "id": 2,
                 "date": "2021-08-29",
-                "slp": "1429",
-                "slpPrice": "Hold"
+                "slp": 1429,
+                "slpPrice": "hold"
             }
         ]
     },
@@ -48,20 +54,23 @@
         "ethAddress": "ronin:1263e0cf33a3cafbf9e9090665aa8f9a23b05268",
         "name": "Janok",
         "email": "pauljohnsgutierrez.052030@gmail.com",
-        "manager": "50",
-        "scholar": "50",
-        "sponsor": "0",
+        "manager": 50,
+        "scholar": 50,
+        "sponsor": 0,
         "sponsorName": "",
+        "totalIncome": 0,
         "claimedEarning": [
             {
+                "id": 1,
                 "date": "2021-08-14",
-                "slp": "1090",
-                "slpPrice": "9.47"
+                "slp": 1090,
+                "slpPrice": 9.47
             },
             {
+                "id": 2,
                 "date": "2021-08-29",
-                "slp": "1075",
-                "slpPrice": "6.76"
+                "slp": 1075,
+                "slpPrice": 6.76
             }
         ]
     },
@@ -70,15 +79,17 @@
         "ethAddress": "ronin:e3b430f34db38d6ce76f679330b8d81baf2121f5",
         "name": "Juls",
         "email": "isaiahlou@yahoo.com",
-        "manager": "50",
-        "scholar": "50",
-        "sponsor": "0",
+        "manager": 50,
+        "scholar": 50,
+        "sponsor": 0,
         "sponsorName": "",
+        "totalIncome": 0,
         "claimedEarning": [
             {
+                "id": 1,
                 "date": "2021-08-29",
-                "slp": "1247",
-                "slpPrice": "6.76"
+                "slp": 1247,
+                "slpPrice": 6.76
             }
         ]
     },
@@ -87,10 +98,11 @@
         "ethAddress": "ronin:bcb2952ef31c29d007025bc2e4f3c7271c419272",
         "name": "JCarl",
         "email": "katigbakjangkarl@gmail.com",
-        "manager": "50",
-        "scholar": "50",
-        "sponsor": "0",
+        "manager": 50,
+        "scholar": 50,
+        "sponsor": 0,
         "sponsorName": "",
+        "totalIncome": 0,
         "claimedEarning": []
     }
 ]

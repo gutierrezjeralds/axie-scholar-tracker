@@ -7,7 +7,7 @@ class Footer extends React.Component {
         return (
             <MDBFooter color="" className="font-small w-100">
                 <MDBBox tag="div" className="text-center py-2">
-                    {CONSTANTS.MESSAGE.PAGE_REFRESH}
+                    {CONSTANTS.MESSAGE.PAGE_REFRESH} {CONSTANTS.MESSAGE.NOTIFBAR_CLICKABLE}
                 </MDBBox>
                 <MDBBox tag="div" className="footer-copyright text-center py-3">
                     <MDBContainer fluid>

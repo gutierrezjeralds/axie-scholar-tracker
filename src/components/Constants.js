@@ -63,7 +63,12 @@ const MESSAGE = {
     AVERAGE: "Average",
     AVERAGE_SLP_PERDAY: "Average SLP per day",
     AVERAGE_SLP_PERDAY_V2: "Average SLP / Day",
-    SHARE_SLP: "Share SLP"
+    SHARE_SLP: "Share SLP",
+    VIEW_TOTALINCOME: "View Total Income",
+    TOTALINCOME: "Total Income",
+    NOTIFBAR_CLICKABLE: "Notification bar is Clickable.",
+    SLP_PRICE: "SLP Price",
+    DATE: "Date"
 }
 
 export const CONSTANTS = {

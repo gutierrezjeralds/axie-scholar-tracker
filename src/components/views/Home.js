@@ -101,57 +101,17 @@ class Home extends React.Component {
 
     // Get Coingecko data / json
     getCoingecko = () => {
-        // Get Current SLP Value
+        // Get Current SLP and AXS Value
         $.ajax({
-            url: "https://api.coingecko.com/api/v3/coins/smooth-love-potion?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false",
+            url: "https://api.coingecko.com/api/v3/simple/price?ids=smooth-love-potion,axie-infinity&vs_currencies=php",
             dataType: "json",
             cache: false
         })
         .then(
             (result) => {
                 this.setState({
-                    slpCurrentValue: result.market_data.current_price.php
-                })
-            },
-            // Note: it's important to handle errors here
-            // instead of a catch() block so that we don't swallow
-            // exceptions from actual bugs in components.
-            (error) => {
-                this.setState({
-                    isLoaded: true,
-                    isNotif: true,
-                    notifCat: "error",
-                    notifStr: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
-                    error: true
-                })
-                    
-                console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, error)
-            }
-        )
-        .catch(
-            (err) => {
-                this.setState({
-                    isLoaded: true,
-                    isNotif: true,
-                    notifCat: "error",
-                    notifStr: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
-                    error: true
-                })
-                    
-                console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
-            }
-        )
-
-        // Get Current AXS Value
-        $.ajax({
-            url: "https://api.coingecko.com/api/v3/coins/axie-infinity?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false",
-            dataType: "json",
-            cache: false
-        })
-        .then(
-            (result) => {
-                this.setState({
-                    axsCurrentValue: result.market_data.current_price.php
+                    slpCurrentValue: result["smooth-love-potion"].php,
+                    axsCurrentValue: result["axie-infinity"].php
                 })
             },
             // Note: it's important to handle errors here
@@ -219,7 +179,7 @@ class Home extends React.Component {
                             isPlayerLoaded: true
                         })
 
-                        console.log("playerItems", this.state.playerItems)
+                        // console.log("playerItems", this.state.playerItems)
                     }
                     return true;
                 });

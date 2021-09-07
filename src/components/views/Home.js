@@ -143,7 +143,7 @@ class Home extends React.Component {
             }
         )
     }
-
+    
     // Fetch Player Record Data
     getRecord = () => {
         $.ajax({
@@ -587,57 +587,60 @@ class Home extends React.Component {
 
     // Render Total Earnings of Manager and Sponsor
     renderEarnings() {
-        if (this.state.isUser === CONSTANTS.MESSAGE.MANAGER) {
-            if (this.state.totalManagerSLP > 0 || this.state.totalSponsorSLP > 0) {
-                // Display Manager and Sponsor's Earning
-                return (
-                    <React.Fragment>
-                        <MDBCol size="12" className="">
-                            <MDBBox tag="div" className="py-3 px-2 text-center rgba-teal-strong">
-                                {
-                                    // Display Manager's Earing
-                                    this.state.totalManagerSLP > 0 ? (
-                                        <MDBBox tag="span" className="blue-whale d-block cursor-pointer" onClick={this.modalEarningToggle(CONSTANTS.MESSAGE.VIEW_MANAGER_EARNING, CONSTANTS.MESSAGE.MANAGER, this.state.playerRecords)}>
-                                            {CONSTANTS.MESSAGE.MANAGER_EARNING}: {CONSTANTS.MESSAGE.SLP} {this.state.totalManagerSLP} (&#8369; {this.numberWithCommas((this.state.totalManagerSLP * this.state.slpCurrentValue).toFixed(2))})
-                                        </MDBBox>
-                                    ) : ("")
-                                }
+        if ( this.state.isPlayerLoaded && this.state.isLoaded && !this.state.error ) {
+            if (this.state.isUser === CONSTANTS.MESSAGE.MANAGER) {
+                if (this.state.totalManagerSLP > 0 || this.state.totalSponsorSLP > 0) {
+                    // Display Manager and Sponsor's Earning
+                    return (
+                        <React.Fragment>
+                            <MDBCol size="12" className="">
+                                <MDBBox tag="div" className="py-3 px-2 text-center rgba-teal-strong">
+                                    {
+                                        // Display Manager's Earing
+                                        this.state.totalManagerSLP > 0 ? (
+                                            <MDBBox tag="span" className="blue-whale d-block cursor-pointer" onClick={this.modalEarningToggle(CONSTANTS.MESSAGE.VIEW_MANAGER_EARNING, CONSTANTS.MESSAGE.MANAGER, this.state.playerRecords)}>
+                                                {CONSTANTS.MESSAGE.MANAGER_EARNING}: {CONSTANTS.MESSAGE.SLP} {this.state.totalManagerSLP} (&#8369; {this.numberWithCommas((this.state.totalManagerSLP * this.state.slpCurrentValue).toFixed(2))})
+                                            </MDBBox>
+                                        ) : ("")
+                                    }
+        
+                                    {
+                                        // Display Sponsor's Earing
+                                        this.state.totalSponsorSLP > 0 ? (
+                                            <MDBBox tag="span" className="blue-whale d-block">
+                                                {CONSTANTS.MESSAGE.SPONSOR_EARNING}: {CONSTANTS.MESSAGE.SLP} {this.state.totalSponsorSLP} (&#8369; {this.numberWithCommas((this.state.totalSponsorSLP * this.state.slpCurrentValue).toFixed(2))})
+                                            </MDBBox>
+                                        ) : ("")
+                                    }
+                                </MDBBox>
+                            </MDBCol>
+                        </React.Fragment>
+                    )
+                }
+            }
     
-                                {
-                                    // Display Sponsor's Earing
-                                    this.state.totalSponsorSLP > 0 ? (
-                                        <MDBBox tag="span" className="blue-whale d-block">
-                                            {CONSTANTS.MESSAGE.SPONSOR_EARNING}: {CONSTANTS.MESSAGE.SLP} {this.state.totalSponsorSLP} (&#8369; {this.numberWithCommas((this.state.totalSponsorSLP * this.state.slpCurrentValue).toFixed(2))})
-                                        </MDBBox>
-                                    ) : ("")
-                                }
-                            </MDBBox>
-                        </MDBCol>
-                    </React.Fragment>
-                )
+            if (this.state.isUser === this.state.isSponsorName) {
+                if (this.state.totalSponsorSLP > 0) {
+                    // Display Sponsor's Earning
+                    return (
+                        <React.Fragment>
+                            <MDBCol size="12" className="">
+                                <MDBBox tag="div" className="py-3 px-2 text-center rgba-teal-strong">
+                                    {
+                                        // Display Sponsor's Earing
+                                        this.state.totalSponsorSLP > 0 ? (
+                                            <MDBBox tag="span" className="blue-whale d-block cursor-pointer" onClick={this.modalEarningToggle(CONSTANTS.MESSAGE.VIEW_SPONSOR_EARNING, CONSTANTS.MESSAGE.SPONSOR, this.state.playerRecords)}>
+                                                {CONSTANTS.MESSAGE.SPONSOR_EARNING}: {CONSTANTS.MESSAGE.SLP} {this.state.totalSponsorSLP} (&#8369; {this.numberWithCommas((this.state.totalSponsorSLP * this.state.slpCurrentValue).toFixed(2))})
+                                            </MDBBox>
+                                        ) : ("")
+                                    }
+                                </MDBBox>
+                            </MDBCol>
+                        </React.Fragment>
+                    )
+                }
             }
-        }
-
-        if (this.state.isUser === this.state.isSponsorName) {
-            if (this.state.totalSponsorSLP > 0) {
-                // Display Sponsor's Earning
-                return (
-                    <React.Fragment>
-                        <MDBCol size="12" className="">
-                            <MDBBox tag="div" className="py-3 px-2 text-center rgba-teal-strong">
-                                {
-                                    // Display Sponsor's Earing
-                                    this.state.totalSponsorSLP > 0 ? (
-                                        <MDBBox tag="span" className="blue-whale d-block cursor-pointer" onClick={this.modalEarningToggle(CONSTANTS.MESSAGE.VIEW_SPONSOR_EARNING, CONSTANTS.MESSAGE.SPONSOR, this.state.playerRecords)}>
-                                            {CONSTANTS.MESSAGE.SPONSOR_EARNING}: {CONSTANTS.MESSAGE.SLP} {this.state.totalSponsorSLP} (&#8369; {this.numberWithCommas((this.state.totalSponsorSLP * this.state.slpCurrentValue).toFixed(2))})
-                                        </MDBBox>
-                                    ) : ("")
-                                }
-                            </MDBBox>
-                        </MDBCol>
-                    </React.Fragment>
-                )
-            }
+            
         }
     }
 

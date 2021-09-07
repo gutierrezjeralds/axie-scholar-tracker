@@ -15,7 +15,8 @@ class Login extends React.Component {
             isLoaded: false,
             isNotif: false,
             notifCat: "default",
-            notifStr: ""
+            notifStr: "",
+            isValidUser: 0
         }
     }
 
@@ -51,7 +52,9 @@ class Login extends React.Component {
                                 // Reload page
                                 window.location.reload();
                             } else {
-                                alert(CONSTANTS.MESSAGE.INVALID_CREDENTIAL)
+                                this.setState({
+                                    isValidUser: false
+                                })
                             }
                         }
                     },
@@ -87,6 +90,14 @@ class Login extends React.Component {
         }
     }
 
+    // On Change Input
+    onInputChangeHandle(event) {
+        event.preventDefault();
+        this.setState({
+            isValidUser: 0
+        })
+    }
+
     render() {
         return (
             <React.Fragment>
@@ -99,7 +110,15 @@ class Login extends React.Component {
                                     <MDBBox tag="div">
                                         <form onSubmit={this.onLoginHandle.bind(this)}>
                                             <MDBBox tag="div" className="grey-text">
-                                                <MDBInput label={CONSTANTS.MESSAGE.INPUT_USER} name="user" icon="user" group type="text" />
+                                                <MDBInput
+                                                    onChange={this.onInputChangeHandle.bind(this)}
+                                                    label={CONSTANTS.MESSAGE.INPUT_USER}
+                                                    name="user"
+                                                    icon="user"
+                                                    group type="text"
+                                                    className={this.state.isValidUser === 0 ? "" : this.state.isValidUser ? "form-control is-valid" : "form-control is-invalid"}
+                                                />
+                                                <MDBBox tag="div" className={this.state.isValidUser === 0 ? "d-none" : this.state.isValidUser ? "d-none" : "invalid-feedback mt-1rem-neg mb-2 d-block"}>{CONSTANTS.MESSAGE.INVALID_CREDENTIAL}</MDBBox>
                                             </MDBBox>
                                             <MDBBox tag="div" className="text-center">
                                                 <button className="btn btn-default waves-effect waves-light">{CONSTANTS.MESSAGE.LOGIN}</button>

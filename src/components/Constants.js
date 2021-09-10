@@ -69,7 +69,8 @@ const MESSAGE = {
     NOTIFBAR_CLICKABLE: "Notification bar is Clickable.",
     SLP_PRICE: "SLP Price",
     DATE: "Date",
-    STARTED: "Started"
+    STARTED: "Started",
+    TOTAL_INGAME_SLP: "Total InGame SLP"
 }
 
 export const CONSTANTS = {

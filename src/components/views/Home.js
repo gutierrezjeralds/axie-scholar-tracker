@@ -43,7 +43,8 @@ class Home extends React.Component {
             topMMR: 0, // For condition of getting top user
             topSLP: 0, // For condition of getting top user
             topUserMMR: "",
-            topUserSLP: ""
+            topUserSLP: "",
+            totalInGameSLP: 0
         }
     }
 
@@ -345,6 +346,13 @@ class Home extends React.Component {
                                     return true;
                                 })
                             }
+
+                            // Set Total InGame SLP
+                            if (result.inGameSLP > 0) {
+                                this.setState({
+                                    totalInGameSLP: this.state.totalInGameSLP + result.inGameSLP
+                                })
+                            }
                         }
 
                         // Adding Player details and ranking in result object
@@ -609,6 +617,15 @@ class Home extends React.Component {
                                         this.state.totalSponsorSLP > 0 ? (
                                             <MDBBox tag="span" className="blue-whale d-block">
                                                 {CONSTANTS.MESSAGE.SPONSOR_EARNING}: {CONSTANTS.MESSAGE.SLP} {this.state.totalSponsorSLP} (&#8369; {this.numberWithCommas((this.state.totalSponsorSLP * this.state.slpCurrentValue).toFixed(2))})
+                                            </MDBBox>
+                                        ) : ("")
+                                    }
+
+                                    {
+                                        // Display Total InGame SLP
+                                        this.state.totalInGameSLP > 0 ? (
+                                            <MDBBox tag="span" className="blue-whale d-block">
+                                                {CONSTANTS.MESSAGE.TOTAL_INGAME_SLP}: {this.state.totalInGameSLP} (&#8369; {this.numberWithCommas((this.state.totalInGameSLP * this.state.slpCurrentValue).toFixed(2))})
                                             </MDBBox>
                                         ) : ("")
                                     }

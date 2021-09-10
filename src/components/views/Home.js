@@ -597,7 +597,7 @@ class Home extends React.Component {
     renderEarnings() {
         if ( this.state.isPlayerLoaded && this.state.isLoaded && !this.state.error ) {
             if (this.state.isUser === CONSTANTS.MESSAGE.MANAGER) {
-                if (this.state.totalManagerSLP > 0 || this.state.totalSponsorSLP > 0) {
+                if (this.state.totalManagerSLP > 0 || this.state.totalSponsorSLP > 0 || this.state.totalInGameSLP > 0) {
                     // Display Manager and Sponsor's Earning
                     return (
                         <React.Fragment>

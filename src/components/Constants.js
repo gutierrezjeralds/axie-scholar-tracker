@@ -68,7 +68,8 @@ const MESSAGE = {
     TOTALINCOME: "Total Income",
     NOTIFBAR_CLICKABLE: "Notification bar is Clickable.",
     SLP_PRICE: "SLP Price",
-    DATE: "Date"
+    DATE: "Date",
+    STARTED: "Started"
 }
 
 export const CONSTANTS = {

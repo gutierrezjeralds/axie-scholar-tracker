@@ -810,8 +810,11 @@ class Home extends React.Component {
                                             </MDBCardTitle>
                                             <MDBBox tag="div">
                                                 <MDBBox tag="div" className="mt-3">
-                                                    <MDBBox tag="u" className="text-decoration cursor-pointer"  onClick={this.modalTotalIncomeToggle(items.client_id, this.state.playerAllRecords)}>
+                                                    <MDBBox tag="u" className="text-decoration cursor-pointer" onClick={this.modalTotalIncomeToggle(items.client_id, this.state.playerAllRecords)}>
                                                         {CONSTANTS.MESSAGE.VIEW_TOTALINCOME}
+                                                    </MDBBox>
+                                                    <MDBBox tag="span" className="float-right">
+                                                        {CONSTANTS.MESSAGE.STARTED} <Moment format="MMM DD, YYYY">{items.details.started}</Moment>
                                                     </MDBBox>
                                                     <MDBTable className="mt-2" bordered striped responsive>
                                                         <MDBTableHead color="rgba-teal-strong" textWhite>

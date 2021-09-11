@@ -34,7 +34,6 @@ class Home extends React.Component {
             totalScholarSLP: 0,
             totalInGameSLP: 0,
             totalAverageSLP: 0,
-            counterTotalManagerSLP: 0,
             isModalEarningOpen: false,
             modalEarningTitle: "",
             modalEarningFilter: "",
@@ -267,20 +266,7 @@ class Home extends React.Component {
                             if ((details.manager).toString() === "100" || details.manager > 0) { // Condition for Manager
                                 // Set new Shared SLP
                                 const managerShare = (details.manager).toString() === "100" ? 1 : "0." + details.manager;
-                                result.sharedManagerSLP = Math.floor(result.total * managerShare);
-
-                                // Set new Total Manager's Earning
-                                if ((this.state.counterTotalManagerSLP).toString() === "0") {
-                                    // Adding ronin balance in total Manage SLP
-                                    this.setState({
-                                        totalManagerSLP: this.state.totalManagerSLP + result.sharedManagerSLP + roninBalance,
-                                        counterTotalManagerSLP: 1
-                                    })
-                                } else {
-                                    this.setState({
-                                        totalManagerSLP: this.state.totalManagerSLP + result.sharedManagerSLP
-                                    })
-                                }
+                                result.sharedManagerSLP = Math.floor(result.inGameSLP * managerShare);
 
                                 if ((details.manager).toString() === "100") {
                                     // Set new Shared SLP
@@ -290,6 +276,16 @@ class Home extends React.Component {
                                     } else {
                                         result.sharedSLP = Math.floor(totalSLP - roninBalance);
                                     }
+
+                                    // Adding ronin balance in total Manage SLP x // Set new Total Manager's Earning
+                                    this.setState({
+                                        totalManagerSLP: this.state.totalManagerSLP + result.sharedManagerSLP + roninBalance
+                                    })
+                                } else {
+                                    // Set new Total Manager's Earning
+                                    this.setState({
+                                        totalManagerSLP: this.state.totalManagerSLP + result.sharedManagerSLP
+                                    })
                                 }
                             }
 

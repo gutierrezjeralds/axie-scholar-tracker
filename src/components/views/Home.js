@@ -562,7 +562,7 @@ class Home extends React.Component {
                 <MDBModal isOpen={this.state.isModalMMRRankOpen} size="lg">
                     <MDBModalHeader toggle={this.modalMMRRankToggle("")}>{CONSTANTS.MESSAGE.TOP_MMR}</MDBModalHeader>
                     <MDBModalBody>
-                        <MDBTable bordered striped responsive>
+                        <MDBTable scrollY maxHeight="70vh" bordered striped responsive>
                             <MDBTableHead color="rgba-teal-strong" textWhite>
                                 <tr>
                                     <th colSpan="3" className="text-center font-weight-bold">{CONSTANTS.MESSAGE.RANKING}</th>
@@ -668,7 +668,7 @@ class Home extends React.Component {
                 <MDBModal isOpen={this.state.isModalEarningOpen} size="lg">
                     <MDBModalHeader toggle={this.modalEarningToggle("", "", "")}>{this.state.modalEarningTitle}</MDBModalHeader>
                     <MDBModalBody>
-                        <MDBTable bordered striped responsive>
+                        <MDBTable scrollY maxHeight="70vh" bordered striped responsive>
                             <MDBTableHead color="rgba-teal-strong" textWhite>
                                 <tr>
                                     <th colSpan="4" className="text-center font-weight-bold">{CONSTANTS.MESSAGE.MANAGER_EARNING}</th>
@@ -741,7 +741,7 @@ class Home extends React.Component {
                         }
                     </MDBModalHeader>
                     <MDBModalBody>
-                        <MDBTable bordered striped responsive>
+                        <MDBTable scrollY maxHeight="70vh" bordered striped responsive>
                             <MDBTableHead color="rgba-teal-strong" textWhite>
                                 <tr>
                                     <th colSpan="4" className="text-center font-weight-bold">

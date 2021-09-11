@@ -28,7 +28,7 @@ const MESSAGE = {
     AXS: "AXS",
     SLP_DESC: "Smooth Love Potion",
     TOP_MMR: "Top MMR",
-    TOP_INGAME_SLP: "Top In Game SLP",
+    TOP_INGAME_SLP: "Top InGame SLP",
     TOP_MMR_SLP: "Top MMR and SLP",
     MMR: "MMR",
     ELO: "ELO",
@@ -70,7 +70,11 @@ const MESSAGE = {
     SLP_PRICE: "SLP Price",
     DATE: "Date",
     STARTED: "Started",
-    TOTAL_INGAME_SLP: "Total InGame SLP"
+    TOTAL_INGAME_SLP: "Total InGame SLP",
+    TOTAL_AVERAGE_SLP: "Total Average SLP",
+    TOTAL_MANAGER_SLP: "Total Manager SLP",
+    TOTAL_SPONSOR_SLP: "Total Sponsor SLP",
+    TOTAL_SCHOLAR_SLP: "Total Scholar SLP"
 }
 
 export const CONSTANTS = {

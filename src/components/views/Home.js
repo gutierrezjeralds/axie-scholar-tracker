@@ -31,6 +31,9 @@ class Home extends React.Component {
             playerAllRecords: [],
             totalManagerSLP: 0,
             totalSponsorSLP: 0,
+            totalScholarSLP: 0,
+            totalInGameSLP: 0,
+            totalAverageSLP: 0,
             counterTotalManagerSLP: 0,
             isModalEarningOpen: false,
             modalEarningTitle: "",
@@ -43,8 +46,7 @@ class Home extends React.Component {
             topMMR: 0, // For condition of getting top user
             topSLP: 0, // For condition of getting top user
             topUserMMR: "",
-            topUserSLP: "",
-            totalInGameSLP: 0
+            topUserSLP: ""
         }
     }
 
@@ -232,6 +234,7 @@ class Home extends React.Component {
                         result.claim_on_days = 0;
                         result.inGameSLP = result.total;
                         result.totalSLP = result.total;
+                        result.averageSLPDay = 0;
 
                         // Set new value for Claim On (Days) x last_claimed_item_at_add - current date
                         const lastClaimedDate = new Date(moment.unix(result.last_claimed_item_at)).getTime();
@@ -249,6 +252,7 @@ class Home extends React.Component {
                         }
 
                         result.sharedSLP = result.inGameSLP;
+                        result.scholarSLP = result.inGameSLP;
                         if (Object.keys(details).length > 0) {
                             let roninBalance = 0;
                             let totalSLP = 0
@@ -263,7 +267,7 @@ class Home extends React.Component {
                             if ((details.manager).toString() === "100" || details.manager > 0) { // Condition for Manager
                                 // Set new Shared SLP
                                 const managerShare = (details.manager).toString() === "100" ? 1 : "0." + details.manager;
-                                result.sharedManagerSLP = Math.floor(result.inGameSLP * managerShare);
+                                result.sharedManagerSLP = Math.floor(result.total * managerShare);
 
                                 // Set new Total Manager's Earning
                                 if ((this.state.counterTotalManagerSLP).toString() === "0") {
@@ -280,6 +284,7 @@ class Home extends React.Component {
 
                                 if ((details.manager).toString() === "100") {
                                     // Set new Shared SLP
+                                    result.scholarSLP = 0;
                                     if (roninBalance > totalSLP) {
                                         result.sharedSLP = Math.floor(roninBalance - totalSLP);
                                     } else {
@@ -303,6 +308,7 @@ class Home extends React.Component {
                                 // Set new Shared SLP
                                 const iskoShare = (details.scholar).toString() === "100" ? 1 : "0." + details.scholar;
                                 result.sharedSLP = Math.floor(result.inGameSLP * iskoShare);
+                                result.scholarSLP = Math.floor(result.inGameSLP * iskoShare);
                             }
 
                             // Set new total SLP x computed base on Shared SLP plus total SLP
@@ -347,11 +353,20 @@ class Home extends React.Component {
                                 })
                             }
 
-                            // Set Total InGame SLP
+                            // Has InGame SLP
                             if (result.inGameSLP > 0) {
                                 this.setState({
-                                    totalInGameSLP: this.state.totalInGameSLP + result.inGameSLP
+                                    totalInGameSLP: this.state.totalInGameSLP + result.inGameSLP, // Set Total InGame SLP
+                                    totalScholarSLP: this.state.totalScholarSLP + result.scholarSLP // Set Total Scholar SLP
                                 })
+
+                                // Set Average SLP per Day
+                                if (result.claim_on_days > 0) {
+                                    result.averageSLPDay = Math.floor(result.inGameSLP / result.claim_on_days);
+                                    this.setState({
+                                        totalAverageSLP: this.state.totalAverageSLP + result.averageSLPDay
+                                    })
+                                }
                             }
                         }
 
@@ -525,7 +540,7 @@ class Home extends React.Component {
     // Render Top scholar x ELO Ranking and SLP Earning
     renderTopScholar() {
         if ( this.state.isPlayerLoaded && this.state.isLoaded && !this.state.error ) {
-            if (Object.keys(this.state.playerAllRecords).length > 0) {
+            if (this.state.isUser !== CONSTANTS.MESSAGE.MANAGER && Object.keys(this.state.playerAllRecords).length > 0) {
                 return (
                     <React.Fragment>
                         <MDBCol size="12" className="mb-3">
@@ -597,43 +612,122 @@ class Home extends React.Component {
     renderEarnings() {
         if ( this.state.isPlayerLoaded && this.state.isLoaded && !this.state.error ) {
             if (this.state.isUser === CONSTANTS.MESSAGE.MANAGER) {
-                if (this.state.totalManagerSLP > 0 || this.state.totalSponsorSLP > 0 || this.state.totalInGameSLP > 0) {
-                    // Display Manager and Sponsor's Earning
-                    return (
-                        <React.Fragment>
-                            <MDBCol size="12" className="">
-                                <MDBBox tag="div" className="py-3 px-2 text-center rgba-teal-strong">
-                                    {
-                                        // Display Manager's Earing
-                                        this.state.totalManagerSLP > 0 ? (
-                                            <MDBBox tag="span" className="blue-whale d-block cursor-pointer" onClick={this.modalEarningToggle(CONSTANTS.MESSAGE.VIEW_MANAGER_EARNING, CONSTANTS.MESSAGE.MANAGER, this.state.playerRecords)}>
-                                                {CONSTANTS.MESSAGE.MANAGER_EARNING}: {CONSTANTS.MESSAGE.SLP} {this.state.totalManagerSLP} (&#8369; {this.numberWithCommas((this.state.totalManagerSLP * this.state.slpCurrentValue).toFixed(2))})
-                                            </MDBBox>
-                                        ) : ("")
-                                    }
-        
-                                    {
-                                        // Display Sponsor's Earing
-                                        this.state.totalSponsorSLP > 0 ? (
-                                            <MDBBox tag="span" className="blue-whale d-block">
-                                                {CONSTANTS.MESSAGE.SPONSOR_EARNING}: {CONSTANTS.MESSAGE.SLP} {this.state.totalSponsorSLP} (&#8369; {this.numberWithCommas((this.state.totalSponsorSLP * this.state.slpCurrentValue).toFixed(2))})
-                                            </MDBBox>
-                                        ) : ("")
-                                    }
+                return (
+                    <React.Fragment>
+                        {/* Top MMR and SLP */}
+                        <MDBCol size="6" md="4" lg="2" className="my-2">
+                            <MDBCard className="z-depth-2 ice-bg h-180px">
+                                <MDBCardBody className="black-text cursor-pointer d-flex-center" onClick={this.modalMMRRankToggle(this.state.playerAllRecords)}>
+                                    <MDBBox tag="div" className="text-center">
+                                        {
+                                            // Top ELO / MMR Rank
+                                            this.state.playerAllRecords.sort((a, b) =>  a.ranking.rank - b.ranking.rank ).map((items, index) => (
+                                                index === 0 ? (
+                                                    <React.Fragment>
+                                                        <MDBBox tag="span" className="d-block">{CONSTANTS.MESSAGE.TOP_MMR}</MDBBox>
+                                                        <MDBBox key={items.client_id} tag="span" className="d-block font-size-1pt3rem font-weight-bold">{items.details.name} ({this.numberWithCommas(items.ranking.elo)})</MDBBox>
+                                                    </React.Fragment>
+                                                ) : ("")
+                                            ))
+                                        }
 
-                                    {
-                                        // Display Total InGame SLP
-                                        this.state.totalInGameSLP > 0 ? (
-                                            <MDBBox tag="span" className="blue-whale d-block">
-                                                {CONSTANTS.MESSAGE.TOTAL_INGAME_SLP}: {this.state.totalInGameSLP} (&#8369; {this.numberWithCommas((this.state.totalInGameSLP * this.state.slpCurrentValue).toFixed(2))})
-                                            </MDBBox>
-                                        ) : ("")
-                                    }
-                                </MDBBox>
-                            </MDBCol>
-                        </React.Fragment>
-                    )
-                }
+                                        {
+                                            // Top In Game SLP
+                                            this.state.playerRecords.sort((a, b) =>  b.inGameSLP - a.inGameSLP ).map((items, index) => (
+                                                index === 0 ? (
+                                                    <React.Fragment>
+                                                        <MDBBox tag="span" className="d-block mt-3">{CONSTANTS.MESSAGE.TOP_INGAME_SLP}</MDBBox>
+                                                        <MDBBox key={items.client_id} tag="span" className="d-block font-size-1pt3rem font-weight-bold">{items.details.name} ({this.numberWithCommas(items.inGameSLP)})</MDBBox>
+                                                    </React.Fragment>
+                                                ) : ("")
+                                            ))
+                                        }
+                                    </MDBBox>
+                                </MDBCardBody>
+                            </MDBCard>
+                        </MDBCol>
+
+                        {/* Total Average SLP of all players */}
+                        <MDBCol size="6" md="4" lg="2" className="my-2">
+                            <MDBCard className="z-depth-2 ice-bg h-180px">
+                                <MDBCardBody className="black-text d-flex-center">
+                                    <MDBBox tag="div" className="text-center">
+                                        <MDBBox tag="span" className="d-block">{CONSTANTS.MESSAGE.TOTAL_AVERAGE_SLP}</MDBBox>
+                                        <MDBBox tag="span" className="d-block font-size-1pt3rem font-weight-bold">
+                                            <img src="/assets/images/smooth-love-potion.png" className="w-24px mr-1 mt-0pt3rem-neg" alt="SLP" />
+                                            {this.numberWithCommas(Math.floor(this.state.totalAverageSLP / this.state.playerAllRecords.length))}
+                                        </MDBBox>
+                                        <MDBBox tag="span" className="d-block font-size-1pt3rem font-weight-bold">&#8369; {this.numberWithCommas(((this.state.totalAverageSLP / this.state.playerAllRecords.length) * this.state.slpCurrentValue).toFixed(2))}</MDBBox>
+                                    </MDBBox>
+                                </MDBCardBody>
+                            </MDBCard>
+                        </MDBCol>
+
+                        {/* Total SLP of all players */}
+                        <MDBCol size="6" md="4" lg="2" className="my-2">
+                            <MDBCard className="z-depth-2 ice-bg h-180px">
+                                <MDBCardBody className="black-text d-flex-center">
+                                    <MDBBox tag="div" className="text-center">
+                                        <MDBBox tag="span" className="d-block">{CONSTANTS.MESSAGE.TOTAL_INGAME_SLP}</MDBBox>
+                                        <MDBBox tag="span" className="d-block font-size-1pt3rem font-weight-bold">
+                                            <img src="/assets/images/smooth-love-potion.png" className="w-24px mr-1 mt-0pt3rem-neg" alt="SLP" />
+                                            {this.numberWithCommas(this.state.totalInGameSLP)}
+                                        </MDBBox>
+                                        <MDBBox tag="span" className="d-block font-size-1pt3rem font-weight-bold">&#8369; {this.numberWithCommas((this.state.totalInGameSLP * this.state.slpCurrentValue).toFixed(2))}</MDBBox>
+                                    </MDBBox>
+                                </MDBCardBody>
+                            </MDBCard>
+                        </MDBCol>
+
+                        {/* Total Manager SLP */}
+                        <MDBCol size="6" md="4" lg="2" className="my-2">
+                            <MDBCard className="z-depth-2 ice-bg h-180px">
+                                <MDBCardBody className="black-text cursor-pointer d-flex-center" onClick={this.modalEarningToggle(CONSTANTS.MESSAGE.VIEW_MANAGER_EARNING, CONSTANTS.MESSAGE.MANAGER, this.state.playerRecords)}>
+                                    <MDBBox tag="div" className="text-center">
+                                        <MDBBox tag="span" className="d-block">{CONSTANTS.MESSAGE.TOTAL_MANAGER_SLP}</MDBBox>
+                                        <MDBBox tag="span" className="d-block font-size-1pt3rem font-weight-bold">
+                                            <img src="/assets/images/smooth-love-potion.png" className="w-24px mr-1 mt-0pt3rem-neg" alt="SLP" />
+                                            {this.numberWithCommas(this.state.totalManagerSLP)}
+                                        </MDBBox>
+                                        <MDBBox tag="span" className="d-block font-size-1pt3rem font-weight-bold">&#8369; {this.numberWithCommas((this.state.totalManagerSLP * this.state.slpCurrentValue).toFixed(2))}</MDBBox>
+                                    </MDBBox>
+                                </MDBCardBody>
+                            </MDBCard>
+                        </MDBCol>
+
+                        {/* Total Sponsor SLP */}
+                        <MDBCol size="6" md="4" lg="2" className="my-2">
+                            <MDBCard className="z-depth-2 ice-bg h-180px">
+                                <MDBCardBody className="black-text d-flex-center">
+                                    <MDBBox tag="div" className="text-center">
+                                        <MDBBox tag="span" className="d-block">{CONSTANTS.MESSAGE.TOTAL_SPONSOR_SLP}</MDBBox>
+                                        <MDBBox tag="span" className="d-block font-size-1pt3rem font-weight-bold">
+                                            <img src="/assets/images/smooth-love-potion.png" className="w-24px mr-1 mt-0pt3rem-neg" alt="SLP" />
+                                            {this.numberWithCommas(this.state.totalSponsorSLP)}
+                                        </MDBBox>
+                                        <MDBBox tag="span" className="d-block font-size-1pt3rem font-weight-bold">&#8369; {this.numberWithCommas((this.state.totalSponsorSLP * this.state.slpCurrentValue).toFixed(2))}</MDBBox>
+                                    </MDBBox>
+                                </MDBCardBody>
+                            </MDBCard>
+                        </MDBCol>
+
+                        {/* Total Scholar SLP */}
+                        <MDBCol size="6" md="4" lg="2" className="my-2">
+                            <MDBCard className="z-depth-2 ice-bg h-180px">
+                                <MDBCardBody className="black-text d-flex-center">
+                                    <MDBBox tag="div" className="text-center">
+                                        <MDBBox tag="span" className="d-block">{CONSTANTS.MESSAGE.TOTAL_SCHOLAR_SLP}</MDBBox>
+                                        <MDBBox tag="span" className="d-block font-size-1pt3rem font-weight-bold">
+                                            <img src="/assets/images/smooth-love-potion.png" className="w-24px mr-1 mt-0pt3rem-neg" alt="SLP" />
+                                            {this.numberWithCommas(this.state.totalScholarSLP)}
+                                        </MDBBox>
+                                        <MDBBox tag="span" className="d-block font-size-1pt3rem font-weight-bold">&#8369; {this.numberWithCommas((this.state.totalScholarSLP * this.state.slpCurrentValue).toFixed(2))}</MDBBox>
+                                    </MDBBox>
+                                </MDBCardBody>
+                            </MDBCard>
+                        </MDBCol>
+                    </React.Fragment>
+                )
             }
     
             if (this.state.isUser === this.state.isSponsorName) {
@@ -885,7 +979,7 @@ class Home extends React.Component {
                                                                 </td>
                                                             </tr>
                                                             <tr className="text-center">
-                                                                <td>{Math.floor(items.inGameSLP / items.claim_on_days)}</td>
+                                                                <td>{items.averageSLPDay}</td>
                                                                 <td>{items.inGameSLP}</td>
                                                                 <td>{items.sharedSLP}</td>
                                                                 <td>{items.totalSLP}</td>

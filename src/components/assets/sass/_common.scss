@@ -721,11 +721,25 @@ body, #root{
     align-items: center;
 }
 
-// Common table style
-table {
-    tr {
-        td {
-            font-size: .8rem !important;
+// Style for player details datatable
+.player-datatable-container {
+    table {
+        thead {
+            // Remove before and after of header sorting x retain the important fields
+            th {
+                &:nth-child(1), &:nth-child(2), &:nth-child(3),
+                &:nth-child(4), &:nth-child(5), &:nth-child(7),
+                &:nth-child(8), &:nth-child(10), &:nth-child(11){
+                    &:before, &:after {
+                        content: "";
+                    }
+                }
+            }
+        }
+        th, td {
+            // Align Center the value
+            text-align: center;
+            vertical-align: middle;
         }
     }
 }

@@ -9,6 +9,7 @@ import {
 } from "mdbreact";
 import Moment from 'react-moment';
 import moment from 'moment';
+import { MDBDataTable } from 'mdbreact';
 
 class Home extends React.Component {
     constructor(props) {
@@ -25,10 +26,8 @@ class Home extends React.Component {
             axsCurrentValue: 0,
             isRecordLoaded: false,
             isPlayerLoaded: false,
-            playerItems: [],
             playerRecords: [],
-            playerAllItems: [],
-            playerAllRecords: [],
+            playerDataTable: {},
             totalManagerSLP: 0,
             totalSponsorSLP: 0,
             totalScholarSLP: 0,
@@ -97,7 +96,7 @@ class Home extends React.Component {
     // Page reload
     pageRefresh = (time) => {
         setTimeout( function() {
-            window.location.reload();
+            // window.location.reload();
         }, time);
     }
 
@@ -154,37 +153,77 @@ class Home extends React.Component {
             cache: false
         })
         .then(
-            (result) => {
-                // Fetch player details in api of sky mavis
-                result.map(async (item, index) => {
-                    const ethAddress = item.ethAddress ? `0x${item.ethAddress.substring(6)}` : "";
-                    var userEthAddress = null;
-
-                    if (item.email.toLowerCase() === this.state.isUser.toLowerCase() ||
-                        item.name.toLowerCase() === this.state.isUser.toLowerCase() ||
-                        item.sponsorName.toLowerCase() === this.state.isUser.toLowerCase()) {
-                            // Get ETH Address based on Credential
-                            userEthAddress = ethAddress;
-                            if (item.sponsor !== "" || item.sponsor !== undefined) {
-                                // Set valid Sponsor Name
-                                this.setState({
-                                    isSponsorName: this.state.isUser
-                                })
+            async (result) => {
+                if (result.length > 0) {
+                    // Fetch player details in api of sky mavis
+                    let dataResult = result;
+                    if (this.state.isUser !== CONSTANTS.MESSAGE.MANAGER) { // For single data user
+                        dataResult = [];
+                        result.find(item => {
+                            if (item.email.toLowerCase() === this.state.isUser.toLowerCase() ||
+                                item.name.toLowerCase() === this.state.isUser.toLowerCase() ||
+                                item.sponsorName.toLowerCase() === this.state.isUser.toLowerCase()) {
+                                    if (item.sponsor !== "" || item.sponsor !== undefined) {
+                                        // Set valid Sponsor Name
+                                        this.setState({
+                                            isSponsorName: this.state.isUser
+                                        })
+                                    }
+                                    // Return
+                                    dataResult.push(item)
+                                    return item;
                             }
+                            // Return
+                            return false;
+                        })
                     }
-
-                    await this.getPlayerDetails(item, ethAddress, userEthAddress);
                     
-                    if (index === result.length - 1) {
+                    const dataResultPromise = dataResult.map(async (item) => {
+                        const ethAddress = item.ethAddress ? `0x${item.ethAddress.substring(6)}` : "";
+                        return await this.getPlayerDetails(item, ethAddress);;
+                    });
+
+                    await Promise.all(dataResultPromise).then(async (results) => {
+                        var dataRes = results.filter(item => {
+                            if (!item.error && item.data !== undefined) {
+                                return item
+                            }
+                            return false;
+                        }).sort((a, b) =>  a.data.rank - b.data.rank ).map(dataItem => {
+                            return dataItem.data;
+                        });
+
                         this.setState({
                             isLoaded: true,
-                            isPlayerLoaded: true
+                            isPlayerLoaded: true,
+                            playerDataTable: {
+                                columns: [
+                                    {label: CONSTANTS.MESSAGE.NAME, field: "name"},
+                                    {label: CONSTANTS.MESSAGE.ADVENTURE_SLP, field: "adventureSLP"},
+                                    {label: CONSTANTS.MESSAGE.INGAME_SLP, field: "ingameSLP"},
+                                    {label: CONSTANTS.MESSAGE.RONIN_SLP, field: "roninSLP"},
+                                    {label: CONSTANTS.MESSAGE.SHARED_SLP, field: "sharedSLP"},
+                                    {label: CONSTANTS.MESSAGE.TOTAL_SLP, field: "totalSLP"},
+                                    {label: CONSTANTS.MESSAGE.EARNINGS_PHP, field: "earningsPHP"},
+                                    {label: CONSTANTS.MESSAGE.CLAIMON, field: "claimOn"},
+                                    {label: CONSTANTS.MESSAGE.MMR, field: "mmr", sort: "desc"},
+                                    {label: CONSTANTS.MESSAGE.RANK, field: "rank"}
+                                ], rows: dataRes
+                            }
                         })
 
-                        // console.log("playerItems", this.state.playerItems)
-                    }
-                    return true;
-                });
+                        // console.log("playerRecords", this.state.playerRecords)
+                    })
+                } else {
+                    // No data found
+                    this.setState({
+                        isLoaded: true,
+                        isNotif: true,
+                        notifCat: "error",
+                        notifStr: CONSTANTS.MESSAGE.NODATA_FOUND,
+                        error: true
+                    })
+                }
             },
             // Note: it's important to handle errors here
             // instead of a catch() block so that we don't swallow
@@ -217,7 +256,7 @@ class Home extends React.Component {
     }
 
     // Get Player details base on Sky Mavis API
-    getPlayerDetails = async (details, ethAddress, userEthAddress) => {
+    getPlayerDetails = async (details, ethAddress) => {
         return new Promise((resolve, reject) => {
             $.ajax({
                 url: "https://game-api.skymavis.com/game-api/clients/" + ethAddress + "/items/1",
@@ -226,173 +265,185 @@ class Home extends React.Component {
             })
             .then(
                 async (result) => {
-                    // Get Player ranking base on Sky Mavis API
-                    const ranking = await this.getPlayerRanking(ethAddress);
-                    if (!ranking.error) {
-                        result.last_claimed_item_at_add = moment.unix(result.last_claimed_item_at).add(1, 'days');
-                        result.claim_on_days = 0;
-                        result.inGameSLP = result.total;
-                        result.totalSLP = result.total;
-                        result.averageSLPDay = 0;
-
-                        // Set new value for Claim On (Days) x last_claimed_item_at_add - current date
-                        const lastClaimedDate = new Date(moment.unix(result.last_claimed_item_at)).getTime();
-                        const currentDate = new Date().getTime();
-                        if (currentDate > lastClaimedDate) {
-                            result.claim_on_days = Math.round((currentDate - lastClaimedDate) / (1000 * 3600 * 24)).toFixed(0);
-                        }
-
-                        if (result.blockchain_related === null || result.blockchain_related.signature === null) {
-                            // Adding empty object
-                            result.blockchain_related.signature = {
-                                amount: 0,
-                                timestamp: ""
-                            }
-                        }
-
-                        result.sharedSLP = result.inGameSLP;
-                        result.scholarSLP = result.inGameSLP;
-                        if (Object.keys(details).length > 0) {
-                            let roninBalance = 0;
-                            let totalSLP = 0
-
-                            // Check if has balance in Ronin x Set new value for total in game slp
-                            if (result.blockchain_related.balance !== null && result.blockchain_related.balance > 0) {
-                                roninBalance = result.blockchain_related.balance;
-                                totalSLP = result.total;
-                                result.inGameSLP = totalSLP - roninBalance;
+                    if (Object.keys(result).length > 0) { // Has player details
+                        // Get Player ranking base on Sky Mavis API
+                        const ranking = await this.getPlayerRanking(ethAddress);
+                        let roninBalance = 0, totalSLP = 0
+                        if (!ranking.error) {
+                            // Adding text color of MMR based on MMR level
+                            ranking.textStyle = "black-text";
+                            if (ranking.elo < 1300 && ranking.elo >= 1100) {
+                                // Estimated SLP gain on this MRR (6SLP) x Set as warning need to up
+                                ranking.textStyle = "orange-text"
+                            } else if (ranking.elo < 1099) {
+                                // Estimated SLP gain on this MRR (3SLP, 1SLP or NOSLP) x Set as warning need to up
+                                ranking.textStyle = "red-text font-weight";
+                            } else {
+                                // Great MMR x Can earn more SLP
+                                ranking.textStyle = "green-text";
                             }
 
-                            if ((details.manager).toString() === "100" || details.manager > 0) { // Condition for Manager
-                                // Set new Shared SLP
-                                const managerShare = (details.manager).toString() === "100" ? 1 : "0." + details.manager;
-                                result.sharedManagerSLP = Math.floor(result.inGameSLP * managerShare);
+                            result.last_claimed_item_at_add = moment.unix(result.last_claimed_item_at).add(1, 'days');
+                            result.claim_on_days = 0;
+                            result.inGameSLP = result.total;
+                            result.totalEarningSLP = result.total;
+                            result.averageSLPDay = 0;
 
-                                if ((details.manager).toString() === "100") {
+                            // Set new value for Claim On (Days) x last_claimed_item_at_add - current date
+                            const lastClaimedDate = new Date(moment.unix(result.last_claimed_item_at)).getTime();
+                            const currentDate = new Date().getTime();
+                            if (currentDate > lastClaimedDate) {
+                                result.claim_on_days = Math.round((currentDate - lastClaimedDate) / (1000 * 3600 * 24)).toFixed(0);
+                            }
+
+                            if (result.blockchain_related === null || result.blockchain_related.signature === null) {
+                                // Adding empty object
+                                result.blockchain_related.signature = {
+                                    amount: 0,
+                                    timestamp: ""
+                                }
+                            }
+
+                            result.sharedSLP = result.inGameSLP;
+                            result.scholarSLP = result.inGameSLP;
+                            if (Object.keys(details).length > 0) {
+                                // Check if has balance in Ronin x Set new value for total in game slp
+                                if (result.blockchain_related.balance !== null && result.blockchain_related.balance > 0) {
+                                    roninBalance = result.blockchain_related.balance;
+                                    totalSLP = result.total;
+                                    result.inGameSLP = totalSLP - roninBalance;
+                                }
+
+                                if ((details.manager).toString() === "100" || details.manager > 0) { // Condition for Manager
                                     // Set new Shared SLP
-                                    result.scholarSLP = 0;
-                                    if (roninBalance > totalSLP) {
-                                        result.sharedSLP = Math.floor(roninBalance - totalSLP);
+                                    const managerShare = (details.manager).toString() === "100" ? 1 : "0." + details.manager;
+                                    result.sharedManagerSLP = Math.floor(result.inGameSLP * managerShare);
+
+                                    if ((details.manager).toString() === "100") {
+                                        // Set new Shared SLP
+                                        result.scholarSLP = 0;
+                                        if (roninBalance > totalSLP) {
+                                            result.sharedSLP = Math.floor(roninBalance - totalSLP);
+                                        } else {
+                                            result.sharedSLP = Math.floor(totalSLP - roninBalance);
+                                        }
+
+                                        // Adding ronin balance in total Manage SLP x // Set new Total Manager's Earning
+                                        this.setState({
+                                            totalManagerSLP: this.state.totalManagerSLP + result.sharedManagerSLP + roninBalance
+                                        })
                                     } else {
-                                        result.sharedSLP = Math.floor(totalSLP - roninBalance);
+                                        // Set new Total Manager's Earning
+                                        this.setState({
+                                            totalManagerSLP: this.state.totalManagerSLP + result.sharedManagerSLP
+                                        })
                                     }
+                                }
 
-                                    // Adding ronin balance in total Manage SLP x // Set new Total Manager's Earning
+                                if ((details.sponsor).toString() !== "0" || details.sponsor > 0) { // Condition for Sponsor
+                                    // Set new Shared SLP
+                                    const sponsorShare = "0." + details.sponsor;
+                                    result.sharedSponsorSLP = Math.floor(result.inGameSLP * sponsorShare);
+
+                                    // Set new Total Sponsor's Earning
                                     this.setState({
-                                        totalManagerSLP: this.state.totalManagerSLP + result.sharedManagerSLP + roninBalance
-                                    })
-                                } else {
-                                    // Set new Total Manager's Earning
-                                    this.setState({
-                                        totalManagerSLP: this.state.totalManagerSLP + result.sharedManagerSLP
+                                        totalSponsorSLP: this.state.totalSponsorSLP + result.sharedSponsorSLP
                                     })
                                 }
-                            }
 
-                            if ((details.sponsor).toString() !== "0" || details.sponsor > 0) { // Condition for Sponsor
-                                // Set new Shared SLP
-                                const sponsorShare = "0." + details.sponsor;
-                                result.sharedSponsorSLP = Math.floor(result.inGameSLP * sponsorShare);
-
-                                // Set new Total Sponsor's Earning
-                                this.setState({
-                                    totalSponsorSLP: this.state.totalSponsorSLP + result.sharedSponsorSLP
-                                })
-                            }
-
-                            if ((details.scholar).toString() !== "0" || details.scholar > 0) { // Condition for Scholar Players
-                                // Set new Shared SLP
-                                const iskoShare = (details.scholar).toString() === "100" ? 1 : "0." + details.scholar;
-                                result.sharedSLP = Math.floor(result.inGameSLP * iskoShare);
-                                result.scholarSLP = Math.floor(result.inGameSLP * iskoShare);
-                            }
-
-                            // Set new total SLP x computed base on Shared SLP plus total SLP
-                            result.totalSLP = roninBalance + result.sharedSLP;
-
-                            // Get Top User MMR and SLP
-                            if (ranking.rank > this.state.topMMR || result.inGameSLP > this.state.topSLP) {
-                                if (ranking.rank > this.state.topMMR) {
-                                    // Set Top User MMR
-                                    this.setState({
-                                        topMMR: ranking.elo,
-                                        topUserMMR: details.name
-                                    })
+                                if ((details.scholar).toString() !== "0" || details.scholar > 0) { // Condition for Scholar Players
+                                    // Set new Shared SLP
+                                    const iskoShare = (details.scholar).toString() === "100" ? 1 : "0." + details.scholar;
+                                    result.sharedSLP = Math.floor(result.inGameSLP * iskoShare);
+                                    result.scholarSLP = Math.floor(result.inGameSLP * iskoShare);
                                 }
-    
-                                if (result.inGameSLP > this.state.topSLP) {
-                                    // Set Top User SLP
-                                    this.setState({
-                                        topSLP: result.inGameSLP,
-                                        topUserSLP: details.name
-                                    })
-                                }
-                            }
 
-                            // Set new value for Total Income and Set value for Total Earning per claimed
-                            if (details.claimedEarning.length > 0) {
-                                details.claimedEarning.map((data, index) => {
-                                    const earnedSLP = data.slp;
-                                    const slpPrice = data.slpPrice;
-                                    const totalIncome = details.totalIncome;
+                                // Set new total SLP x computed base on Shared SLP plus total SLP
+                                result.totalEarningSLP = roninBalance + result.sharedSLP;
 
-                                    details.claimedEarning[index].earning = 0;
-                                    if (slpPrice.toString() !== "hold") {
-                                        // Adding Total Earning
-                                        details.claimedEarning[index].earning = earnedSLP * slpPrice;
-                                        // Update Total Income
-                                        details.totalIncome = totalIncome + details.claimedEarning[index].earning;
+                                // Get Top User MMR and SLP
+                                if (ranking.rank > this.state.topMMR || result.inGameSLP > this.state.topSLP) {
+                                    if (ranking.rank > this.state.topMMR) {
+                                        // Set Top User MMR
+                                        this.setState({
+                                            topMMR: ranking.elo,
+                                            topUserMMR: details.name
+                                        })
                                     }
+        
+                                    if (result.inGameSLP > this.state.topSLP) {
+                                        // Set Top User SLP
+                                        this.setState({
+                                            topSLP: result.inGameSLP,
+                                            topUserSLP: details.name
+                                        })
+                                    }
+                                }
 
-                                    // Return
-                                    return true;
-                                })
-                            }
+                                // Set new value for Total Income and Set value for Total Earning per claimed
+                                if (details.claimedEarning.length > 0) {
+                                    details.claimedEarning.map((data, index) => {
+                                        const earnedSLP = data.slp;
+                                        const slpPrice = data.slpPrice;
+                                        const totalIncome = details.totalIncome;
 
-                            // Has InGame SLP
-                            if (result.inGameSLP > 0) {
-                                this.setState({
-                                    totalInGameSLP: this.state.totalInGameSLP + result.inGameSLP, // Set Total InGame SLP
-                                    totalScholarSLP: this.state.totalScholarSLP + result.scholarSLP // Set Total Scholar SLP
-                                })
+                                        details.claimedEarning[index].earning = 0;
+                                        if (slpPrice.toString() !== "hold") {
+                                            // Adding Total Earning
+                                            details.claimedEarning[index].earning = earnedSLP * slpPrice;
+                                            // Update Total Income
+                                            details.totalIncome = totalIncome + details.claimedEarning[index].earning;
+                                        }
 
-                                // Set Average SLP per Day
-                                if (result.claim_on_days > 0) {
-                                    result.averageSLPDay = Math.floor(result.inGameSLP / result.claim_on_days);
-                                    this.setState({
-                                        totalAverageSLP: this.state.totalAverageSLP + result.averageSLPDay
+                                        // Return
+                                        return true;
                                     })
                                 }
+
+                                // Has InGame SLP
+                                if (result.inGameSLP > 0) {
+                                    this.setState({
+                                        totalInGameSLP: this.state.totalInGameSLP + result.inGameSLP, // Set Total InGame SLP
+                                        totalScholarSLP: this.state.totalScholarSLP + result.scholarSLP // Set Total Scholar SLP
+                                    })
+
+                                    // Set Average SLP per Day
+                                    if (result.claim_on_days > 0) {
+                                        result.averageSLPDay = Math.floor(result.inGameSLP / result.claim_on_days);
+                                        this.setState({
+                                            totalAverageSLP: this.state.totalAverageSLP + result.averageSLPDay
+                                        })
+                                    }
+                                }
                             }
-                        }
 
-                        // Adding Player details and ranking in result object
-                        result.details = details;
-                        result.ranking = ranking;
+                            // Adding Player details and ranking in result object
+                            result.details = details;
+                            result.ranking = ranking;
 
-                        // Get all ETH Address x for other display x MMR Ranking x etc
-                        this.state.playerAllItems.push(result);
-                        this.setState({
-                            playerAllRecords: this.state.playerAllItems
-                        })
+                            // Get all ETH Address x for other display x MMR Ranking x etc
+                            this.state.playerRecords.push(result);
 
-                        if (this.state.isUser === CONSTANTS.MESSAGE.MANAGER) {
-                            // Get all ETH Address
-                            this.state.playerItems.push(result);
-                            this.setState({
-                                playerRecords: this.state.playerItems
-                            })
+                            // Update Player Datatable row details
+                            const playerDataTableRes = {
+                                name: details.name,
+                                adventureSLP: result.averageSLPDay,
+                                ingameSLP: this.numberWithCommas(result.inGameSLP),
+                                roninSLP: this.numberWithCommas(roninBalance),
+                                sharedSLP: this.numberWithCommas(result.sharedSLP),
+                                totalSLP: this.numberWithCommas(result.totalEarningSLP),
+                                earningsPHP: this.numberWithCommas((result.totalEarningSLP * this.state.slpCurrentValue).toFixed(2)),
+                                claimOn: <span className="d-block">{moment.unix(result.last_claimed_item_at).format("MMM DD, HH:MM A")} <span className="d-block">{result.claim_on_days} {CONSTANTS.MESSAGE.DAYS}</span></span>,
+                                mmr: <span className={ranking.textStyle}>{this.numberWithCommas(ranking.elo)}</span>,
+                                rank: this.numberWithCommas(ranking.rank),
+                                clickEvent: this.modalTotalIncomeToggle(result.client_id, [result])
+                            };
+
+                            // Success return
+                            return resolve({error: false, data: playerDataTableRes});
                         } else {
-                            if (ethAddress === userEthAddress) {
-                                // Get ETH Address based on Credential
-                                this.state.playerItems.push(result);
-                                this.setState({
-                                    playerRecords: this.state.playerItems
-                                })
-                            }
+                            return reject({error: true});
                         }
-
-                        return resolve({error: false});
                     } else {
                         return reject({error: true});
                     }
@@ -536,14 +587,14 @@ class Home extends React.Component {
     // Render Top scholar x ELO Ranking and SLP Earning
     renderTopScholar() {
         if ( this.state.isPlayerLoaded && this.state.isLoaded && !this.state.error ) {
-            if (this.state.isUser !== CONSTANTS.MESSAGE.MANAGER && Object.keys(this.state.playerAllRecords).length > 0) {
+            if (this.state.isUser !== CONSTANTS.MESSAGE.MANAGER && Object.keys(this.state.playerRecords).length > 0) {
                 return (
                     <React.Fragment>
                         <MDBCol size="12" className="mb-3">
-                            <MDBBox tag="div" className="py-3 px-2 text-center ice-bg cursor-pointer" onClick={this.modalMMRRankToggle(this.state.playerAllRecords)}>
+                            <MDBBox tag="div" className="py-3 px-2 text-center ice-bg cursor-pointer" onClick={this.modalMMRRankToggle(this.state.playerRecords)}>
                                 {
                                     // Top ELO / MMR Rank
-                                    this.state.playerAllRecords.sort((a, b) =>  a.ranking.rank - b.ranking.rank ).map((items, index) => (
+                                    this.state.playerRecords.sort((a, b) =>  a.ranking.rank - b.ranking.rank ).map((items, index) => (
                                         index === 0 ? (
                                             <MDBBox key={items.client_id} tag="span" className="d-block d-md-inline d-lg-inline">{CONSTANTS.MESSAGE.TOP_MMR}: <strong>{items.details.name} ({items.ranking.elo})</strong></MDBBox>
                                         ) : ("")
@@ -613,15 +664,15 @@ class Home extends React.Component {
                         {/* Top MMR and SLP */}
                         <MDBCol size="6" md="4" lg="2" className="my-2">
                             <MDBCard className="z-depth-2 ice-bg h-180px">
-                                <MDBCardBody className="black-text cursor-pointer d-flex-center" onClick={this.modalMMRRankToggle(this.state.playerAllRecords)}>
+                                <MDBCardBody className="black-text cursor-pointer d-flex-center" onClick={this.modalMMRRankToggle(this.state.playerRecords)}>
                                     <MDBBox tag="div" className="text-center">
                                         {
                                             // Top ELO / MMR Rank
-                                            this.state.playerAllRecords.sort((a, b) =>  a.ranking.rank - b.ranking.rank ).map((items, index) => (
+                                            this.state.playerRecords.sort((a, b) =>  a.ranking.rank - b.ranking.rank ).map((items, index) => (
                                                 index === 0 ? (
                                                     <React.Fragment>
                                                         <MDBBox tag="span" className="d-block">{CONSTANTS.MESSAGE.TOP_MMR}</MDBBox>
-                                                        <MDBBox key={items.client_id} tag="span" className="d-block font-size-1pt3rem font-weight-bold">{items.details.name} ({this.numberWithCommas(items.ranking.elo)})</MDBBox>
+                                                        <MDBBox key={items.client_id} tag="span" className="d-block font-size-1rem font-weight-bold">{items.details.name} ({this.numberWithCommas(items.ranking.elo)})</MDBBox>
                                                     </React.Fragment>
                                                 ) : ("")
                                             ))
@@ -633,7 +684,7 @@ class Home extends React.Component {
                                                 index === 0 ? (
                                                     <React.Fragment>
                                                         <MDBBox tag="span" className="d-block mt-3">{CONSTANTS.MESSAGE.TOP_INGAME_SLP}</MDBBox>
-                                                        <MDBBox key={items.client_id} tag="span" className="d-block font-size-1pt3rem font-weight-bold">{items.details.name} ({this.numberWithCommas(items.inGameSLP)})</MDBBox>
+                                                        <MDBBox key={items.client_id} tag="span" className="d-block font-size-1rem font-weight-bold">{items.details.name} ({this.numberWithCommas(items.inGameSLP)})</MDBBox>
                                                     </React.Fragment>
                                                 ) : ("")
                                             ))
@@ -651,9 +702,9 @@ class Home extends React.Component {
                                         <MDBBox tag="span" className="d-block">{CONSTANTS.MESSAGE.TOTAL_AVERAGE_SLP}</MDBBox>
                                         <MDBBox tag="span" className="d-block font-size-1pt3rem font-weight-bold">
                                             <img src="/assets/images/smooth-love-potion.png" className="w-24px mr-1 mt-0pt3rem-neg" alt="SLP" />
-                                            {this.numberWithCommas(Math.floor(this.state.totalAverageSLP / this.state.playerAllRecords.length))}
+                                            {this.numberWithCommas(Math.floor(this.state.totalAverageSLP / this.state.playerRecords.length))}
                                         </MDBBox>
-                                        <MDBBox tag="span" className="d-block font-size-1pt3rem font-weight-bold">&#8369; {this.numberWithCommas(((this.state.totalAverageSLP / this.state.playerAllRecords.length) * this.state.slpCurrentValue).toFixed(2))}</MDBBox>
+                                        <MDBBox tag="span" className="d-block font-size-1pt3rem font-weight-bold">&#8369; {this.numberWithCommas(((this.state.totalAverageSLP / this.state.playerRecords.length) * this.state.slpCurrentValue).toFixed(2))}</MDBBox>
                                     </MDBBox>
                                 </MDBCardBody>
                             </MDBCard>
@@ -884,7 +935,7 @@ class Home extends React.Component {
                         {
                             // Scholar display x sort by ELO Ranking
                             this.state.playerRecords.sort((a, b) =>  a.ranking.rank - b.ranking.rank ).map((items) => (
-                                <MDBCol key={items.client_id} sm="12" md="6" lg="4" className="my-3">
+                                <MDBCol key={items.client_id} sm="12" md="6" lg="4" className="my-3 d-md-none d-lg-none">
                                     <MDBCard className="z-depth-2">
                                         <MDBCardBody className="black-text">
                                             <MDBCardTitle className="font-weight-bold font-family-architects-daughter">
@@ -917,7 +968,7 @@ class Home extends React.Component {
                                             </MDBCardTitle>
                                             <MDBBox tag="div">
                                                 <MDBBox tag="div" className="mt-3">
-                                                    <MDBBox tag="u" className="text-decoration cursor-pointer" onClick={this.modalTotalIncomeToggle(items.client_id, this.state.playerAllRecords)}>
+                                                    <MDBBox tag="u" className="text-decoration cursor-pointer" onClick={this.modalTotalIncomeToggle(items.client_id, this.state.playerRecords)}>
                                                         {CONSTANTS.MESSAGE.VIEW_TOTALINCOME}
                                                     </MDBBox>
                                                     <MDBBox tag="span" className="float-right">
@@ -979,7 +1030,7 @@ class Home extends React.Component {
                                                                 <td>{items.inGameSLP}</td>
                                                                 <td>{items.sharedSLP}</td>
                                                                 <td>{items.totalSLP}</td>
-                                                                <td>{this.numberWithCommas((items.totalSLP * this.state.slpCurrentValue).toFixed(2))}</td>
+                                                                <td>{this.numberWithCommas((items.totalEarningSLP * this.state.slpCurrentValue).toFixed(2))}</td>
                                                             </tr>
                                                             <tr>
                                                                 <td colSpan="5" className="text-center font-weight-bold rgba-teal-strong white-text">{CONSTANTS.MESSAGE.ARENAGAME_STATUS}</td>
@@ -1044,7 +1095,7 @@ class Home extends React.Component {
                 }
 
                 {/* Render Notification Bar for Page refresh, Coingecko details and Top Scholar */}
-                <MDBContainer fluid className="pt-5 mt-5 position-relative">
+                <MDBContainer className="pt-5 mt-5 position-relative">
                     <MDBRow>
                         {this.renderCoingecko()}
                         {this.renderTopScholar()}
@@ -1067,8 +1118,21 @@ class Home extends React.Component {
                             </MDBContainer>
                         ) : (
                             // Diplay Player details
-                            <MDBContainer fluid className="pt-3 pb-5 mb-5 position-relative">
+                            <MDBContainer className="pt-3 pb-5 mb-5 position-relative">
                                 <MDBRow>
+                                    <MDBCol size="12">
+                                        <MDBDataTable
+                                            sortable={false}
+                                            striped
+                                            bordered
+                                            hover
+                                            responsive
+                                            noBottomColumns
+                                            data={this.state.playerDataTable}
+                                            order={['rank', 'desc']}
+                                            className="player-datatable-container d-none d-md-block d-lg-block"
+                                        />
+                                    </MDBCol>
                                     {
                                         Object.keys(this.state.playerRecords).length > 0 ? (
                                             // Display all data

@@ -42,6 +42,7 @@ const MESSAGE = {
     INGAME: "InGame",
     SHARE: "Share",
     SHARED: "Shared",
+    RONIN: "Ronin",
     TOTAL: "Total",
     EARNING: "Earning",
     TOTAL_EARNINGS: "Total Earnings",
@@ -74,7 +75,13 @@ const MESSAGE = {
     TOTAL_AVERAGE_SLP: "Total Average SLP",
     TOTAL_MANAGER_SLP: "Total Manager SLP",
     TOTAL_SPONSOR_SLP: "Total Sponsor SLP",
-    TOTAL_SCHOLAR_SLP: "Total Scholar SLP"
+    TOTAL_SCHOLAR_SLP: "Total Scholar SLP",
+    ADVENTURE_SLP: "Adventure SLP",
+    SHARED_SLP: "Shared SLP",
+    RONIN_SLP: "Ronin SLP",
+    TOTAL_SLP: "Total SLP",
+    EARNINGS_PHP: "Earnings (PHP)",
+    SEE_MORE: "See more"
 }
 
 export const CONSTANTS = {

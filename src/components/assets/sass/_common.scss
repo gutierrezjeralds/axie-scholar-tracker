@@ -745,4 +745,110 @@ body, #root{
     .page-link {
         z-index: 0 !important;
     }
+    // Mobile view
+    @include mediaQueries (mixin-max-medium) {
+        table {
+            thead { // Hide THead
+                display: none !important;
+            }
+            tbody { // Style Body
+                tr {
+                    display: block !important;
+                    position: relative !important;
+                    margin-bottom: 20px !important;
+                    // padding: 10px !important;
+                    td[colspan] {
+                        display: block !important;
+                        width: 100% !important;
+                    }
+                    td:not(:where(td[colspan])) {
+                        // Style display
+                        display: block !important;
+                        text-align: left !important;
+                        padding: 0.2rem 0rem 0.2rem 40% !important;
+                        // Border style
+                        border-top: none !important;
+                        border-bottom: none !important;
+                        &:nth-child(1) {
+                            border-top: 1px solid #dee2e6 !important;
+                            padding-top: 10px !important;
+                        }
+                        &:nth-child(10) {
+                            border-bottom: 1px solid #dee2e6 !important;
+                            padding-bottom: 10px !important;
+                        }
+                        // Title Content
+                        &:before {
+                            position: absolute;
+                            left: 0.5rem;
+                            font-weight: bold;
+                        }
+                        &:nth-child(1) {
+                            &:before {
+                                content: "Name : ";
+                            }
+                        }
+                        &:nth-child(2) {
+                            &:before {
+                                content: "Adventure SLP : ";
+                            }
+                        }
+                        &:nth-child(3) {
+                            &:before {
+                                content: "InGame SLP : ";
+                            }
+                        }
+                        &:nth-child(4) {
+                            &:before {
+                                content: "Shared SLP : ";
+                            }
+                        }
+                        &:nth-child(5) {
+                            &:before {
+                                content: "Ronin SLP : ";
+                            }
+                        }
+                        &:nth-child(6) {
+                            &:before {
+                                content: "Total SLP : ";
+                            }
+                        }
+                        &:nth-child(7) {
+                            &:before {
+                                content: "Earnings (PHP) : ";
+                            }
+                        }
+                        &:nth-child(8) {
+                            &:before {
+                                content: "Claim On : ";
+                            }
+                        }
+                        &:nth-child(9) {
+                            &:before {
+                                content: "MMR : ";
+                            }
+                        }
+                        &:nth-child(10) {
+                            &:before {
+                                content: "Rank : ";
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        // Hide show entries select option
+        div[data-test="datatable-select"] {
+            display: none !important;
+        }
+        // Aligned input search
+        div[data-test="datatable-search"] {
+            display: block !important;
+            justify-content: start !important;
+            margin-bottom: 10px !important;
+            input {
+                width: 100% !important;
+            }
+        }
+    }
 }

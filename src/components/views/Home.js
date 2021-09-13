@@ -96,7 +96,7 @@ class Home extends React.Component {
     // Page reload
     pageRefresh = (time) => {
         setTimeout( function() {
-            window.location.reload();
+            // window.location.reload();
         }, time);
     }
 
@@ -201,8 +201,8 @@ class Home extends React.Component {
                                     {label: CONSTANTS.MESSAGE.NAME, field: "name"},
                                     {label: CONSTANTS.MESSAGE.ADVENTURE_SLP, field: "adventureSLP"},
                                     {label: CONSTANTS.MESSAGE.INGAME_SLP, field: "ingameSLP"},
-                                    {label: CONSTANTS.MESSAGE.RONIN_SLP, field: "roninSLP"},
                                     {label: CONSTANTS.MESSAGE.SHARED_SLP, field: "sharedSLP"},
+                                    {label: CONSTANTS.MESSAGE.RONIN_SLP, field: "roninSLP"},
                                     {label: CONSTANTS.MESSAGE.TOTAL_SLP, field: "totalSLP"},
                                     {label: CONSTANTS.MESSAGE.EARNINGS_PHP, field: "earningsPHP"},
                                     {label: CONSTANTS.MESSAGE.CLAIMON, field: "claimOn"},
@@ -429,8 +429,8 @@ class Home extends React.Component {
                                 name: details.name,
                                 adventureSLP: result.averageSLPDay,
                                 ingameSLP: this.numberWithCommas(result.inGameSLP),
+                                sharedSLP: <span className="d-inline d-md-block d-lg-block">{this.numberWithCommas(result.sharedSLP)} <span className="d-inline d-md-block d-lg-block">({(details.manager).toString() === "100" ? details.manager : details.scholar}%)</span></span>,
                                 roninSLP: this.numberWithCommas(roninBalance),
-                                sharedSLP: this.numberWithCommas(result.sharedSLP),
                                 totalSLP: this.numberWithCommas(result.totalEarningSLP),
                                 earningsPHP: this.numberWithCommas((result.totalEarningSLP * this.state.slpCurrentValue).toFixed(2)),
                                 claimOn: <span className="d-inline d-md-block d-lg-block">{moment.unix(result.last_claimed_item_at).add(14, "days").format("MMM DD, HH:MM A")} <span className="d-inline d-md-block d-lg-block">{result.claim_on_days} {CONSTANTS.MESSAGE.DAYS}</span></span>,
@@ -916,7 +916,7 @@ class Home extends React.Component {
                         }
 
                         {/* Table Details */}
-                        <MDBTable scrollY maxHeight="80vh" bordered striped responsive className="mt-2">
+                        <MDBTable scrollY maxHeight="70vh" bordered striped responsive className="mt-2">
                             <MDBTableBody>
                                 {/* Arena Game Status */}
                                 <tr>
@@ -990,7 +990,7 @@ class Home extends React.Component {
                         {
                             // Scholar display x sort by ELO Ranking
                             this.state.playerRecords.sort((a, b) =>  a.ranking.rank - b.ranking.rank ).map((items) => (
-                                <MDBCol key={items.client_id} sm="12" md="6" lg="4" className="my-3 d-md-none d-lg-none">
+                                <MDBCol key={items.client_id} sm="12" md="6" lg="4" className="my-3">
                                     <MDBCard className="z-depth-2">
                                         <MDBCardBody className="black-text">
                                             <MDBCardTitle className="font-weight-bold font-family-architects-daughter">
@@ -1176,22 +1176,18 @@ class Home extends React.Component {
                             // Diplay Player details
                             <MDBContainer className="pt-3 pb-5 mb-5 position-relative">
                                 <MDBRow>
-                                    <MDBCol size="12">
-                                        <MDBDataTable
-                                            sortable={false}
-                                            striped
-                                            bordered
-                                            hover
-                                            responsive
-                                            noBottomColumns
-                                            data={this.state.playerDataTable}
-                                            className="player-datatable-container d-none d-md-block d-lg-block"
-                                        />
-                                    </MDBCol>
                                     {
                                         Object.keys(this.state.playerRecords).length > 0 ? (
                                             // Display all data
-                                            this.renderAllDetails()
+                                            <MDBCol size="12">
+                                                <MDBDataTable
+                                                    striped bordered hover responsive noBottomColumns
+                                                    sortable={false}
+                                                    data={this.state.playerDataTable}
+                                                    className="player-datatable-container"
+                                                />
+                                            </MDBCol>
+                                            // this.renderAllDetails()
                                         ) : (
                                             // Display no data
                                             this.renderEmptyDetails()

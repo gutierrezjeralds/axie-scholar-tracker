@@ -54,7 +54,7 @@ const MESSAGE = {
     DRAW: "Draw",
     WIN_RATE: "Win Rate",
     DAYS: "Day(s)",
-    OPEN_MARKETPLACE_PROFILE: "Open marketplace profile",
+    OPEN_MARKETPLACE_PROFILE: "View marketplace profile",
     OF: "of",
     ADV_QUEST_TODAY: "Adventure SLP Quest (Today)",
     INGAME_SLP: "InGame SLP",

@@ -1174,7 +1174,7 @@ class Home extends React.Component {
                             </MDBContainer>
                         ) : (
                             // Diplay Player details
-                            <MDBContainer className="pt-3 pb-5 mb-5 position-relative">
+                            <MDBContainer className="py-3 position-relative">
                                 <MDBRow>
                                     {
                                         Object.keys(this.state.playerRecords).length > 0 ? (

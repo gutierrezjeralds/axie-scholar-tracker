@@ -742,4 +742,7 @@ body, #root{
             vertical-align: middle;
         }
     }
+    .page-link {
+        z-index: 0 !important;
+    }
 }

@@ -189,7 +189,7 @@ class Home extends React.Component {
                                 return item
                             }
                             return false;
-                        }).sort((a, b) =>  a.data.rank - b.data.rank ).map(dataItem => {
+                        }).sort((a, b) =>  a.rank - b.rank ).map(dataItem => {
                             return dataItem.data;
                         });
 
@@ -206,8 +206,8 @@ class Home extends React.Component {
                                     {label: CONSTANTS.MESSAGE.TOTAL_SLP, field: "totalSLP"},
                                     {label: CONSTANTS.MESSAGE.EARNINGS_PHP, field: "earningsPHP"},
                                     {label: CONSTANTS.MESSAGE.CLAIMON, field: "claimOn"},
-                                    {label: CONSTANTS.MESSAGE.MMR, field: "mmr", sort: "desc"},
-                                    {label: CONSTANTS.MESSAGE.RANK, field: "rank"}
+                                    {label: CONSTANTS.MESSAGE.MMR, field: "mmr"},
+                                    {label: CONSTANTS.MESSAGE.RANK, field: "rank", sort: "desc"}
                                 ], rows: dataRes
                             }
                         })
@@ -440,7 +440,7 @@ class Home extends React.Component {
                             };
 
                             // Success return
-                            return resolve({error: false, data: playerDataTableRes});
+                            return resolve({error: false, data: playerDataTableRes, rank: ranking.rank});
                         } else {
                             return reject({error: true});
                         }
@@ -1129,7 +1129,6 @@ class Home extends React.Component {
                                             responsive
                                             noBottomColumns
                                             data={this.state.playerDataTable}
-                                            order={['rank', 'desc']}
                                             className="player-datatable-container d-none d-md-block d-lg-block"
                                         />
                                     </MDBCol>

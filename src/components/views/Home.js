@@ -96,7 +96,7 @@ class Home extends React.Component {
     // Page reload
     pageRefresh = (time) => {
         setTimeout( function() {
-            // window.location.reload();
+            window.location.reload();
         }, time);
     }
 

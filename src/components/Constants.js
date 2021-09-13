@@ -81,7 +81,8 @@ const MESSAGE = {
     RONIN_SLP: "Ronin SLP",
     TOTAL_SLP: "Total SLP",
     EARNINGS_PHP: "Earnings (PHP)",
-    SEE_MORE: "See more"
+    DETAIL: "Detail",
+    DETAILS: "Details"
 }
 
 export const CONSTANTS = {

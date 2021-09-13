@@ -39,8 +39,8 @@ class Home extends React.Component {
             modalEarningDetails: [],
             isModalMMRRankOpen: false,
             modalMMRRankDetails: [],
-            isModalTotalIncomeOpen: false,
-            modalTotalIncomeDetails: [],
+            isModalPlayerDetailsOpen: false,
+            modalPlayerDetails: [],
             topMMR: 0, // For condition of getting top user
             topSLP: 0, // For condition of getting top user
             topUserMMR: "",
@@ -77,8 +77,8 @@ class Home extends React.Component {
         });
     }
 
-    // Modal Toggle for view of Total Income
-    modalTotalIncomeToggle = (cliendId, playerDetails) => () => {
+    // Modal Toggle for view of Players details
+    modalPlayerDetailsToggle = (cliendId, playerDetails) => () => {
         let details = [];
         if (cliendId && playerDetails.length > 0) {
             const findDetail = playerDetails.find(items => items.client_id === cliendId);
@@ -88,8 +88,8 @@ class Home extends React.Component {
         }
 
         this.setState({
-            isModalTotalIncomeOpen: !this.state.isModalTotalIncomeOpen,
-            modalTotalIncomeDetails: details
+            isModalPlayerDetailsOpen: !this.state.isModalPlayerDetailsOpen,
+            modalPlayerDetails: details
         });
     }
 
@@ -433,10 +433,10 @@ class Home extends React.Component {
                                 sharedSLP: this.numberWithCommas(result.sharedSLP),
                                 totalSLP: this.numberWithCommas(result.totalEarningSLP),
                                 earningsPHP: this.numberWithCommas((result.totalEarningSLP * this.state.slpCurrentValue).toFixed(2)),
-                                claimOn: <span className="d-block">{moment.unix(result.last_claimed_item_at).format("MMM DD, HH:MM A")} <span className="d-block">{result.claim_on_days} {CONSTANTS.MESSAGE.DAYS}</span></span>,
+                                claimOn: <span className="d-inline d-md-block d-lg-block">{moment.unix(result.last_claimed_item_at).add(14, "days").format("MMM DD, HH:MM A")} <span className="d-inline d-md-block d-lg-block">{result.claim_on_days} {CONSTANTS.MESSAGE.DAYS}</span></span>,
                                 mmr: <span className={ranking.textStyle}>{this.numberWithCommas(ranking.elo)}</span>,
                                 rank: this.numberWithCommas(ranking.rank),
-                                clickEvent: this.modalTotalIncomeToggle(result.client_id, [result])
+                                clickEvent: this.modalPlayerDetailsToggle(result.client_id, [result])
                             };
 
                             // Success return
@@ -866,38 +866,93 @@ class Home extends React.Component {
         )
     }
 
-    // Render Modal for viewing of Total Income
-    renderModalTotalIncome() {
+    // Render Modal for viewing of Players Details
+    renderModalPlayerDetails() {
         return (
             <React.Fragment>
-                <MDBModal isOpen={this.state.isModalTotalIncomeOpen} size="lg">
-                    <MDBModalHeader toggle={this.modalTotalIncomeToggle("", "")}>
-                        <span>{CONSTANTS.MESSAGE.TOTALINCOME} {CONSTANTS.MESSAGE.OF} </span>
+                <MDBModal isOpen={this.state.isModalPlayerDetailsOpen} size="lg">
+                    <MDBModalHeader toggle={this.modalPlayerDetailsToggle("", "")}>
                         {
-                            Object.keys(this.state.modalTotalIncomeDetails).length > 0 ? (
+                            Object.keys(this.state.modalPlayerDetails).length > 0 ? (
                                 <React.Fragment>
-                                    {(this.state.modalTotalIncomeDetails[0].details.name).toLocaleString()}
+                                    {this.state.modalPlayerDetails[0].details.name}
                                 </React.Fragment>
-                            ) : ("0")
+                            ) : (CONSTANTS.MESSAGE.DETAILS)
                         }
                     </MDBModalHeader>
                     <MDBModalBody>
-                        <MDBTable scrollY maxHeight="70vh" bordered striped responsive>
-                            <MDBTableHead color="rgba-teal-strong" textWhite>
+                        {/* Header details */}
+                        {
+                            Object.keys(this.state.modalPlayerDetails).length > 0 ? (
+                                this.state.modalPlayerDetails.map((items, index) => (
+                                    index === 0 ? (
+                                        // Retreive only first loop x must be single display x "this.state.modalPlayerDetails" is already filtered
+                                        <React.Fragment>
+                                            <MDBRow between>
+                                                {/* Started pplaying */}
+                                                <MDBCol size="12" md="6" lg="6">
+                                                    <MDBBox tag="span" className="d-block">
+                                                        {CONSTANTS.MESSAGE.STARTED} <Moment format="MMM DD, YYYY">{items.details.started}</Moment>
+                                                    </MDBBox>
+                                                </MDBCol>
+                                                {/* Market Place link */}
+                                                <MDBCol size="12" md="6" lg="6">
+                                                    <MDBBox tag="u" className="d-block d-md-none d-lg-none">
+                                                        <a href={"https://marketplace.axieinfinity.com/profile/" + items.details.ethAddress + "/axie"} target="_blank" rel="noreferrer" className="black-text">
+                                                            {CONSTANTS.MESSAGE.OPEN_MARKETPLACE_PROFILE}
+                                                        </a>
+                                                    </MDBBox>
+                                                    <MDBBox tag="u" className="d-none d-md-block d-lg-block text-right">
+                                                        <a href={"https://marketplace.axieinfinity.com/profile/" + items.details.ethAddress + "/axie"} target="_blank" rel="noreferrer" className="black-text">
+                                                            {CONSTANTS.MESSAGE.OPEN_MARKETPLACE_PROFILE}
+                                                        </a>
+                                                    </MDBBox>
+                                                </MDBCol>
+                                            </MDBRow>
+                                        </React.Fragment>
+                                    ) : ("")
+                                ))
+                            ) : ("")
+                        }
+
+                        {/* Table Details */}
+                        <MDBTable scrollY maxHeight="80vh" bordered striped responsive className="mt-2">
+                            <MDBTableBody>
+                                {/* Arena Game Status */}
                                 <tr>
-                                    <th colSpan="4" className="text-center font-weight-bold">
-                                        <span>{CONSTANTS.MESSAGE.TOTAL}: &#8369; </span>
+                                    <td colSpan="4" className="text-center font-weight-bold rgba-teal-strong white-text">{CONSTANTS.MESSAGE.ARENAGAME_STATUS}</td>
+                                </tr>
+                                <tr className="text-center">
+                                    <td className="font-weight-bold text-uppercase table-gray-bg">{CONSTANTS.MESSAGE.WIN}</td>
+                                    <td className="font-weight-bold text-uppercase table-gray-bg">{CONSTANTS.MESSAGE.LOSE}</td>
+                                    <td className="font-weight-bold text-uppercase table-gray-bg">{CONSTANTS.MESSAGE.DRAW}</td>
+                                    <td className="font-weight-bold text-uppercase table-gray-bg">{CONSTANTS.MESSAGE.WIN_RATE}</td>
+                                </tr>
+                                {
+                                    Object.keys(this.state.modalPlayerDetails).length > 0 ? (
+                                        this.state.modalPlayerDetails.map(items => (
+                                            <tr key={items.id} className="text-center">
+                                                <td className="white-bg">{items.ranking.win_total}</td>
+                                                <td className="white-bg">{items.ranking.lose_total}</td>
+                                                <td className="white-bg">{items.ranking.draw_total}</td>
+                                                <td className="white-bg">{items.ranking.win_rate}%</td>
+                                            </tr>
+                                        ))
+                                    ) : ("")
+                                }
+                                {/* Total Income */}
+                                <tr>
+                                    <td colSpan="4" className="text-center font-weight-bold rgba-teal-strong white-text">
+                                        <span>{CONSTANTS.MESSAGE.TOTALINCOME}: &#8369; </span>
                                         {
-                                            Object.keys(this.state.modalTotalIncomeDetails).length > 0 ? (
+                                            Object.keys(this.state.modalPlayerDetails).length > 0 ? (
                                                 <React.Fragment>
-                                                    {(this.state.modalTotalIncomeDetails[0].details.totalIncome).toLocaleString()}
+                                                    {(this.state.modalPlayerDetails[0].details.totalIncome).toLocaleString()}
                                                 </React.Fragment>
                                             ) : ("0")
                                         }
-                                    </th>
+                                    </td>
                                 </tr>
-                            </MDBTableHead>
-                            <MDBTableBody>
                                 <tr className="text-center">
                                     <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.DATE}</td>
                                     <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.SLP}</td>
@@ -905,9 +960,9 @@ class Home extends React.Component {
                                     <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.EARNING}</td>
                                 </tr>
                                 {
-                                    Object.keys(this.state.modalTotalIncomeDetails).length > 0 ? (
-                                        Object.keys(this.state.modalTotalIncomeDetails[0].details.claimedEarning).length > 0 ? (
-                                            (this.state.modalTotalIncomeDetails[0].details.claimedEarning).sort((a, b) =>  b.id - a.id ).map(items => (
+                                    Object.keys(this.state.modalPlayerDetails).length > 0 ? (
+                                        Object.keys(this.state.modalPlayerDetails[0].details.claimedEarning).length > 0 ? (
+                                            (this.state.modalPlayerDetails[0].details.claimedEarning).sort((a, b) =>  b.id - a.id ).map(items => (
                                                 <tr key={items.id} className="text-center">
                                                     <td>{<Moment format="MMM DD, YYYY">{items.date}</Moment>}</td>
                                                     <td>{items.slp}</td>
@@ -968,7 +1023,7 @@ class Home extends React.Component {
                                             </MDBCardTitle>
                                             <MDBBox tag="div">
                                                 <MDBBox tag="div" className="mt-3">
-                                                    <MDBBox tag="u" className="text-decoration cursor-pointer" onClick={this.modalTotalIncomeToggle(items.client_id, this.state.playerRecords)}>
+                                                    <MDBBox tag="u" className="text-decoration cursor-pointer" onClick={this.modalPlayerDetailsToggle(items.client_id, this.state.playerRecords)}>
                                                         {CONSTANTS.MESSAGE.VIEW_TOTALINCOME}
                                                     </MDBBox>
                                                     <MDBBox tag="span" className="float-right">
@@ -1041,7 +1096,8 @@ class Home extends React.Component {
                                                                 <td className="font-weight-bold text-uppercase table-gray-bg">{CONSTANTS.MESSAGE.DRAW}</td>
                                                                 <td className="font-weight-bold text-uppercase table-gray-bg">{CONSTANTS.MESSAGE.WIN_RATE}</td>
                                                                 <td className="font-weight-bold text-uppercase table-gray-bg">{CONSTANTS.MESSAGE.RANK}</td>
-                                                            </tr><tr className="text-center">
+                                                            </tr>
+                                                            <tr className="text-center">
                                                                 <td className="white-bg">{items.ranking.win_total}</td>
                                                                 <td className="white-bg">{items.ranking.lose_total}</td>
                                                                 <td className="white-bg">{items.ranking.draw_total}</td>
@@ -1150,7 +1206,7 @@ class Home extends React.Component {
                 {/* Render Modal */}
                 {this.renderModalEarnings()}
                 {this.renderModalMMRRank()}
-                {this.renderModalTotalIncome()}
+                {this.renderModalPlayerDetails()}
             </MDBBox>
         )
     }

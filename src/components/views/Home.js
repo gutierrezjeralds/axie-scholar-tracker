@@ -199,7 +199,7 @@ class Home extends React.Component {
                             playerDataTable: {
                                 columns: [
                                     {label: CONSTANTS.MESSAGE.NAME, field: "name"},
-                                    {label: CONSTANTS.MESSAGE.ADVENTURE_SLP, field: "adventureSLP"},
+                                    {label: CONSTANTS.MESSAGE.AVERAGE_SLP_PERDAY_V2, field: "averageSLP"},
                                     {label: CONSTANTS.MESSAGE.INGAME_SLP, field: "ingameSLP"},
                                     {label: CONSTANTS.MESSAGE.SHARED_SLP, field: "sharedSLP"},
                                     {label: CONSTANTS.MESSAGE.RONIN_SLP, field: "roninSLP"},
@@ -427,7 +427,7 @@ class Home extends React.Component {
                             // Update Player Datatable row details
                             const playerDataTableRes = {
                                 name: details.name,
-                                adventureSLP: result.averageSLPDay,
+                                averageSLP: result.averageSLPDay,
                                 ingameSLP: this.numberWithCommas(result.inGameSLP),
                                 sharedSLP: <span className="d-inline d-md-block d-lg-block">{this.numberWithCommas(result.sharedSLP)} <span className="d-inline d-md-block d-lg-block">({(details.manager).toString() === "100" ? details.manager : details.scholar}%)</span></span>,
                                 roninSLP: this.numberWithCommas(roninBalance),

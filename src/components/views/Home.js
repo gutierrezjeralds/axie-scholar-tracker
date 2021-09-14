@@ -24,7 +24,7 @@ class Home extends React.Component {
             isSponsorName: "",
             slpCurrentValue: 0,
             axsCurrentValue: 0,
-            currentValueFrm: CONSTANTS.MESSAGE.BINANCE,
+            currentValueFrm: CONSTANTS.MESSAGE.COINGECKO,
             isRecordLoaded: false,
             isPlayerLoaded: false,
             playerRecords: [],
@@ -51,8 +51,8 @@ class Home extends React.Component {
 
     componentDidMount() {
         this.pageRefresh(120000); // Refresh in 2 minutes
-        // this.getCoingecko();
-        this.getBinance();
+        this.getCoingecko();
+        // this.getBinance();
         this.getRecord();
     }
 
@@ -108,7 +108,13 @@ class Home extends React.Component {
         $.ajax({
             url: "https://api.binance.com/api/v3/ticker/price",
             dataType: "json",
-            cache: false
+            cache: false,
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Accept': '*/*',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Headers': 'Content-Type'
+            }
         })
         .then(
             async (result) => {
@@ -138,6 +144,7 @@ class Home extends React.Component {
                     }
                             
                     this.setState({
+                        currentValueFrm: CONSTANTS.MESSAGE.BINANCE,
                         slpCurrentValue: isSLPValue,
                         axsCurrentValue: isAXSValue
                     })
@@ -784,9 +791,9 @@ class Home extends React.Component {
                                             // Top ELO / MMR Rank
                                             this.state.playerRecords.sort((a, b) =>  a.ranking.rank - b.ranking.rank ).map((items, index) => (
                                                 index === 0 ? (
-                                                    <React.Fragment>
+                                                    <React.Fragment key={items.client_id}>
                                                         <MDBBox tag="span" className="d-block">{CONSTANTS.MESSAGE.TOP_MMR}</MDBBox>
-                                                        <MDBBox key={items.client_id} tag="span" className="d-block font-size-1rem font-weight-bold">{items.details.name} ({this.numberWithCommas(items.ranking.elo)})</MDBBox>
+                                                        <MDBBox tag="span" className="d-block font-size-1rem font-weight-bold">{items.details.name} ({this.numberWithCommas(items.ranking.elo)})</MDBBox>
                                                     </React.Fragment>
                                                 ) : ("")
                                             ))
@@ -796,9 +803,9 @@ class Home extends React.Component {
                                             // Top In Game SLP
                                             this.state.playerRecords.sort((a, b) =>  b.inGameSLP - a.inGameSLP ).map((items, index) => (
                                                 index === 0 ? (
-                                                    <React.Fragment>
+                                                    <React.Fragment key={items.client_id}>
                                                         <MDBBox tag="span" className="d-block mt-3">{CONSTANTS.MESSAGE.TOP_INGAME_SLP}</MDBBox>
-                                                        <MDBBox key={items.client_id} tag="span" className="d-block font-size-1rem font-weight-bold">{items.details.name} ({this.numberWithCommas(items.inGameSLP)})</MDBBox>
+                                                        <MDBBox tag="span" className="d-block font-size-1rem font-weight-bold">{items.details.name} ({this.numberWithCommas(items.inGameSLP)})</MDBBox>
                                                     </React.Fragment>
                                                 ) : ("")
                                             ))
@@ -1001,7 +1008,7 @@ class Home extends React.Component {
                                 this.state.modalPlayerDetails.map((items, index) => (
                                     index === 0 ? (
                                         // Retreive only first loop x must be single display x "this.state.modalPlayerDetails" is already filtered
-                                        <React.Fragment>
+                                        <React.Fragment key={items.client_id}>
                                             <MDBRow between>
                                                 {/* Started pplaying */}
                                                 <MDBCol size="12" md="6" lg="6">

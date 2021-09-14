@@ -24,6 +24,7 @@ class Home extends React.Component {
             isSponsorName: "",
             slpCurrentValue: 0,
             axsCurrentValue: 0,
+            currentValueFrm: CONSTANTS.MESSAGE.BINANCE,
             isRecordLoaded: false,
             isPlayerLoaded: false,
             playerRecords: [],
@@ -50,7 +51,8 @@ class Home extends React.Component {
 
     componentDidMount() {
         this.pageRefresh(120000); // Refresh in 2 minutes
-        this.getCoingecko();
+        // this.getCoingecko();
+        this.getBinance();
         this.getRecord();
     }
 
@@ -100,6 +102,79 @@ class Home extends React.Component {
         }, time);
     }
 
+    // Get Binance data / json
+    getBinance = () => {
+        // Get Current SLP and AXS Value
+        $.ajax({
+            url: "https://api.binance.com/api/v3/ticker/price",
+            dataType: "json",
+            cache: false
+        })
+        .then(
+            async (result) => {
+                if (result.length > 0) {
+                    let isSLPValue = 0, isAXSValue = 0;
+                    result.map(items => {
+                        // Get SLP value in Binance result
+                        if (items.symbol === "SLPUSDT") {
+                            isSLPValue = items.price;
+                        }
+                        // Get AXS value in Binance result
+                        if (items.symbol === "AXSUSDT") {
+                            isAXSValue = items.price;
+                        }
+                        // Return
+                        return true;
+                    });
+
+                    // Get value of PHP
+                    const currentPHPValue = await this.getPHPCurrentValue();
+                    if (currentPHPValue.data) {
+                        const valuePHP = currentPHPValue.data.rates.PHP;
+                        if (valuePHP !== undefined) {
+                            isSLPValue = (Math.floor(isSLPValue * valuePHP)).toFixed(2);
+                            isAXSValue = (Math.floor(isAXSValue * valuePHP)).toFixed(2);
+                        }
+                    }
+                            
+                    this.setState({
+                        slpCurrentValue: isSLPValue,
+                        axsCurrentValue: isAXSValue
+                    })
+                } else {
+                    // Get Coingecko data / json
+                    this.getCoingecko();
+                    this.setState({
+                        currentValueFrm: CONSTANTS.MESSAGE.COINGECKO
+                    })
+                }
+            },
+            // Note: it's important to handle errors here
+            // instead of a catch() block so that we don't swallow
+            // exceptions from actual bugs in components.
+            (error) => {
+                // Get Coingecko data / json
+                this.getCoingecko();
+                this.setState({
+                    currentValueFrm: CONSTANTS.MESSAGE.COINGECKO
+                })
+                    
+                console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, error)
+            }
+        )
+        .catch(
+            (err) => {
+                // Get Coingecko data / json
+                this.getCoingecko();
+                this.setState({
+                    currentValueFrm: CONSTANTS.MESSAGE.COINGECKO
+                })
+                    
+                console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
+            }
+        )
+    }
+    
     // Get Coingecko data / json
     getCoingecko = () => {
         // Get Current SLP and AXS Value
@@ -144,6 +219,37 @@ class Home extends React.Component {
             }
         )
     }
+
+    // Get frankfurter data / json
+    getPHPCurrentValue = async () => {
+        return new Promise((resolve, reject) => {
+            // Get Current PHP Value
+            $.ajax({
+                url: "https://api.frankfurter.app/latest?from=USD",
+                dataType: "json",
+                cache: false
+            })
+            .then(
+                (result) => {
+                    return resolve({data: result});
+                },
+                // Note: it's important to handle errors here
+                // instead of a catch() block so that we don't swallow
+                // exceptions from actual bugs in components.
+                (error) => {
+                    return reject({error: error})
+                }
+            )
+            .catch(
+                (err) => {
+                    return reject({error: err})
+                }
+            )
+        }).catch(err => {
+            console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
+            return err;
+        });
+    }
     
     // Fetch Player Record Data
     getRecord = () => {
@@ -180,7 +286,7 @@ class Home extends React.Component {
                     
                     const dataResultPromise = dataResult.map(async (item) => {
                         const ethAddress = item.ethAddress ? `0x${item.ethAddress.substring(6)}` : "";
-                        return await this.getPlayerDetails(item, ethAddress);;
+                        return await this.getPlayerDetails(item, ethAddress);
                     });
 
                     await Promise.all(dataResultPromise).then(async (results) => {
@@ -562,7 +668,7 @@ class Home extends React.Component {
     }
 
     // Render Coingecko details
-    renderCoingecko() {
+    renderCurrencies() {
         if (this.state.slpCurrentValue > 0) {
             return (
                 <React.Fragment>
@@ -570,7 +676,15 @@ class Home extends React.Component {
                         <MDBBox tag="div" className="py-3 px-2 text-center pale-turquoise-bg">
                             <MDBBox tag="span" className="blue-whale">
                                 {CONSTANTS.MESSAGE.PRICE_BASEON}
-                                <a href="https://www.coingecko.com/en/coins/smooth-love-potion" target="_blank" rel="noreferrer"> {CONSTANTS.MESSAGE.COINGECKO}. </a>
+                                
+                                {
+                                    this.state.currentValueFrm === CONSTANTS.MESSAGE.BINANCE ? (
+                                        <a href="https://www.binance.com/en/trade/SLP_USDT" target="_blank" rel="noreferrer"> {CONSTANTS.MESSAGE.BINANCE}. </a>
+                                    ) : (
+                                        <a href="https://www.coingecko.com/en/coins/smooth-love-potion" target="_blank" rel="noreferrer"> {CONSTANTS.MESSAGE.COINGECKO}. </a>
+                                    )
+                                }
+                                
                                 {CONSTANTS.MESSAGE.CURRENT_EXCHANGERATE}:
                                 <MDBBox tag="span" className="">
                                     <strong> 1 {CONSTANTS.MESSAGE.SLP} = {this.state.slpCurrentValue}</strong>
@@ -1153,7 +1267,7 @@ class Home extends React.Component {
                 {/* Render Notification Bar for Page refresh, Coingecko details and Top Scholar */}
                 <MDBContainer className="pt-5 mt-5 position-relative">
                     <MDBRow>
-                        {this.renderCoingecko()}
+                        {this.renderCurrencies()}
                         {this.renderTopScholar()}
                         {this.renderEarnings()}
                     </MDBRow>

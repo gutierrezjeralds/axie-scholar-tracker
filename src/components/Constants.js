@@ -11,6 +11,7 @@ const MESSAGE = {
     NODATA_FOUND: "No Data Found.",
     PAGE_REFRESH: "Page refresh automatically within 120 seconds.",
     PRICE_BASEON: "Prices are based on",
+    BINANCE: "Binance",
     COINGECKO: "CoinGecko",
     CURRENT_EXCHANGERATE: "Current exchange rate",
     SIGNIN: "Sign In",

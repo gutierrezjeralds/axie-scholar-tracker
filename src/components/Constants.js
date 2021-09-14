@@ -83,7 +83,11 @@ const MESSAGE = {
     TOTAL_SLP: "Total SLP",
     EARNINGS_PHP: "Earnings (PHP)",
     DETAIL: "Detail",
-    DETAILS: "Details"
+    DETAILS: "Details",
+    VIEW_ALL_EARNINGS: "View All Earnings",
+    VIEW_CURRENT_EARNINGS: "View Current Earnings",
+    MANAGER_ALL_EARNINGS: "All Manager Earnings",
+    MANAGER_CURRENT_EARNINGS: "Current Manager Earnings"
 }
 
 export const CONSTANTS = {

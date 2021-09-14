@@ -96,7 +96,7 @@ class Home extends React.Component {
     // Page reload
     pageRefresh = (time) => {
         setTimeout( function() {
-            window.location.reload();
+            // window.location.reload();
         }, time);
     }
 
@@ -427,15 +427,15 @@ class Home extends React.Component {
                             // Update Player Datatable row details
                             const playerDataTableRes = {
                                 name: details.name,
-                                averageSLP: result.averageSLPDay,
-                                ingameSLP: this.numberWithCommas(result.inGameSLP),
-                                sharedSLP: <span className="d-inline d-md-block d-lg-block">{this.numberWithCommas(result.sharedSLP)} <span className="d-inline d-md-block d-lg-block">({(details.manager).toString() === "100" ? details.manager : details.scholar}%)</span></span>,
-                                roninSLP: this.numberWithCommas(roninBalance),
-                                totalSLP: this.numberWithCommas(result.totalEarningSLP),
-                                earningsPHP: this.numberWithCommas((result.totalEarningSLP * this.state.slpCurrentValue).toFixed(2)),
-                                claimOn: <span className="d-inline d-md-block d-lg-block">{moment.unix(result.last_claimed_item_at).add(14, "days").format("MMM DD, HH:MM A")} <span className="d-inline d-md-block d-lg-block">{result.claim_on_days} {CONSTANTS.MESSAGE.DAYS}</span></span>,
-                                mmr: <span className={ranking.textStyle}>{this.numberWithCommas(ranking.elo)}</span>,
-                                rank: this.numberWithCommas(ranking.rank),
+                                averageSLP: <MDBBox data-th={CONSTANTS.MESSAGE.AVERAGE_SLP_PERDAY_V2} tag="span">{result.averageSLPDay}</MDBBox>,
+                                ingameSLP: <MDBBox data-th={CONSTANTS.MESSAGE.INGAME_SLP} tag="span">{this.numberWithCommas(result.inGameSLP)}</MDBBox>,
+                                sharedSLP: <MDBBox data-th={CONSTANTS.MESSAGE.SHARED_SLP} tag="span" className="d-inline d-md-block d-lg-block">{this.numberWithCommas(result.sharedSLP)} <MDBBox tag="span" className="d-inline d-md-block d-lg-block">({(details.manager).toString() === "100" ? details.manager : details.scholar}%)</MDBBox></MDBBox>,
+                                roninSLP: <MDBBox data-th={CONSTANTS.MESSAGE.RONIN_SLP} tag="span">{this.numberWithCommas(roninBalance)}</MDBBox>,
+                                totalSLP: <MDBBox data-th={CONSTANTS.MESSAGE.TOTAL_SLP} tag="span">{this.numberWithCommas(result.totalEarningSLP)}</MDBBox>,
+                                earningsPHP: <MDBBox data-th={CONSTANTS.MESSAGE.EARNINGS_PHP} tag="span">{this.numberWithCommas((result.totalEarningSLP * this.state.slpCurrentValue).toFixed(2))}</MDBBox>,
+                                claimOn: <MDBBox data-th={CONSTANTS.MESSAGE.CLAIMON} tag="span" className="d-block">{moment.unix(result.last_claimed_item_at).add(14, "days").format("MMM DD, HH:MM A")} <MDBBox tag="span" className="d-block">{result.claim_on_days} {CONSTANTS.MESSAGE.DAYS}</MDBBox></MDBBox>,
+                                mmr: <MDBBox data-th={CONSTANTS.MESSAGE.MMR} tag="span" className={ranking.textStyle}>{this.numberWithCommas(ranking.elo)}</MDBBox>,
+                                rank: <MDBBox data-th={CONSTANTS.MESSAGE.RANK} tag="span">{this.numberWithCommas(ranking.rank)}</MDBBox>,
                                 clickEvent: this.modalPlayerDetailsToggle(result.client_id, [result])
                             };
 

@@ -748,6 +748,7 @@ body, #root{
     // Mobile view
     @include mediaQueries (mixin-max-medium) {
         table {
+            border: none !important;
             thead { // Hide THead
                 display: none !important;
             }
@@ -755,8 +756,14 @@ body, #root{
                 tr {
                     display: block !important;
                     position: relative !important;
-                    margin-bottom: 20px !important;
-                    // padding: 10px !important;
+                    border: none !important;
+                    border-radius: 8px !important;
+                    margin: 20px 8px !important;
+                    padding: 10px !important;
+                    // box-shadow: 0 8px 17px 0 rgb(0 0 0 / 20%), 0 6px 20px 0 rgb(0 0 0 / 19%) !important;
+                    box-shadow:  0px 0px 10px rgb(0 0 0 / 20%);
+                    -webkit-box-shadow:  0px 0px 10px rgb(0 0 0 / 20%);
+                    -moz-box-shadow:  0px 0px 10px rgb(0 0 0 / 20%);
                     td[colspan] {
                         // Style no data found
                         display: block !important;
@@ -766,72 +773,23 @@ body, #root{
                         // Style display
                         display: block !important;
                         text-align: left !important;
-                        padding: 0.2rem 0rem 0.2rem 40% !important;
-                        // Border style
-                        border-top: none !important;
-                        border-bottom: none !important;
-                        &:nth-child(1) {
-                            border-top: 1px solid #dee2e6 !important;
-                            padding-top: 10px !important;
-                        }
-                        &:nth-child(10) {
-                            border-bottom: 1px solid #dee2e6 !important;
-                            padding-bottom: 10px !important;
-                        }
+                        padding: 0.2rem 0rem 0.2rem 50% !important;
+                        border: none !important;
                         // Title Content
-                        &:before {
-                            position: absolute;
-                            left: 0.5rem;
-                            font-weight: bold;
-                        }
                         &:nth-child(1) {
                             &:before {
                                 content: "Name : ";
+                                position: absolute;
+                                left: 0.6rem;
+                                font-weight: bold;
                             }
                         }
-                        &:nth-child(2) {
+                        span[data-th] {
                             &:before {
-                                content: "Average SLP / Day : ";
-                            }
-                        }
-                        &:nth-child(3) {
-                            &:before {
-                                content: "InGame SLP : ";
-                            }
-                        }
-                        &:nth-child(4) {
-                            &:before {
-                                content: "Shared SLP : ";
-                            }
-                        }
-                        &:nth-child(5) {
-                            &:before {
-                                content: "Ronin SLP : ";
-                            }
-                        }
-                        &:nth-child(6) {
-                            &:before {
-                                content: "Total SLP : ";
-                            }
-                        }
-                        &:nth-child(7) {
-                            &:before {
-                                content: "Earnings (PHP) : ";
-                            }
-                        }
-                        &:nth-child(8) {
-                            &:before {
-                                content: "Claim On : ";
-                            }
-                        }
-                        &:nth-child(9) {
-                            &:before {
-                                content: "MMR : ";
-                            }
-                        }
-                        &:nth-child(10) {
-                            &:before {
-                                content: "Rank : ";
+                                content: attr(data-th)" : ";
+                                position: absolute;
+                                left: 0.6rem;
+                                font-weight: bold;
                             }
                         }
                     }
@@ -846,7 +804,6 @@ body, #root{
         div[data-test="datatable-search"] {
             display: block !important;
             justify-content: start !important;
-            margin-bottom: 10px !important;
             input {
                 width: 100% !important;
             }

@@ -119,6 +119,14 @@ class Home extends React.Component {
         }, time);
     }
 
+    // API reload
+    apiRefresh = () => {
+        setTimeout(() => {
+            // this.getCoingecko();
+            // this.getBinance();
+        }, 5000); // Refresh in 5 seconds
+    }
+
     // Get Binance data / json
     getBinance = () => {
         // Get Current SLP and AXS Value
@@ -197,6 +205,10 @@ class Home extends React.Component {
                 console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
             }
         )
+        .done(() => {
+            // Refresh API
+            this.apiRefresh();
+        })
     }
     
     // Get Coingecko data / json
@@ -242,6 +254,10 @@ class Home extends React.Component {
                 console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
             }
         )
+        .done(() => {
+            // Refresh API
+            this.apiRefresh();
+        })
     }
 
     // Get frankfurter data / json

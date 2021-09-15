@@ -22,12 +22,6 @@
                 "date": "2021-08-29",
                 "slp": 5989,
                 "slpPrice": 6.76
-            },
-            {
-                "id": 3,
-                "date": "2021-09-13",
-                "slp": 1498,
-                "slpPrice": 4.06
             }
         ],
         "claimedEarning": [

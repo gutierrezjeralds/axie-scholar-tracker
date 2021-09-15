@@ -423,7 +423,7 @@ class Home extends React.Component {
                                 ranking.textStyle = "orange-text"
                             } else if (ranking.elo < 1099) {
                                 // Estimated SLP gain on this MRR (3SLP, 1SLP or NOSLP) x Set as warning need to up
-                                ranking.textStyle = "red-text font-weight";
+                                ranking.textStyle = "red-text font-weight-bold";
                             } else {
                                 // Great MMR x Can earn more SLP
                                 ranking.textStyle = "green-text";

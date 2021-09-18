@@ -28,6 +28,7 @@ class Home extends React.Component {
             isRecordLoaded: false,
             isPlayerLoaded: false,
             playerRecords: [],
+            playerAllRecords: [],
             playerDataTable: {},
             totalManagerSLP: 0,
             totalSponsorSLP: 0,
@@ -302,31 +303,25 @@ class Home extends React.Component {
             async (result) => {
                 if (result.length > 0) {
                     // Fetch player details in api of sky mavis
-                    let dataResult = result;
-                    if (this.state.isUser !== CONSTANTS.MESSAGE.MANAGER) { // For single data user
-                        dataResult = [];
-                        result.find(item => {
-                            if (item.email.toLowerCase() === this.state.isUser.toLowerCase() ||
-                                item.name.toLowerCase() === this.state.isUser.toLowerCase() ||
-                                item.sponsorName.toLowerCase() === this.state.isUser.toLowerCase()) {
-                                    if (item.sponsor !== "" || item.sponsor !== undefined) {
-                                        // Set valid Sponsor Name
-                                        this.setState({
-                                            isSponsorName: this.state.isUser
-                                        })
-                                    }
-                                    // Return
-                                    dataResult.push(item)
-                                    return item;
-                            }
-                            // Return
-                            return false;
-                        })
-                    }
-                    
-                    const dataResultPromise = dataResult.map(async (item) => {
+                    const dataResultPromise = result.map(async (item) => {
                         const ethAddress = item.ethAddress ? `0x${item.ethAddress.substring(6)}` : "";
-                        return await this.getPlayerDetails(item, ethAddress);
+                        let userEthAddress = null;
+
+                        if (item.email.toLowerCase() === this.state.isUser.toLowerCase() ||
+                            item.name.toLowerCase() === this.state.isUser.toLowerCase() ||
+                            item.sponsorName.toLowerCase() === this.state.isUser.toLowerCase()) {
+                                // Get ETH Address based on Credential
+                                userEthAddress = ethAddress;
+                                if (item.sponsor !== "" || item.sponsor !== undefined) {
+                                    // Set valid Sponsor Name
+                                    this.setState({
+                                        isSponsorName: this.state.isUser
+                                    })
+                                }
+                        }
+
+                        // Return
+                        return await this.getPlayerDetails(item, ethAddress, userEthAddress);
                     });
 
                     await Promise.all(dataResultPromise).then(async (results) => {
@@ -402,7 +397,7 @@ class Home extends React.Component {
     }
 
     // Get Player details base on Sky Mavis API
-    getPlayerDetails = async (details, ethAddress) => {
+    getPlayerDetails = async (details, ethAddress, userEthAddress) => {
         return new Promise((resolve, reject) => {
             $.ajax({
                 url: "https://game-api.skymavis.com/game-api/clients/" + ethAddress + "/items/1",
@@ -595,25 +590,56 @@ class Home extends React.Component {
                             result.ranking = ranking;
 
                             // Get all ETH Address x for other display x MMR Ranking x etc
-                            this.state.playerRecords.push(result);
+                            this.state.playerAllRecords.push(result);
 
-                            // Update Player Datatable row details
-                            const playerDataTableRes = {
-                                name: details.name,
-                                averageSLP: <MDBBox data-th={CONSTANTS.MESSAGE.AVERAGE_SLP_PERDAY_V2} tag="span">{result.averageSLPDay}</MDBBox>,
-                                ingameSLP: <MDBBox data-th={CONSTANTS.MESSAGE.INGAME_SLP} tag="span">{this.numberWithCommas(result.inGameSLP)}</MDBBox>,
-                                sharedSLP: <MDBBox data-th={CONSTANTS.MESSAGE.SHARED_SLP} tag="span" className="d-inline d-md-block d-lg-block">{this.numberWithCommas(result.sharedSLP)} <MDBBox tag="span" className="d-inline d-md-block d-lg-block">({(details.manager).toString() === "100" ? details.manager : details.scholar}%)</MDBBox></MDBBox>,
-                                roninSLP: <MDBBox data-th={CONSTANTS.MESSAGE.RONIN_SLP} tag="span">{this.numberWithCommas(roninBalance)}</MDBBox>,
-                                totalSLP: <MDBBox data-th={CONSTANTS.MESSAGE.TOTAL_SLP} tag="span">{this.numberWithCommas(result.totalEarningSLP)}</MDBBox>,
-                                earningsPHP: <MDBBox data-th={CONSTANTS.MESSAGE.EARNINGS_PHP} tag="span">{this.numberWithCommas((result.totalEarningSLP * this.state.slpCurrentValue).toFixed(2))}</MDBBox>,
-                                claimOn: <MDBBox data-th={CONSTANTS.MESSAGE.CLAIMON} tag="span" className="d-block">{moment.unix(result.last_claimed_item_at).add(14, "days").format("MMM DD, HH:MM A")} <MDBBox tag="span" className="d-block">{result.claim_on_days} {CONSTANTS.MESSAGE.DAYS}</MDBBox></MDBBox>,
-                                mmr: <MDBBox data-th={CONSTANTS.MESSAGE.MMR} tag="span" className={ranking.textStyle}>{this.numberWithCommas(ranking.elo)}</MDBBox>,
-                                rank: <MDBBox data-th={CONSTANTS.MESSAGE.RANK} tag="span">{this.numberWithCommas(ranking.rank)}</MDBBox>,
-                                clickEvent: this.modalPlayerDetailsToggle(result.client_id, [result])
-                            };
+                            if (this.state.isUser === CONSTANTS.MESSAGE.MANAGER) {
+                                // Get all ETH Address
+                                this.state.playerRecords.push(result);
 
-                            // Success return
-                            return resolve({error: false, data: playerDataTableRes, rank: ranking.rank});
+                                // Update Player Datatable row details
+                                const playerDataTableRes = {
+                                    name: details.name,
+                                    averageSLP: <MDBBox data-th={CONSTANTS.MESSAGE.AVERAGE_SLP_PERDAY_V2} tag="span">{result.averageSLPDay}</MDBBox>,
+                                    ingameSLP: <MDBBox data-th={CONSTANTS.MESSAGE.INGAME_SLP} tag="span">{this.numberWithCommas(result.inGameSLP)}</MDBBox>,
+                                    sharedSLP: <MDBBox data-th={CONSTANTS.MESSAGE.SHARED_SLP} tag="span" className="d-inline d-md-block d-lg-block">{this.numberWithCommas(result.sharedSLP)} <MDBBox tag="span" className="d-inline d-md-block d-lg-block">({(details.manager).toString() === "100" ? details.manager : details.scholar}%)</MDBBox></MDBBox>,
+                                    roninSLP: <MDBBox data-th={CONSTANTS.MESSAGE.RONIN_SLP} tag="span">{this.numberWithCommas(roninBalance)}</MDBBox>,
+                                    totalSLP: <MDBBox data-th={CONSTANTS.MESSAGE.TOTAL_SLP} tag="span">{this.numberWithCommas(result.totalEarningSLP)}</MDBBox>,
+                                    earningsPHP: <MDBBox data-th={CONSTANTS.MESSAGE.EARNINGS_PHP} tag="span">{this.numberWithCommas((result.totalEarningSLP * this.state.slpCurrentValue).toFixed(2))}</MDBBox>,
+                                    claimOn: <MDBBox data-th={CONSTANTS.MESSAGE.CLAIMON} tag="span" className="d-block">{moment.unix(result.last_claimed_item_at).add(14, "days").format("MMM DD, HH:MM A")} <MDBBox tag="span" className="d-block">{result.claim_on_days} {CONSTANTS.MESSAGE.DAYS}</MDBBox></MDBBox>,
+                                    mmr: <MDBBox data-th={CONSTANTS.MESSAGE.MMR} tag="span" className={ranking.textStyle}>{this.numberWithCommas(ranking.elo)}</MDBBox>,
+                                    rank: <MDBBox data-th={CONSTANTS.MESSAGE.RANK} tag="span">{this.numberWithCommas(ranking.rank)}</MDBBox>,
+                                    clickEvent: this.modalPlayerDetailsToggle(result.client_id, [result])
+                                };
+
+                                // Success return
+                                return resolve({error: false, data: playerDataTableRes, rank: ranking.rank});
+
+                            } else {
+                                if (ethAddress === userEthAddress) {
+                                    // Get ETH Address based on Credential
+                                    this.state.playerRecords.push(result);
+
+                                    // Update Player Datatable row details
+                                    const playerDataTableRes = {
+                                        name: details.name,
+                                        averageSLP: <MDBBox data-th={CONSTANTS.MESSAGE.AVERAGE_SLP_PERDAY_V2} tag="span">{result.averageSLPDay}</MDBBox>,
+                                        ingameSLP: <MDBBox data-th={CONSTANTS.MESSAGE.INGAME_SLP} tag="span">{this.numberWithCommas(result.inGameSLP)}</MDBBox>,
+                                        sharedSLP: <MDBBox data-th={CONSTANTS.MESSAGE.SHARED_SLP} tag="span" className="d-inline d-md-block d-lg-block">{this.numberWithCommas(result.sharedSLP)} <MDBBox tag="span" className="d-inline d-md-block d-lg-block">({(details.manager).toString() === "100" ? details.manager : details.scholar}%)</MDBBox></MDBBox>,
+                                        roninSLP: <MDBBox data-th={CONSTANTS.MESSAGE.RONIN_SLP} tag="span">{this.numberWithCommas(roninBalance)}</MDBBox>,
+                                        totalSLP: <MDBBox data-th={CONSTANTS.MESSAGE.TOTAL_SLP} tag="span">{this.numberWithCommas(result.totalEarningSLP)}</MDBBox>,
+                                        earningsPHP: <MDBBox data-th={CONSTANTS.MESSAGE.EARNINGS_PHP} tag="span">{this.numberWithCommas((result.totalEarningSLP * this.state.slpCurrentValue).toFixed(2))}</MDBBox>,
+                                        claimOn: <MDBBox data-th={CONSTANTS.MESSAGE.CLAIMON} tag="span" className="d-block">{moment.unix(result.last_claimed_item_at).add(14, "days").format("MMM DD, HH:MM A")} <MDBBox tag="span" className="d-block">{result.claim_on_days} {CONSTANTS.MESSAGE.DAYS}</MDBBox></MDBBox>,
+                                        mmr: <MDBBox data-th={CONSTANTS.MESSAGE.MMR} tag="span" className={ranking.textStyle}>{this.numberWithCommas(ranking.elo)}</MDBBox>,
+                                        rank: <MDBBox data-th={CONSTANTS.MESSAGE.RANK} tag="span">{this.numberWithCommas(ranking.rank)}</MDBBox>,
+                                        clickEvent: this.modalPlayerDetailsToggle(result.client_id, [result])
+                                    };
+
+                                    // Success return
+                                    return resolve({error: false, data: playerDataTableRes, rank: ranking.rank});
+                                }
+                            }
+                            // Return
+                            return resolve({error: false});
                         } else {
                             return reject({error: true});
                         }
@@ -754,8 +780,9 @@ class Home extends React.Component {
                                 
                                 {CONSTANTS.MESSAGE.CURRENT_EXCHANGERATE}:
                                 <MDBBox tag="span" className="">
-                                    <strong> 1 {CONSTANTS.MESSAGE.SLP} = {this.state.slpCurrentValue}</strong>
-                                    <strong> and 1 {CONSTANTS.MESSAGE.AXS} = {this.state.axsCurrentValue}</strong>
+                                    <strong> 1 {CONSTANTS.MESSAGE.SLP} = {this.state.slpCurrentValue} </strong>
+                                    and
+                                    <strong> 1 {CONSTANTS.MESSAGE.AXS} = {this.state.axsCurrentValue}</strong>
                                 </MDBBox>
                             </MDBBox>
                         </MDBBox>
@@ -768,14 +795,14 @@ class Home extends React.Component {
     // Render Top scholar x ELO Ranking and SLP Earning
     renderTopScholar() {
         if ( this.state.isPlayerLoaded && this.state.isLoaded && !this.state.error ) {
-            if (this.state.isUser !== CONSTANTS.MESSAGE.MANAGER && Object.keys(this.state.playerRecords).length > 0) {
+            if (this.state.isUser !== CONSTANTS.MESSAGE.MANAGER && Object.keys(this.state.playerAllRecords).length > 0) {
                 return (
                     <React.Fragment>
                         <MDBCol size="12" className="mb-3">
-                            <MDBBox tag="div" className="py-3 px-2 text-center ice-bg cursor-pointer" onClick={this.modalMMRRankToggle(this.state.playerRecords)}>
+                            <MDBBox tag="div" className="py-3 px-2 text-center ice-bg cursor-pointer" onClick={this.modalMMRRankToggle(this.state.playerAllRecords)}>
                                 {
                                     // Top ELO / MMR Rank
-                                    this.state.playerRecords.sort((a, b) =>  a.ranking.rank - b.ranking.rank ).map((items, index) => (
+                                    this.state.playerAllRecords.sort((a, b) =>  a.ranking.rank - b.ranking.rank ).map((items, index) => (
                                         index === 0 ? (
                                             <MDBBox key={items.client_id} tag="span" className="d-block d-md-inline d-lg-inline">{CONSTANTS.MESSAGE.TOP_MMR}: <strong>{items.details.name} ({items.ranking.elo})</strong></MDBBox>
                                         ) : ("")
@@ -784,7 +811,7 @@ class Home extends React.Component {
 
                                 {
                                     // Top In Game SLP
-                                    this.state.playerRecords.sort((a, b) =>  b.inGameSLP - a.inGameSLP ).map((items, index) => (
+                                    this.state.playerAllRecords.sort((a, b) =>  b.inGameSLP - a.inGameSLP ).map((items, index) => (
                                         index === 0 ? (
                                             <MDBBox key={items.client_id} tag="span" className="d-block d-md-inline d-lg-inline ml-2">{CONSTANTS.MESSAGE.TOP_INGAME_SLP}: <strong>{items.details.name} ({items.inGameSLP})</strong></MDBBox>
                                         ) : ("")

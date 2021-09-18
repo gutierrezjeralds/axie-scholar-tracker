@@ -721,6 +721,19 @@ body, #root{
     align-items: center;
 }
 
+// Diplay Margin x SM and MD - LG
+.display-margin {
+    padding-top: 1rem !important;
+    padding-bottom: 3rem !important;
+    margin-bottom: 3rem !important;
+    // Mobile view
+    @include mediaQueries (mixin-max-medium) {
+        padding-top: 3rem !important;
+        padding-bottom: 0rem !important;
+        margin-bottom: 0rem !important;
+    }
+}
+
 // Style for player details datatable
 .player-datatable-container {
     table {
@@ -808,5 +821,12 @@ body, #root{
                 width: 100% !important;
             }
         }
+    }
+}
+
+// Style for MMR details container
+.mmr-datatable-container {
+    .dataTables_info {
+        display: none !important;
     }
 }

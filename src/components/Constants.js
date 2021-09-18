@@ -87,7 +87,8 @@ const MESSAGE = {
     VIEW_ALL_EARNINGS: "View All Earnings",
     VIEW_CURRENT_EARNINGS: "View Current Earnings",
     MANAGER_ALL_EARNINGS: "All Manager Earnings",
-    MANAGER_CURRENT_EARNINGS: "Current Manager Earnings"
+    MANAGER_CURRENT_EARNINGS: "Current Manager Earnings",
+    MMR_RANKING: "MMR Ranking"
 }
 
 export const CONSTANTS = {

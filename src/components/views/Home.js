@@ -28,8 +28,8 @@ class Home extends React.Component {
             isRecordLoaded: false,
             isPlayerLoaded: false,
             playerRecords: [],
-            playerAllRecords: [],
             playerDataTable: {},
+            mmrDatatable: {},
             totalManagerSLP: 0,
             totalSponsorSLP: 0,
             totalScholarSLP: 0,
@@ -325,13 +325,36 @@ class Home extends React.Component {
                     });
 
                     await Promise.all(dataResultPromise).then(async (results) => {
-                        var dataRes = results.filter(item => {
-                            if (!item.error && item.data !== undefined) {
+                        let initDisplay = [] // Data for initial display
+                        let mmrDisplay = [] // Data for players MMR list display in Modal
+
+                        results.filter(item => {
+                            if (!item.error && item.data !== undefined && item.eth !== undefined) {
                                 return item
                             }
                             return false;
-                        }).sort((a, b) =>  a.rank - b.rank ).map(dataItem => {
-                            return dataItem.data;
+                        }).sort((a, b) =>  a.rank - b.rank ).map((dataItem, index) => {
+                            dataItem.data.order = index + 1; // Adding ordered number
+
+                            // Display data
+                            if (this.state.isUser === CONSTANTS.MESSAGE.MANAGER) {
+                                initDisplay.push(dataItem.data); // Data for initial display x display all
+                            } else {
+                                if (dataItem.eth !== null && dataItem.eth !== undefined) {
+                                    initDisplay.push(dataItem.data); // Data for initial display x specific data to be display
+                                }
+                            }
+
+                            // Data for players MMR list display in Modal x Pushed specific data
+                            mmrDisplay.push({
+                                order: dataItem.data.order,
+                                name: dataItem.data.name,
+                                mmr: dataItem.data.mmr,
+                                rank: dataItem.data.rank
+                            });
+
+                            // Return
+                            return true;
                         });
 
                         this.setState({
@@ -349,7 +372,15 @@ class Home extends React.Component {
                                     {label: CONSTANTS.MESSAGE.CLAIMON, field: "claimOn"},
                                     {label: CONSTANTS.MESSAGE.MMR, field: "mmr"},
                                     {label: CONSTANTS.MESSAGE.RANK, field: "rank", sort: "desc"}
-                                ], rows: dataRes
+                                ], rows: initDisplay
+                            },
+                            mmrDatatable: {
+                                columns: [
+                                    {label: "", field: "order"},
+                                    {label: CONSTANTS.MESSAGE.NAME, field: "name"},
+                                    {label: CONSTANTS.MESSAGE.MMR, field: "mmr"},
+                                    {label: CONSTANTS.MESSAGE.RANK, field: "rank", sort: "desc"}
+                                ], rows: mmrDisplay
                             }
                         })
 
@@ -590,7 +621,7 @@ class Home extends React.Component {
                             result.ranking = ranking;
 
                             // Get all ETH Address x for other display x MMR Ranking x etc
-                            this.state.playerAllRecords.push(result);
+                            this.state.playerRecords.push(result);
 
                             // Update Player Datatable row details
                             const playerDataTableRes = {
@@ -606,25 +637,9 @@ class Home extends React.Component {
                                 rank: <MDBBox data-th={CONSTANTS.MESSAGE.RANK} tag="span">{this.numberWithCommas(ranking.rank)}</MDBBox>,
                                 clickEvent: this.modalPlayerDetailsToggle(result.client_id, [result])
                             };
-
-                            if (this.state.isUser === CONSTANTS.MESSAGE.MANAGER) {
-                                // Get all ETH Address
-                                this.state.playerRecords.push(result);
-
-                                // Success return
-                                return resolve({error: false, data: playerDataTableRes, rank: ranking.rank});
-
-                            } else {
-                                if (ethAddress === userEthAddress) {
-                                    // Get ETH Address based on Credential
-                                    this.state.playerRecords.push(result);
-
-                                    // Success return
-                                    return resolve({error: false, data: playerDataTableRes, rank: ranking.rank});
-                                }
-                            }
-                            // Return
-                            return resolve({error: false});
+                            
+                            // Success return
+                            return resolve({error: false, data: playerDataTableRes, rank: ranking.rank, eth: userEthAddress});
                         } else {
                             return reject({error: true});
                         }
@@ -780,14 +795,14 @@ class Home extends React.Component {
     // Render Top scholar x ELO Ranking and SLP Earning
     renderTopScholar() {
         if ( this.state.isPlayerLoaded && this.state.isLoaded && !this.state.error ) {
-            if (this.state.isUser !== CONSTANTS.MESSAGE.MANAGER && Object.keys(this.state.playerAllRecords).length > 0) {
+            if (this.state.isUser !== CONSTANTS.MESSAGE.MANAGER && Object.keys(this.state.playerRecords).length > 0) {
                 return (
                     <React.Fragment>
                         <MDBCol size="12" className="mb-3">
-                            <MDBBox tag="div" className="py-3 px-2 text-center ice-bg cursor-pointer" onClick={this.modalMMRRankToggle(this.state.playerAllRecords)}>
+                            <MDBBox tag="div" className="py-3 px-2 text-center ice-bg cursor-pointer" onClick={this.modalMMRRankToggle(this.state.playerRecords)}>
                                 {
                                     // Top ELO / MMR Rank
-                                    this.state.playerAllRecords.sort((a, b) =>  a.ranking.rank - b.ranking.rank ).map((items, index) => (
+                                    this.state.playerRecords.sort((a, b) =>  a.ranking.rank - b.ranking.rank ).map((items, index) => (
                                         index === 0 ? (
                                             <MDBBox key={items.client_id} tag="span" className="d-block d-md-inline d-lg-inline">{CONSTANTS.MESSAGE.TOP_MMR}: <strong>{items.details.name} ({items.ranking.elo})</strong></MDBBox>
                                         ) : ("")
@@ -796,7 +811,7 @@ class Home extends React.Component {
 
                                 {
                                     // Top In Game SLP
-                                    this.state.playerAllRecords.sort((a, b) =>  b.inGameSLP - a.inGameSLP ).map((items, index) => (
+                                    this.state.playerRecords.sort((a, b) =>  b.inGameSLP - a.inGameSLP ).map((items, index) => (
                                         index === 0 ? (
                                             <MDBBox key={items.client_id} tag="span" className="d-block d-md-inline d-lg-inline ml-2">{CONSTANTS.MESSAGE.TOP_INGAME_SLP}: <strong>{items.details.name} ({items.inGameSLP})</strong></MDBBox>
                                         ) : ("")
@@ -815,33 +830,16 @@ class Home extends React.Component {
         return (
             <React.Fragment>
                 <MDBModal isOpen={this.state.isModalMMRRankOpen} size="lg">
-                    <MDBModalHeader toggle={this.modalMMRRankToggle("")}>{CONSTANTS.MESSAGE.TOP_MMR}</MDBModalHeader>
+                    <MDBModalHeader toggle={this.modalMMRRankToggle("")}>{CONSTANTS.MESSAGE.MMR_RANKING}</MDBModalHeader>
                     <MDBModalBody>
-                        <MDBTable scrollY maxHeight="70vh" bordered striped responsive>
-                            <MDBTableHead color="rgba-teal-strong" textWhite>
-                                <tr>
-                                    <th colSpan="3" className="text-center font-weight-bold">{CONSTANTS.MESSAGE.RANKING}</th>
-                                </tr>
-                            </MDBTableHead>
-                            <MDBTableBody>
-                                <tr className="text-center">
-                                    <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.NAME}</td>
-                                    <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.MMR}</td>
-                                    <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.RANK}</td>
-                                </tr>
-                                {
-                                    Object.keys(this.state.modalMMRRankDetails).length > 0 ? (
-                                        this.state.modalMMRRankDetails.sort((a, b) =>  a.ranking.rank - b.ranking.rank ).map(items => (
-                                            <tr key={items.client_id} className="text-center">
-                                                <td>{items.details.name}</td>
-                                                <td>{(items.ranking.elo).toLocaleString()}</td>
-                                                <td>{(items.ranking.rank).toLocaleString()}</td>
-                                            </tr>
-                                        ))
-                                    ) : ("")
-                                }
-                            </MDBTableBody>
-                        </MDBTable>
+                        <MDBDataTable
+                            striped bordered hover responsive noBottomColumns
+                            sortable={false}
+                            entries={5}
+                            displayEntries={false}
+                            data={this.state.mmrDatatable}
+                            className="mmr-datatable-container text-center"
+                        />
                     </MDBModalBody>
                 </MDBModal>
             </React.Fragment>
@@ -1402,19 +1400,19 @@ class Home extends React.Component {
                 {
                     this.state.error && this.state.isLoaded ? (
                         // Empty Player details x Error in Ajax
-                        <MDBContainer fluid className="pt-3 pb-5 mb-5 position-relative">
+                        <MDBContainer fluid className="pt-3 pb-5 mb-5 position-relative display-margin">
                             {this.renderEmptyDetails()}
                             {this.pageRefresh(5000)} {/* Refresh in 5 seconds if there's an error */}
                         </MDBContainer>
                     ) : (
                         Object.keys(this.state.playerRecords).length <= 0 ? (
                             // Empty Player details
-                            <MDBContainer fluid className="pt-3 pb-5 mb-5 position-relative">
+                            <MDBContainer fluid className="pt-3 pb-5 mb-5 position-relative display-margin">
                                 {this.renderEmptyDetails()}
                             </MDBContainer>
                         ) : (
                             // Diplay Player details
-                            <MDBContainer className="py-3 position-relative">
+                            <MDBContainer className="pt-3 pb-5 mb-5 position-relative display-margin">
                                 <MDBRow>
                                     {
                                         Object.keys(this.state.playerRecords).length > 0 ? (

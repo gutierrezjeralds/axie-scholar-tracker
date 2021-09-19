@@ -338,7 +338,7 @@ class Home extends React.Component {
     sendEmail = (eDMData) => {
         emailjs.send(eDMData.service_id, eDMData.template_id, eDMData.template_params, eDMData.user_id)
         .then(function(response) {
-            console.log('Message successfully sent!', response.status, response.text);
+            console.log('Message successfully sent!', template_params.from_name, response.status, response.text);
         }, function(error) {
             console.error('Oh well, you failed. Here some thoughts on the error that occured:', error)
         });

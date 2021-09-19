@@ -1218,126 +1218,6 @@ class Home extends React.Component {
         )
     }
 
-    // Render all players details
-    renderAllDetails() {
-        if ( this.state.isPlayerLoaded && this.state.isLoaded && !this.state.error ) {
-            if (Object.keys(this.state.playerRecords).length > 0) {
-                return (
-                    <React.Fragment>
-                        {
-                            // Scholar display x sort by ELO Ranking
-                            this.state.playerRecords.sort((a, b) =>  a.ranking.rank - b.ranking.rank ).map((items) => (
-                                <MDBCol key={items.client_id} sm="12" md="6" lg="4" className="my-3">
-                                    <MDBCard className="z-depth-2">
-                                        <MDBCardBody className="black-text">
-                                            <MDBCardTitle className="font-weight-bold font-family-architects-daughter">
-                                                <MDBTooltip domElement tag="span" placement="top">
-                                                    <span>
-                                                        <a href={"https://marketplace.axieinfinity.com/profile/" + items.details.ethAddress + "/axie"} target="_blank" rel="noreferrer" className="black-text">
-                                                            {items.details.name}
-                                                        </a>
-                                                    </span>
-                                                    <span>{CONSTANTS.MESSAGE.OPEN_MARKETPLACE_PROFILE} {CONSTANTS.MESSAGE.OF} {items.details.name}</span>
-                                                </MDBTooltip>
-                                            </MDBCardTitle>
-                                            <MDBBox tag="div">
-                                                <MDBBox tag="div" className="mt-3">
-                                                    <MDBBox tag="u" className="text-decoration cursor-pointer" onClick={this.modalPlayerDetailsToggle(items.client_id, this.state.playerRecords)}>
-                                                        {CONSTANTS.MESSAGE.VIEW_TOTALINCOME}
-                                                    </MDBBox>
-                                                    <MDBBox tag="span" className="float-right">
-                                                        {CONSTANTS.MESSAGE.STARTED} <Moment format="MMM DD, YYYY">{items.details.started}</Moment>
-                                                    </MDBBox>
-                                                    <MDBTable className="mt-2" bordered striped responsive>
-                                                        <MDBTableHead color="rgba-teal-strong" textWhite>
-                                                            <tr>
-                                                                <th colSpan="5" className="text-center font-weight-bold">{CONSTANTS.MESSAGE.SLP_DESC}</th>
-                                                            </tr>
-                                                        </MDBTableHead>
-                                                        <MDBTableBody>
-                                                            <tr className="text-center">
-                                                                <td colSpan="2" rowSpan="2" className="font-weight-bold v-align-middle text-uppercase">{CONSTANTS.MESSAGE.CLAIMON}</td>
-                                                                <td colSpan="3" className="font-weight-bold">{<Moment format="MMM DD, YYYY HH:MM A" add={{ days: 14 }} unix>{items.last_claimed_item_at}</Moment>}</td>
-                                                            </tr>
-                                                            <tr className="text-center">
-                                                                <td colSpan="3" className="font-weight-bold table-gray-bg">{items.claim_on_days} {CONSTANTS.MESSAGE.DAYS}</td>
-                                                            </tr>
-                                                            <tr className="text-center">
-                                                                <td className="font-weight-bold text-uppercase">
-                                                                    <MDBTooltip domElement tag="span" placement="top">
-                                                                        <span>{CONSTANTS.MESSAGE.AVERAGE}</span>
-                                                                        <span>{CONSTANTS.MESSAGE.AVERAGE_SLP_PERDAY}</span>
-                                                                    </MDBTooltip>
-                                                                </td>
-                                                                <td className="font-weight-bold text-uppercase">
-                                                                    <MDBTooltip domElement tag="span" placement="top">
-                                                                        <span>{CONSTANTS.MESSAGE.INGAME}</span>
-                                                                        <span>{CONSTANTS.MESSAGE.INGAME_SLP}</span>
-                                                                    </MDBTooltip>
-                                                                </td>
-                                                                <td className="font-weight-bold text-uppercase">
-                                                                    <MDBTooltip domElement tag="span" placement="top">
-                                                                        <span>
-                                                                            {CONSTANTS.MESSAGE.SHARE}
-                                                                            <span className="font-size-pt7rem ml-1">
-                                                                                ({(items.details.manager).toString() === "100" ? items.details.manager : items.details.scholar}%)
-                                                                            </span>
-                                                                        </span>
-                                                                        <span>{CONSTANTS.MESSAGE.INGAME_SLP_SHARING}</span>
-                                                                    </MDBTooltip>
-                                                                </td>
-                                                                <td className="font-weight-bold text-uppercase">
-                                                                    <MDBTooltip domElement tag="span" placement="top">
-                                                                        <span>{CONSTANTS.MESSAGE.TOTAL}</span>
-                                                                        <span>{CONSTANTS.MESSAGE.RONIN_PLUS_SHARING_SLP}</span>
-                                                                    </MDBTooltip>
-                                                                </td>
-                                                                <td className="font-weight-bold text-uppercase">
-                                                                    <MDBTooltip domElement tag="span" placement="top">
-                                                                        <span>{CONSTANTS.MESSAGE.EARNING}</span>
-                                                                        <span>{CONSTANTS.MESSAGE.PHP_CURRENCY}</span>
-                                                                    </MDBTooltip>
-                                                                </td>
-                                                            </tr>
-                                                            <tr className="text-center">
-                                                                <td>{items.averageSLPDay}</td>
-                                                                <td>{items.inGameSLP}</td>
-                                                                <td>{items.sharedSLP}</td>
-                                                                <td>{items.totalSLP}</td>
-                                                                <td>{items.totalEarningPHP}</td>
-                                                            </tr>
-                                                            <tr>
-                                                                <td colSpan="5" className="text-center font-weight-bold rgba-teal-strong white-text">{CONSTANTS.MESSAGE.ARENAGAME_STATUS}</td>
-                                                            </tr>
-                                                            <tr className="text-center">
-                                                                <td className="font-weight-bold text-uppercase table-gray-bg">{CONSTANTS.MESSAGE.WIN}</td>
-                                                                <td className="font-weight-bold text-uppercase table-gray-bg">{CONSTANTS.MESSAGE.LOSE}</td>
-                                                                <td className="font-weight-bold text-uppercase table-gray-bg">{CONSTANTS.MESSAGE.DRAW}</td>
-                                                                <td className="font-weight-bold text-uppercase table-gray-bg">{CONSTANTS.MESSAGE.WIN_RATE}</td>
-                                                                <td className="font-weight-bold text-uppercase table-gray-bg">{CONSTANTS.MESSAGE.RANK}</td>
-                                                            </tr>
-                                                            <tr className="text-center">
-                                                                <td className="white-bg">{items.ranking.win_total}</td>
-                                                                <td className="white-bg">{items.ranking.lose_total}</td>
-                                                                <td className="white-bg">{items.ranking.draw_total}</td>
-                                                                <td className="white-bg">{items.ranking.win_rate}%</td>
-                                                                <td className="white-bg">{(items.ranking.rank).toLocaleString()}</td>
-                                                            </tr>
-                                                        </MDBTableBody>
-                                                    </MDBTable>
-                                                </MDBBox>
-                                            </MDBBox>
-                                        </MDBCardBody>
-                                    </MDBCard>
-                                </MDBCol>
-                            ))
-                        }
-                    </React.Fragment>
-                )
-            }
-        }
-    }
-
     renderEmptyDetails() {
         return (
             <React.Fragment>
@@ -1406,7 +1286,6 @@ class Home extends React.Component {
                                                     className="player-datatable-container text-white"
                                                 />
                                             </MDBCol>
-                                            // this.renderAllDetails()
                                         ) : (
                                             // Display no data
                                             this.renderEmptyDetails()

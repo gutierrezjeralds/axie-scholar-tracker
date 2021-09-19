@@ -1,17 +1,13 @@
 // Body color palette
 html, body {
-    // Icy Blues and Grays
-    .icy-blues-grays-palette {
-        background-color: $overcast;
-        color: $blue-whale;
+    // Stylish Color
+    .stylish-color-palette {
+        background-color: $stylish-color !important;
+        color: $blue-whale !important;
         // Header
         header {
-            .logo-text {
-                color: $blue-whale;
-                background-color: $ice;
-            }
             .navbar, .top-nav-collapse {
-                background-color: $glacier-blue;
+                background-color: $stylish-color-dark;
             }
             .nav-link {
                 color: $overcast !important;
@@ -19,100 +15,40 @@ html, body {
                     color: $overcast !important;
                 }
             }
+            span {
+                color: $white !important; 
+            }
+        }
+        // Cards
+        .currency-details{
+            background-color: $white !important;
+            span {
+                color: $blue-whale !important;
+            }
+        }
+        .player-details {
+            background-color: $white !important;
+            span {
+                color: $blue-whale !important;
+            }
+        }
+        // Style for player details datatable
+        .player-datatable-container {
+            thead, tbody {
+                color: $white !important;
+            }
+            tr {
+                &:hover {
+                    color: $white !important;
+                }
+            }
         }
         // Footer
         footer {
-            background-color: $ice;
+            background-color: $stylish-color-dark;
             div, p, span, a, i {
-                color: $blue-whale;
+                color: $white !important;
             }
-        }
-        // Mask / Parallax / Splash
-        .splash-wrapper, .parallax-palette {
-            p, span, a, i, button {
-                color: $overcast;
-            }
-            button {
-                background-color: $transparent !important;
-                border: 2px solid $overcast !important;
-                &:hover, &:active, &:focus {
-                    border-color: $overcast !important;
-                }
-            }
-        }
-        .parallax-bottom-palette {
-            p, span, a, i, button {
-                color: $blue-whale;
-            }
-            button {
-                background-color: $transparent !important;
-                border: 2px solid $blue-whale !important;
-                &:hover, &:active, &:focus {
-                    border-color: $blue-whale !important;
-                }
-            }
-        }
-        .mask {
-            .content-title, .content-sub-title, .content-description {
-                color: $overcast;
-            }
-            .content-action {
-                a, i {
-                    color: $overcast;
-                }
-                button, a {
-                    background-color: $transparent !important;
-                    border: 2px solid $overcast !important;
-                    &:hover, &:active, &:focus {
-                        border-color: $overcast !important;
-                    }
-                }
-            }
-        }
-        // Content
-        .content-title {
-            color: $glacier-blue;
-        }
-        .content-sub-title, .content-description, .content-date {
-            color: $blue-whale;
-            span, p, a, i {
-                color: $blue-whale;
-            }
-        }
-        .content-timeline {
-            .content-icon {
-                background-color: $overcast;
-            }
-            .content-timeline-details {
-                background-color: $overcast;
-            }
-        }
-        // Progress bar
-        .progress-holder {
-            background-color: $ice;
-            .progress-bar {
-                background-color: $glacier-blue !important;
-            }
-        }
-        // Global Element
-        button.btn-palette-1 {
-            color: $white;
-            background-color: $glacier-blue !important;
-            &:hover, &:active, &:focus {
-                background-color: $ice !important;
-            }
-        }
-        a.btn-palette-2 {
-            color: $white;
-            background-color: $ice !important;
-            &:hover, &:active, &:focus {
-                background-color: $ice !important;
-            }
-        }
-        // Contact
-        .contact-form-header {
-            color: $white;
-            background-color: $ice;
         }
     }
 }

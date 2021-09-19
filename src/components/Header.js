@@ -34,7 +34,7 @@ class Header extends React.Component {
                     <MDBContainer>
                         <MDBNavbarBrand>
                             <a href="/">
-                                <MDBBox tag="span" className="white-text d-dlock m-0 text-center font-size-1pt5rem z-depth-0 rounded-circle">{CONSTANTS.MESSAGE.TEAMLOKI}</MDBBox>
+                                <MDBBox tag="span" className="d-dlock m-0 text-center font-size-1pt5rem z-depth-0 rounded-circle">{CONSTANTS.MESSAGE.TEAMLOKI}</MDBBox>
                             </a>
                         </MDBNavbarBrand>
                         <MDBNavbarToggler onClick={this.toggleCollapse} />

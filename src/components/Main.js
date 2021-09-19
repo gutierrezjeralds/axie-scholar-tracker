@@ -37,7 +37,7 @@ class Main extends React.Component {
     render() {
         return (
             <React.Fragment>
-                <MDBBox tag="div" className="axie-sholar-tracker-app icy-blues-grays-palette very-light-gray-bg h-100">
+                <MDBBox tag="div">
                     {this.renderBody()}
                 </MDBBox>
             </React.Fragment>

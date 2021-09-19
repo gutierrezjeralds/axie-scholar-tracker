@@ -120,7 +120,7 @@ class Home extends React.Component {
     // Page reload
     pageRefresh = (time) => {
         setTimeout( function() {
-            window.location.reload();
+            // window.location.reload();
         }, time);
     }
 
@@ -816,8 +816,8 @@ class Home extends React.Component {
             return (
                 <React.Fragment>
                     <MDBCol size="12" className="mb-3">
-                        <MDBBox tag="div" className="py-3 px-2 text-center pale-turquoise-bg">
-                            <MDBBox tag="span" className="blue-whale">
+                        <MDBBox tag="div" className="py-3 px-2 text-center currency-details">
+                            <MDBBox tag="span">
                                 {CONSTANTS.MESSAGE.PRICE_BASEON}
                                 
                                 {
@@ -849,7 +849,7 @@ class Home extends React.Component {
                 return (
                     <React.Fragment>
                         <MDBCol size="12" className="mb-3">
-                            <MDBBox tag="div" className="py-3 px-2 text-center ice-bg cursor-pointer" onClick={this.modalMMRRankToggle(this.state.playerRecords)}>
+                            <MDBBox tag="div" className="py-3 px-2 text-center player-details cursor-pointer" onClick={this.modalMMRRankToggle(this.state.playerRecords)}>
                                 {/* Top ELO / MMR Rank */}
                                 <MDBBox tag="span" className="d-block d-md-inline d-lg-inline">{CONSTANTS.MESSAGE.TOP_MMR}: <strong>{this.state.topUserMMR}</strong></MDBBox>
                                 {/* Top In Game SLP */}
@@ -891,7 +891,7 @@ class Home extends React.Component {
                     <React.Fragment>
                         {/* Top MMR and SLP */}
                         <MDBCol size="6" md="4" lg="2" className="my-2">
-                            <MDBCard className="z-depth-2 ice-bg h-180px">
+                            <MDBCard className="z-depth-2 player-details h-180px">
                                 <MDBCardBody className="black-text cursor-pointer d-flex-center" onClick={this.modalMMRRankToggle(this.state.playerRecords)}>
                                     <MDBBox tag="div" className="text-center">
                                         {/* Top ELO / MMR Rank */}
@@ -907,7 +907,7 @@ class Home extends React.Component {
 
                         {/* Total Average SLP of all players */}
                         <MDBCol size="6" md="4" lg="2" className="my-2">
-                            <MDBCard className="z-depth-2 ice-bg h-180px">
+                            <MDBCard className="z-depth-2 player-details h-180px">
                                 <MDBCardBody className="black-text d-flex-center">
                                     <MDBBox tag="div" className="text-center">
                                         <MDBBox tag="span" className="d-block">{CONSTANTS.MESSAGE.TOTAL_AVERAGE_SLP}</MDBBox>
@@ -923,7 +923,7 @@ class Home extends React.Component {
 
                         {/* Total SLP of all players */}
                         <MDBCol size="6" md="4" lg="2" className="my-2">
-                            <MDBCard className="z-depth-2 ice-bg h-180px">
+                            <MDBCard className="z-depth-2 player-details h-180px">
                                 <MDBCardBody className="black-text d-flex-center">
                                     <MDBBox tag="div" className="text-center">
                                         <MDBBox tag="span" className="d-block">{CONSTANTS.MESSAGE.TOTAL_INGAME_SLP}</MDBBox>
@@ -939,7 +939,7 @@ class Home extends React.Component {
 
                         {/* Total Manager SLP */}
                         <MDBCol size="6" md="4" lg="2" className="my-2">
-                            <MDBCard className="z-depth-2 ice-bg h-180px">
+                            <MDBCard className="z-depth-2 player-details h-180px">
                                 <MDBCardBody className="black-text cursor-pointer d-flex-center" onClick={this.modalEarningToggle(CONSTANTS.MESSAGE.MANAGER_EARNING, CONSTANTS.MESSAGE.MANAGER, this.state.managerEarningDatatable)}>
                                     <MDBBox tag="div" className="text-center">
                                         <MDBBox tag="span" className="d-block">{CONSTANTS.MESSAGE.TOTAL_MANAGER_SLP}</MDBBox>
@@ -955,7 +955,7 @@ class Home extends React.Component {
 
                         {/* Total Sponsor SLP */}
                         <MDBCol size="6" md="4" lg="2" className="my-2">
-                            <MDBCard className="z-depth-2 ice-bg h-180px">
+                            <MDBCard className="z-depth-2 player-details h-180px">
                                 <MDBCardBody className="black-text d-flex-center">
                                     <MDBBox tag="div" className="text-center">
                                         <MDBBox tag="span" className="d-block">{CONSTANTS.MESSAGE.TOTAL_SPONSOR_SLP}</MDBBox>
@@ -971,7 +971,7 @@ class Home extends React.Component {
 
                         {/* Total Scholar SLP */}
                         <MDBCol size="6" md="4" lg="2" className="my-2">
-                            <MDBCard className="z-depth-2 ice-bg h-180px">
+                            <MDBCard className="z-depth-2 player-details h-180px">
                                 <MDBCardBody className="black-text d-flex-center">
                                     <MDBBox tag="div" className="text-center">
                                         <MDBBox tag="span" className="d-block">{CONSTANTS.MESSAGE.TOTAL_SCHOLAR_SLP}</MDBBox>
@@ -1168,7 +1168,7 @@ class Home extends React.Component {
                                 {
                                     Object.keys(this.state.modalPlayerDetails).length > 0 ? (
                                         this.state.modalPlayerDetails.map(items => (
-                                            <tr key={items.id} className="text-center">
+                                            <tr key={items.client_id} className="text-center">
                                                 <td className="white-bg">{items.ranking.win_total}</td>
                                                 <td className="white-bg">{items.ranking.lose_total}</td>
                                                 <td className="white-bg">{items.ranking.draw_total}</td>
@@ -1403,7 +1403,7 @@ class Home extends React.Component {
                                                     striped bordered hover responsive noBottomColumns
                                                     sortable={false}
                                                     data={this.state.playerDataTable}
-                                                    className="player-datatable-container"
+                                                    className="player-datatable-container text-white"
                                                 />
                                             </MDBCol>
                                             // this.renderAllDetails()

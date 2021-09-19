@@ -10,6 +10,7 @@ import {
 import Moment from 'react-moment';
 import moment from 'moment';
 import Cookies from 'js-cookie'
+import emailjs from 'emailjs-com';
 
 class Home extends React.Component {
     constructor(props) {
@@ -303,14 +304,14 @@ class Home extends React.Component {
             const eDMData = {
                 service_id: "gmail",
                 template_id: "template_t1mz54k",
-                user_id: "user_DKcMwG40VRnkIFionziRA",
                 template_params: {
                     "from_name": name,
-                    "reply_to": email,
+                    "reply_to": "jerald1617@gmail.com",
                     "subject": CONSTANTS.MESSAGE.EMAIL_LOWMMR_SUBJECT,
                     "message": message,
                     "mmr": this.numberWithCommas(mmr)
-                }
+                },
+                user_id: "user_DKcMwG40VRnkIFionziRA"
             }
 
             // Get cookie if already sent an email x single send every browser open x based on cookies
@@ -320,13 +321,13 @@ class Home extends React.Component {
                 const checker = sendMMREmail.split(",");
                 if (checker && checker !== undefined && !checker.includes(name)) {
                     // Send email x not exist in cookie
-                    this.sendEmail(eDMData);
+                    // this.sendEmail(eDMData);
                     // Add new name in cookie
                     Cookies.set("sendMMREmail", [checker, name]);
                 }
             } else {
                 // Send email if not exist in cookie
-                this.sendEmail(eDMData);
+                // this.sendEmail(eDMData);
                 // Add new name in cookie
                 Cookies.set("sendMMREmail", [name]);
             }
@@ -335,31 +336,12 @@ class Home extends React.Component {
 
     // Run ajax for sending email
     sendEmail = (eDMData) => {
-        $.ajax({
-            url: "https://api.emailjs.com/api/v1.0/email/send",
-            type: 'POST',
-            data: JSON.stringify(eDMData),
-            contentType: 'application/json',
-            cache: false
-        })
-        .then(
-            (result) => {
-                console.log("Message successfully sent!", result);
-            },
-            // Note: it's important to handle errors here
-            // instead of a catch() block so that we don't swallow
-            // exceptions from actual bugs in components.
-            (error) => {
-                // Handle errors here
-                console.error('Oh well, you failed. Here some thoughts on the error that occured:', error)
-            }
-        )
-        .catch(
-            (err) => {
-                // Handle errors here
-                console.error('Oh well, you failed. Here some thoughts on the error that occured:', err)
-            }
-        )
+        emailjs.send(eDMData.service_id, eDMData.template_id, eDMData.template_params, eDMData.user_id)
+        .then(function(response) {
+            console.log('Message successfully sent!', response.status, response.text);
+        }, function(error) {
+            console.error('Oh well, you failed. Here some thoughts on the error that occured:', error)
+        });
     }
     
     // Fetch Player Record Data

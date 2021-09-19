@@ -303,10 +303,10 @@ class Home extends React.Component {
             // EDM Content
             const eDMData = {
                 service_id: "gmail",
-                template_id: "template_t1mz54k",
+                template_id: "template_gwqFwjqA",
                 template_params: {
                     "from_name": name,
-                    "reply_to": "jerald1617@gmail.com",
+                    "to_email": email,
                     "subject": CONSTANTS.MESSAGE.EMAIL_LOWMMR_SUBJECT,
                     "message": message,
                     "mmr": this.numberWithCommas(mmr)
@@ -321,13 +321,13 @@ class Home extends React.Component {
                 const checker = sendMMREmail.split(",");
                 if (checker && checker !== undefined && !checker.includes(name)) {
                     // Send email x not exist in cookie
-                    // this.sendEmail(eDMData);
+                    this.sendEmail(eDMData);
                     // Add new name in cookie
                     Cookies.set("sendMMREmail", [checker, name]);
                 }
             } else {
                 // Send email if not exist in cookie
-                // this.sendEmail(eDMData);
+                this.sendEmail(eDMData);
                 // Add new name in cookie
                 Cookies.set("sendMMREmail", [name]);
             }

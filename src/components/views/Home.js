@@ -2,14 +2,14 @@ import React from "react";
 import $ from 'jquery';
 import { CONSTANTS } from '../Constants';
 import { 
-    MDBBox, MDBContainer, MDBRow, MDBCol, MDBCard, MDBCardBody, MDBCardTitle,
+    MDBBox, MDBContainer, MDBRow, MDBCol, MDBCard, MDBCardBody,
     MDBTable, MDBTableBody, MDBTableHead,
     MDBModal, MDBModalHeader, MDBModalBody,
-    MDBTooltip
+    MDBDataTable
 } from "mdbreact";
 import Moment from 'react-moment';
 import moment from 'moment';
-import { MDBDataTable } from 'mdbreact';
+import Cookies from 'js-cookie'
 
 class Home extends React.Component {
     constructor(props) {
@@ -295,6 +295,72 @@ class Home extends React.Component {
             return err;
         });
     }
+
+    // Send Email Message for lower MMR
+    sendMMRMessage = (name, email, mmr, message) => {
+        if (name && email && mmr) {
+            // EDM Content
+            const eDMData = {
+                service_id: "gmail",
+                template_id: "template_t1mz54k",
+                user_id: "user_DKcMwG40VRnkIFionziRA",
+                template_params: {
+                    "from_name": name,
+                    "reply_to": email,
+                    "subject": CONSTANTS.MESSAGE.EMAIL_LOWMMR_SUBJECT,
+                    "message": message,
+                    "mmr": this.numberWithCommas(mmr)
+                }
+            }
+
+            // Get cookie if already sent an email x single send every browser open x based on cookies
+            const sendMMREmail = Cookies.get("sendMMREmail");
+            if (sendMMREmail && sendMMREmail !== undefined) {
+                // Check if already sent an email x if not, send email
+                const checker = sendMMREmail.split(",");
+                if (checker && checker !== undefined && !checker.includes(name)) {
+                    // Send email x not exist in cookie
+                    this.sendEmail(eDMData);
+                    // Add new name in cookie
+                    Cookies.set("sendMMREmail", [checker, name]);
+                }
+            } else {
+                // Send email if not exist in cookie
+                this.sendEmail(eDMData);
+                // Add new name in cookie
+                Cookies.set("sendMMREmail", [name]);
+            }
+        }
+    }
+
+    // Run ajax for sending email
+    sendEmail = (eDMData) => {
+        $.ajax({
+            url: "https://api.emailjs.com/api/v1.0/email/send",
+            type: 'POST',
+            data: JSON.stringify(eDMData),
+            contentType: 'application/json',
+            cache: false
+        })
+        .then(
+            (result) => {
+                console.log("Message successfully sent!", result);
+            },
+            // Note: it's important to handle errors here
+            // instead of a catch() block so that we don't swallow
+            // exceptions from actual bugs in components.
+            (error) => {
+                // Handle errors here
+                console.error('Oh well, you failed. Here some thoughts on the error that occured:', error)
+            }
+        )
+        .catch(
+            (err) => {
+                // Handle errors here
+                console.error('Oh well, you failed. Here some thoughts on the error that occured:', err)
+            }
+        )
+    }
     
     // Fetch Player Record Data
     getRecord = () => {
@@ -499,15 +565,19 @@ class Home extends React.Component {
                         if (!ranking.error) {
                             // Adding text color of MMR based on MMR level
                             ranking.textStyle = "black-text";
+                            ranking.eloStatus = "default";
                             if (ranking.elo < 1300 && ranking.elo >= 1100) {
                                 // Estimated SLP gain on this MRR (6SLP) x Set as warning need to up
-                                ranking.textStyle = "orange-text"
+                                ranking.textStyle = "orange-text";
+                                ranking.eloStatus = "warning";
                             } else if (ranking.elo < 1099) {
                                 // Estimated SLP gain on this MRR (3SLP, 1SLP or NOSLP) x Set as warning need to up
                                 ranking.textStyle = "red-text font-weight-bold";
+                                ranking.eloStatus = "danger";
                             } else {
                                 // Great MMR x Can earn more SLP
                                 ranking.textStyle = "green-text";
+                                ranking.eloStatus = "success";
                             }
 
                             result.last_claimed_item_at_add = moment.unix(result.last_claimed_item_at).add(1, 'days');
@@ -656,6 +726,19 @@ class Home extends React.Component {
                                         this.setState({
                                             totalAverageSLP: this.state.totalAverageSLP + result.averageSLPDay
                                         })
+                                    }
+                                }
+
+                                // Send Email if the MMR is low x for Scholar's only
+                                if ((details.manager).toString() !== "100") {
+                                    if (ranking.eloStatus === "danger") {
+                                        // Send an Email due to Lower MMR
+                                        this.sendMMRMessage(details.name, details.email, ranking.elo, CONSTANTS.MESSAGE.EMAIL_LOWMMR_MESSAGE);
+                                    }
+    
+                                    if (ranking.eloStatus === "warning") {
+                                        // Send an Email due to Warning MMR
+                                        this.sendMMRMessage(details.name, details.email, ranking.elo, CONSTANTS.MESSAGE.EMAIL_WARNINGMMR_MESSAGE);
                                     }
                                 }
                             }

@@ -711,8 +711,8 @@ class Home extends React.Component {
                                     }
                                 }
 
-                                // Send Email if the MMR is low x for Scholar's only
-                                if ((details.manager).toString() !== "100") {
+                                // Send Email if the MMR is low x for Scholar's only x send if user is manager
+                                if (this.state.isUser === CONSTANTS.MESSAGE.MANAGER) {
                                     if (ranking.eloStatus === "danger") {
                                         // Send an Email due to Lower MMR
                                         this.sendMMRMessage(details.name, details.email, ranking.elo, CONSTANTS.MESSAGE.EMAIL_LOWMMR_MESSAGE);

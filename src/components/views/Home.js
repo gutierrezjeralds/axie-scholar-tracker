@@ -5,7 +5,7 @@ import {
     MDBBox, MDBContainer, MDBRow, MDBCol, MDBCard, MDBCardBody, MDBCardTitle,
     MDBTable, MDBTableBody, MDBTableHead,
     MDBModal, MDBModalHeader, MDBModalBody,
-    MDBIcon, MDBTooltip
+    MDBTooltip
 } from "mdbreact";
 import Moment from 'react-moment';
 import moment from 'moment';
@@ -333,94 +333,113 @@ class Home extends React.Component {
                         let mmrDisplay = [] // Data for players MMR list display in Modal
                         let managerEarningsDisplay = [] // Data for Manager Earnings in Modal
 
-                        const dataResult = results.filter(item => {
-                            if (!item.error && item.data !== undefined && item.eth !== undefined) {
-                                return item
-                            }
-                            return false;
-                        })
-                        
-                        // Sort as Top MMR Ranking
-                        dataResult.sort((a, b) =>  a.rank - b.rank ).map((dataItem, index) => {
-                            dataItem.data.order = index + 1; // Adding ordered number
+                        const dataResult = results.filter(item => !item.error && item.data !== undefined && item.eth !== undefined); // Filter valid data
+                        if (dataResult && dataResult.length > 0) {
+                            // Sort as Top MMR Ranking
+                            dataResult.sort((a, b) =>  a.rank - b.rank ).map((dataItem, index) => {
+                                dataItem.data.order = index + 1; // Adding ordered number
 
-                            // Display data
-                            if (this.state.isUser === CONSTANTS.MESSAGE.MANAGER) {
-                                initDisplay.push(dataItem.data); // Data for initial display x display all
-                            } else {
-                                if (dataItem.eth !== null && dataItem.eth !== undefined) {
-                                    initDisplay.push(dataItem.data); // Data for initial display x specific data to be display
+                                // Get Top MMR Player
+                                if (dataItem.data.order === 1) {
+                                    this.setState({
+                                        topUserMMR: dataItem.data.nameMmr ? dataItem.data.nameMmr : ""
+                                    })
                                 }
-                            }
-
-                            // Data for players MMR list display in Modal x Pushed specific data
-                            mmrDisplay.push({
-                                order: dataItem.data.order,
-                                name: dataItem.data.name,
-                                mmr: dataItem.data.mmr,
-                                rank: dataItem.data.rank
-                            });
-
-                            // Return
-                            return true;
-                        });
-
-                        // Sort as Top SLP Gainer
-                        dataResult.sort((a, b) =>  b.slp - a.slp ).map((dataItem, index) => {
-                            dataItem.data.order = index + 1; // Adding ordered number
-
-                            // Display data
-                            if (this.state.isUser === CONSTANTS.MESSAGE.MANAGER) {
-                                // Data for Manager Earnings in Modal x Pushed specific data
-                                managerEarningsDisplay.push({
+    
+                                // Display data
+                                if (this.state.isUser === CONSTANTS.MESSAGE.MANAGER) {
+                                    initDisplay.push(dataItem.data); // Data for initial display x display all
+                                } else {
+                                    if (dataItem.eth !== null) {
+                                        initDisplay.push(dataItem.data); // Data for initial display x specific data to be display
+                                    }
+                                }
+    
+                                // Data for players MMR list display in Modal x Pushed specific data
+                                mmrDisplay.push({
+                                    order: dataItem.data.order,
                                     name: dataItem.data.name,
-                                    ingameSLP: dataItem.data.ingameSLP,
-                                    sharedManagerSLP: dataItem.data.sharedManagerSLP,
-                                    managerEarningsPHP: dataItem.data.managerEarningsPHP
+                                    mmr: dataItem.data.mmr,
+                                    rank: dataItem.data.rank
                                 });
-                            }
+    
+                                // Return
+                                return true;
+                            });
+    
+                            // Sort as Top SLP Gainer
+                            dataResult.sort((a, b) =>  b.slp - a.slp ).map((dataItem, index) => {
+                                dataItem.data.order = index + 1; // Adding ordered number
+    
+                                // Get Top InGame SLP Player
+                                if (dataItem.data.order === 1) {
+                                    this.setState({
+                                        topUserSLP: dataItem.data.nameInGameSLP ? dataItem.data.nameInGameSLP : ""
+                                    })
+                                }
 
-                            // Return
-                            return true;
-                        });
-
-                        // Return data x Set state
-                        this.setState({
-                            isLoaded: true,
-                            isPlayerLoaded: true,
-                            playerDataTable: {
-                                columns: [
-                                    {label: CONSTANTS.MESSAGE.NAME, field: "name"},
-                                    {label: CONSTANTS.MESSAGE.AVERAGE_SLP_PERDAY_V2, field: "averageSLP"},
-                                    {label: CONSTANTS.MESSAGE.INGAME_SLP, field: "ingameSLP"},
-                                    {label: CONSTANTS.MESSAGE.SHARED_SLP, field: "sharedSLP"},
-                                    {label: CONSTANTS.MESSAGE.RONIN_SLP, field: "roninSLP"},
-                                    {label: CONSTANTS.MESSAGE.TOTAL_SLP, field: "totalSLP"},
-                                    {label: CONSTANTS.MESSAGE.EARNINGS_PHP, field: "earningsPHP"},
-                                    {label: CONSTANTS.MESSAGE.CLAIMON, field: "claimOn"},
-                                    {label: CONSTANTS.MESSAGE.MMR, field: "mmr"},
-                                    {label: CONSTANTS.MESSAGE.RANK, field: "rank", sort: "desc"}
-                                ], rows: initDisplay
-                            },
-                            mmrDatatable: {
-                                columns: [
-                                    {label: "", field: "order"},
-                                    {label: CONSTANTS.MESSAGE.NAME, field: "name"},
-                                    {label: CONSTANTS.MESSAGE.MMR, field: "mmr"},
-                                    {label: CONSTANTS.MESSAGE.RANK, field: "rank", sort: "desc"}
-                                ], rows: mmrDisplay
-                            },
-                            managerEarningDatatable: {
-                                columns: [
-                                    {label: CONSTANTS.MESSAGE.NAME, field: "name"},
-                                    {label: CONSTANTS.MESSAGE.INGAME_SLP, field: "ingameSLP"},
-                                    {label: CONSTANTS.MESSAGE.SHARED_SLP, field: "sharedManagerSLP"},
-                                    {label: CONSTANTS.MESSAGE.EARNINGS_PHP, field: "managerEarningsPHP"}
-                                ], rows: managerEarningsDisplay
-                            }
-                        })
-
-                        // console.log("playerRecords", this.state.playerRecords)
+                                // Display data
+                                if (this.state.isUser === CONSTANTS.MESSAGE.MANAGER) {
+                                    // Data for Manager Earnings in Modal x Pushed specific data
+                                    managerEarningsDisplay.push({
+                                        name: dataItem.data.name,
+                                        ingameSLP: dataItem.data.ingameSLP,
+                                        sharedManagerSLP: dataItem.data.sharedManagerSLP,
+                                        managerEarningsPHP: dataItem.data.managerEarningsPHP
+                                    });
+                                }
+    
+                                // Return
+                                return true;
+                            });
+    
+                            // Return data x Set state
+                            this.setState({
+                                isLoaded: true,
+                                isPlayerLoaded: true,
+                                playerDataTable: {
+                                    columns: [
+                                        {label: CONSTANTS.MESSAGE.NAME, field: "name"},
+                                        {label: CONSTANTS.MESSAGE.AVERAGE_SLP_PERDAY_V2, field: "averageSLP"},
+                                        {label: CONSTANTS.MESSAGE.INGAME_SLP, field: "ingameSLP"},
+                                        {label: CONSTANTS.MESSAGE.SHARED_SLP, field: "sharedSLP"},
+                                        {label: CONSTANTS.MESSAGE.RONIN_SLP, field: "roninSLP"},
+                                        {label: CONSTANTS.MESSAGE.TOTAL_SLP, field: "totalSLP"},
+                                        {label: CONSTANTS.MESSAGE.EARNINGS_PHP, field: "earningsPHP"},
+                                        {label: CONSTANTS.MESSAGE.CLAIMON, field: "claimOn"},
+                                        {label: CONSTANTS.MESSAGE.MMR, field: "mmr"},
+                                        {label: CONSTANTS.MESSAGE.RANK, field: "rank", sort: "desc"}
+                                    ], rows: initDisplay
+                                },
+                                mmrDatatable: {
+                                    columns: [
+                                        {label: "", field: "order"},
+                                        {label: CONSTANTS.MESSAGE.NAME, field: "name"},
+                                        {label: CONSTANTS.MESSAGE.MMR, field: "mmr"},
+                                        {label: CONSTANTS.MESSAGE.RANK, field: "rank", sort: "desc"}
+                                    ], rows: mmrDisplay
+                                },
+                                managerEarningDatatable: {
+                                    columns: [
+                                        {label: CONSTANTS.MESSAGE.NAME, field: "name"},
+                                        {label: CONSTANTS.MESSAGE.INGAME_SLP, field: "ingameSLP"},
+                                        {label: CONSTANTS.MESSAGE.SHARED_SLP, field: "sharedManagerSLP"},
+                                        {label: CONSTANTS.MESSAGE.EARNINGS_PHP, field: "managerEarningsPHP"}
+                                    ], rows: managerEarningsDisplay
+                                }
+                            })
+    
+                            // console.log("playerRecords", this.state.playerRecords)
+                        } else {
+                            // No data found
+                            this.setState({
+                                isLoaded: true,
+                                isNotif: true,
+                                notifCat: "error",
+                                notifStr: CONSTANTS.MESSAGE.NODATA_FOUND,
+                                error: true
+                            })
+                        }
                     })
                 } else {
                     // No data found
@@ -577,25 +596,6 @@ class Home extends React.Component {
                                 // Set new total Sponsor SLP Earning x computed base on sharedSponsorSLP multiply slpCurrentValue
                                 result.totalSponsorEarningPHP = result.sharedSponsorSLP * this.state.slpCurrentValue;
 
-                                // Get Top User MMR and SLP
-                                if (ranking.rank > this.state.topMMR || result.inGameSLP > this.state.topSLP) {
-                                    if (ranking.rank > this.state.topMMR) {
-                                        // Set Top User MMR
-                                        this.setState({
-                                            topMMR: ranking.elo,
-                                            topUserMMR: details.name
-                                        })
-                                    }
-        
-                                    if (result.inGameSLP > this.state.topSLP) {
-                                        // Set Top User SLP
-                                        this.setState({
-                                            topSLP: result.inGameSLP,
-                                            topUserSLP: details.name
-                                        })
-                                    }
-                                }
-
                                 // Set new value for Total Income and Set value for Total Earning per claimed
                                 if (details.claimedEarning.length > 0) {
                                     details.claimedEarning.map((data, index) => {
@@ -683,6 +683,8 @@ class Home extends React.Component {
                                 managerEarningsPHP: <MDBBox data-th={CONSTANTS.MESSAGE.EARNINGS_PHP} tag="span">{this.numberWithCommas((result.totalManagerEarningPHP).toFixed(2))}</MDBBox>,
                                 sharedSponsorSLP: <MDBBox data-th={CONSTANTS.MESSAGE.SHARED_SLP} tag="span">{this.numberWithCommas(result.sharedSponsorSLP)}</MDBBox>,
                                 sponsorEarningsPHP: <MDBBox data-th={CONSTANTS.MESSAGE.EARNINGS_PHP} tag="span">{this.numberWithCommas((result.totalSponsorEarningPHP).toFixed(2))}</MDBBox>,
+                                nameMmr: `${details.name} (${ranking.elo})`,
+                                nameInGameSLP: `${details.name} (${result.inGameSLP})`,
                                 clickEvent: this.modalPlayerDetailsToggle(result.client_id, [result])
                             };
                             
@@ -827,7 +829,7 @@ class Home extends React.Component {
                                 }
                                 
                                 {CONSTANTS.MESSAGE.CURRENT_EXCHANGERATE}:
-                                <MDBBox tag="span" className="">
+                                <MDBBox tag="span">
                                     <strong> 1 {CONSTANTS.MESSAGE.SLP} = {this.state.slpCurrentValue} </strong>
                                     and
                                     <strong> 1 {CONSTANTS.MESSAGE.AXS} = {this.state.axsCurrentValue}</strong>
@@ -848,23 +850,10 @@ class Home extends React.Component {
                     <React.Fragment>
                         <MDBCol size="12" className="mb-3">
                             <MDBBox tag="div" className="py-3 px-2 text-center ice-bg cursor-pointer" onClick={this.modalMMRRankToggle(this.state.playerRecords)}>
-                                {
-                                    // Top ELO / MMR Rank
-                                    this.state.playerRecords.sort((a, b) =>  a.ranking.rank - b.ranking.rank ).map((items, index) => (
-                                        index === 0 ? (
-                                            <MDBBox key={items.client_id} tag="span" className="d-block d-md-inline d-lg-inline">{CONSTANTS.MESSAGE.TOP_MMR}: <strong>{items.details.name} ({items.ranking.elo})</strong></MDBBox>
-                                        ) : ("")
-                                    ))
-                                }
-
-                                {
-                                    // Top In Game SLP
-                                    this.state.playerRecords.sort((a, b) =>  b.inGameSLP - a.inGameSLP ).map((items, index) => (
-                                        index === 0 ? (
-                                            <MDBBox key={items.client_id} tag="span" className="d-block d-md-inline d-lg-inline ml-2">{CONSTANTS.MESSAGE.TOP_INGAME_SLP}: <strong>{items.details.name} ({items.inGameSLP})</strong></MDBBox>
-                                        ) : ("")
-                                    ))
-                                }
+                                {/* Top ELO / MMR Rank */}
+                                <MDBBox tag="span" className="d-block d-md-inline d-lg-inline">{CONSTANTS.MESSAGE.TOP_MMR}: <strong>{this.state.topUserMMR}</strong></MDBBox>
+                                {/* Top In Game SLP */}
+                                <MDBBox tag="span" className="d-block d-md-inline d-lg-inline ml-2">{CONSTANTS.MESSAGE.TOP_INGAME_SLP}: <strong>{this.state.topUserSLP}</strong></MDBBox>
                             </MDBBox>
                         </MDBCol>
                     </React.Fragment>
@@ -905,29 +894,12 @@ class Home extends React.Component {
                             <MDBCard className="z-depth-2 ice-bg h-180px">
                                 <MDBCardBody className="black-text cursor-pointer d-flex-center" onClick={this.modalMMRRankToggle(this.state.playerRecords)}>
                                     <MDBBox tag="div" className="text-center">
-                                        {
-                                            // Top ELO / MMR Rank
-                                            this.state.playerRecords.sort((a, b) =>  a.ranking.rank - b.ranking.rank ).map((items, index) => (
-                                                index === 0 ? (
-                                                    <React.Fragment key={items.client_id}>
-                                                        <MDBBox tag="span" className="d-block">{CONSTANTS.MESSAGE.TOP_MMR}</MDBBox>
-                                                        <MDBBox tag="span" className="d-block font-size-1rem font-weight-bold">{items.details.name} ({this.numberWithCommas(items.ranking.elo)})</MDBBox>
-                                                    </React.Fragment>
-                                                ) : ("")
-                                            ))
-                                        }
-
-                                        {
-                                            // Top In Game SLP
-                                            this.state.playerRecords.sort((a, b) =>  b.inGameSLP - a.inGameSLP ).map((items, index) => (
-                                                index === 0 ? (
-                                                    <React.Fragment key={items.client_id}>
-                                                        <MDBBox tag="span" className="d-block mt-3">{CONSTANTS.MESSAGE.TOP_INGAME_SLP}</MDBBox>
-                                                        <MDBBox tag="span" className="d-block font-size-1rem font-weight-bold">{items.details.name} ({this.numberWithCommas(items.inGameSLP)})</MDBBox>
-                                                    </React.Fragment>
-                                                ) : ("")
-                                            ))
-                                        }
+                                        {/* Top ELO / MMR Rank */}
+                                        <MDBBox tag="span" className="d-block">{CONSTANTS.MESSAGE.TOP_MMR}</MDBBox>
+                                        <MDBBox tag="span" className="d-block font-size-1rem font-weight-bold"><strong>{this.state.topUserMMR}</strong></MDBBox>
+                                        {/* Top In Game SLP */}
+                                        <MDBBox tag="span" className="d-block mt-3">{CONSTANTS.MESSAGE.TOP_INGAME_SLP}</MDBBox>
+                                        <MDBBox tag="span" className="d-block font-size-1rem font-weight-bold"><strong>{this.state.topUserSLP}</strong></MDBBox>
                                     </MDBBox>
                                 </MDBCardBody>
                             </MDBCard>
@@ -1021,7 +993,7 @@ class Home extends React.Component {
                     // Display Sponsor's Earning
                     return (
                         <React.Fragment>
-                            <MDBCol size="12" className="">
+                            <MDBCol size="12">
                                 <MDBBox tag="div" className="py-3 px-2 text-center rgba-teal-strong">
                                     {
                                         // Display Sponsor's Earing
@@ -1060,7 +1032,7 @@ class Home extends React.Component {
                                                 <img src="/assets/images/smooth-love-potion.png" className="w-24px mr-1 mt-0pt3rem-neg" alt="SLP" />
                                                 <strong>{this.state.modalEarningFilter === CONSTANTS.MESSAGE.MANAGER ? this.state.totalManagerSLP : this.state.totalSponsorSLP}</strong>
                                             </MDBBox>
-                                            <MDBBox tag="span" className> 
+                                            <MDBBox tag="span"> 
                                                 <span> &#8776; &#8369; </span>
                                                 <strong>
                                                     {this.state.modalEarningFilter === CONSTANTS.MESSAGE.MANAGER ? (
@@ -1267,24 +1239,6 @@ class Home extends React.Component {
                                                     </span>
                                                     <span>{CONSTANTS.MESSAGE.OPEN_MARKETPLACE_PROFILE} {CONSTANTS.MESSAGE.OF} {items.details.name}</span>
                                                 </MDBTooltip>
-                                                {
-                                                    this.state.topUserMMR !== "" && this.state.topUserSLP !== "" ? (
-                                                        this.state.topUserMMR === items.details.name && this.state.topUserSLP === items.details.name ? (
-                                                            // Top user MMR and SLP
-                                                            <MDBBox tag="span" className="float-right">
-                                                                <MDBTooltip domElement tag="span" placement="top">
-                                                                    <span><MDBIcon icon="crown" /></span>
-                                                                    <span>{CONSTANTS.MESSAGE.TOP_MMR_SLP}</span>
-                                                                </MDBTooltip>
-                                                            </MDBBox>
-                                                        ) : (
-                                                            // Display MRR detail
-                                                            <MDBBox tag="span" className="float-right mt-1 font-size-1rem font-family-default font-weight-normal">
-                                                                <MDBBox tag="span" className="font-weight-bold">{CONSTANTS.MESSAGE.MMR}:</MDBBox> {(items.ranking.elo).toLocaleString()}
-                                                            </MDBBox>
-                                                        )
-                                                    ) : ("")
-                                                }
                                             </MDBCardTitle>
                                             <MDBBox tag="div">
                                                 <MDBBox tag="div" className="mt-3">

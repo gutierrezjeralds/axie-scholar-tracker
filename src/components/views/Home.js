@@ -1128,22 +1128,23 @@ class Home extends React.Component {
                                     <MDBTable scrollY maxHeight="70vh" bordered striped responsive>
                                         <MDBTableHead color="rgba-teal-strong" textWhite>
                                             <tr>
-                                                <th colSpan="4" className="text-center font-weight-bold">{CONSTANTS.MESSAGE.MANAGER_EARNING}</th>
+                                                <th colSpan="5" className="text-center font-weight-bold">{CONSTANTS.MESSAGE.MANAGER_EARNING}</th>
                                             </tr>
                                         </MDBTableHead>
                                         <MDBTableBody>
                                             <tr className="text-center">
                                                 <td rowSpan="2" className="font-weight-bold v-align-middle text-uppercase">{CONSTANTS.MESSAGE.TOTAL_EARNINGS}</td>
-                                                <td colSpan="3" className="font-weight-bold">{CONSTANTS.MESSAGE.SLP}: {this.numberWithCommas(this.state.totalManagerAllSLP)}</td>
+                                                <td colSpan="4" className="font-weight-bold">{CONSTANTS.MESSAGE.SLP}: {this.numberWithCommas(this.state.totalManagerAllSLP)}</td>
                                             </tr>
                                             <tr className="text-center">
-                                                <td colSpan="3" className="font-weight-bold table-gray-bg"><span>&#8369; </span>{this.numberWithCommas((this.state.totalManagerAllPHP).toFixed(2))}</td>
+                                                <td colSpan="4" className="font-weight-bold table-gray-bg"><span>&#8369; </span>{this.numberWithCommas((this.state.totalManagerAllPHP).toFixed(2))}</td>
                                             </tr>
                                             <tr className="text-center">
                                                 <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.DATE}</td>
                                                 <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.SLP}</td>
                                                 <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.SLP_PRICE}</td>
                                                 <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.EARNING}</td>
+                                                <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.CATEGORY}</td>
                                             </tr>
                                             {
                                                 Object.keys(this.state.modalManagerAllEarning).length > 0 ? (
@@ -1153,6 +1154,7 @@ class Home extends React.Component {
                                                             <td>{items.slp}</td>
                                                             <td className="text-uppercase">{items.slpPrice}</td>
                                                             <td>{(items.earning).toLocaleString()}</td>
+                                                            <td>{(items.category).toUpperCase()}</td>
                                                         </tr>
                                                     ))
                                                 ) : ("")

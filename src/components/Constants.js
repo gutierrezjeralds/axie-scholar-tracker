@@ -84,6 +84,7 @@ const MESSAGE = {
     EARNINGS_PHP: "Earnings (PHP)",
     DETAIL: "Detail",
     DETAILS: "Details",
+    CATEGORY: "Category",
     VIEW_ALL_EARNINGS: "View All Earnings",
     VIEW_CURRENT_EARNINGS: "View Current Earnings",
     MANAGER_ALL_EARNINGS: "All Manager Earnings",

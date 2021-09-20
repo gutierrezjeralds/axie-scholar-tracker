@@ -15,13 +15,22 @@
                 "id": 1,
                 "date": "2021-08-14",
                 "slp": 6717,
-                "slpPrice": 9.47
+                "slpPrice": 9.47,
+                "level": "buy"
             },
             {
                 "id": 2,
                 "date": "2021-08-29",
                 "slp": 5989,
-                "slpPrice": 6.76
+                "slpPrice": 6.76,
+                "level": "buy"
+            },
+            {
+                "id": 3,
+                "date": "2021-09-20",
+                "slp": 9691,
+                "slpPrice": 3.34,
+                "level": "breed"
             }
         ],
         "claimedEarning": [

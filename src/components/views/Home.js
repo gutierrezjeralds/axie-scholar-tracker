@@ -720,7 +720,7 @@ class Home extends React.Component {
     
                                     if (ranking.eloStatus === "warning") {
                                         // Send an Email due to Warning MMR
-                                        this.sendMMRMessage(details.name, details.email, ranking.elo, CONSTANTS.MESSAGE.EMAIL_WARNINGMMR_MESSAGE);
+                                        // this.sendMMRMessage(details.name, details.email, ranking.elo, CONSTANTS.MESSAGE.EMAIL_WARNINGMMR_MESSAGE);
                                     }
                                 }
                             }

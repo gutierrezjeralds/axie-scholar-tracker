@@ -23,7 +23,7 @@ class Home extends React.Component {
             notifStr: "",
             isUser: this.props.user || "",
             isSponsorName: "",
-            managerPHPInvestment: 337000,
+            managerPHPInvestment: 337000, // Estimated Investment
             managerPHPROI: 0,
             managerPHPBreed: 0,
             managerPHPBuy: 0,

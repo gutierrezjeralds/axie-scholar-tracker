@@ -562,6 +562,7 @@ class Home extends React.Component {
                                 ranking.eloStatus = "success";
                             }
 
+                            result.name = ranking.name ? ranking.name : "";
                             result.last_claimed_item_at_add = moment.unix(result.last_claimed_item_at).add(1, 'days');
                             result.claim_on_days = 0;
                             result.inGameSLP = result.total;
@@ -588,6 +589,9 @@ class Home extends React.Component {
                             result.sharedSLP = result.inGameSLP;
                             result.scholarSLP = result.inGameSLP;
                             if (Object.keys(details).length > 0) {
+                                // Update name if the orig name is empty
+                                result.name = result.name ? result.name : details.name ? details.name : ethAddress;
+
                                 // Check if has balance in Ronin x Set new value for total in game slp
                                 if (result.blockchain_related.balance !== null && result.blockchain_related.balance > 0) {
                                     roninBalance = result.blockchain_related.balance;
@@ -715,12 +719,12 @@ class Home extends React.Component {
                                 if (this.state.isUser === CONSTANTS.MESSAGE.MANAGER) {
                                     if (ranking.eloStatus === "danger") {
                                         // Send an Email due to Lower MMR
-                                        this.sendMMRMessage(details.name, details.email, ranking.elo, CONSTANTS.MESSAGE.EMAIL_LOWMMR_MESSAGE);
+                                        this.sendMMRMessage(result.name, details.email, ranking.elo, CONSTANTS.MESSAGE.EMAIL_LOWMMR_MESSAGE);
                                     }
     
                                     if (ranking.eloStatus === "warning") {
                                         // Send an Email due to Warning MMR
-                                        // this.sendMMRMessage(details.name, details.email, ranking.elo, CONSTANTS.MESSAGE.EMAIL_WARNINGMMR_MESSAGE);
+                                        // this.sendMMRMessage(result.name, details.email, ranking.elo, CONSTANTS.MESSAGE.EMAIL_WARNINGMMR_MESSAGE);
                                     }
                                 }
                             }
@@ -734,7 +738,7 @@ class Home extends React.Component {
 
                             // Update Player Datatable row details
                             const playerDataTableRes = {
-                                name: details.name,
+                                name: result.name,
                                 averageSLP: <MDBBox data-th={CONSTANTS.MESSAGE.AVERAGE_SLP_PERDAY_V2} tag="span">{result.averageSLPDay}</MDBBox>,
                                 ingameSLP: <MDBBox data-th={CONSTANTS.MESSAGE.INGAME_SLP} tag="span">{this.numberWithCommas(result.inGameSLP)}</MDBBox>,
                                 sharedSLP: <MDBBox data-th={CONSTANTS.MESSAGE.SHARED_SLP} tag="span" className="d-inline d-md-block d-lg-block">{this.numberWithCommas(result.sharedSLP)} <MDBBox tag="span" className="d-inline d-md-block d-lg-block">({(details.manager).toString() === "100" ? details.manager : details.scholar}%)</MDBBox></MDBBox>,
@@ -748,8 +752,8 @@ class Home extends React.Component {
                                 managerEarningsPHP: <MDBBox data-th={CONSTANTS.MESSAGE.EARNINGS_PHP} tag="span">{this.numberWithCommas((result.totalManagerEarningPHP).toFixed(2))}</MDBBox>,
                                 sharedSponsorSLP: <MDBBox data-th={CONSTANTS.MESSAGE.SHARED_SLP} tag="span">{this.numberWithCommas(result.sharedSponsorSLP)}</MDBBox>,
                                 sponsorEarningsPHP: <MDBBox data-th={CONSTANTS.MESSAGE.EARNINGS_PHP} tag="span">{this.numberWithCommas((result.totalSponsorEarningPHP).toFixed(2))}</MDBBox>,
-                                nameMmr: `${details.name} (${ranking.elo})`,
-                                nameInGameSLP: `${details.name} (${result.inGameSLP})`,
+                                nameMmr: `${result.name} (${ranking.elo})`,
+                                nameInGameSLP: `${result.name} (${result.inGameSLP})`,
                                 clickEvent: this.modalPlayerDetailsToggle(result.client_id, [result])
                             };
                             
@@ -1179,7 +1183,7 @@ class Home extends React.Component {
                         {
                             Object.keys(this.state.modalPlayerDetails).length > 0 ? (
                                 <React.Fragment>
-                                    {this.state.modalPlayerDetails[0].details.name}
+                                    {this.state.modalPlayerDetails[0].name}
                                 </React.Fragment>
                             ) : (CONSTANTS.MESSAGE.DETAILS)
                         }

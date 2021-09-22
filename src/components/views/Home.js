@@ -1199,7 +1199,7 @@ class Home extends React.Component {
                                             <tr className="text-center">
                                                 <td>{this.numberWithCommas((this.state.managerPHPBuy).toFixed(2))}</td>
                                                 <td>{this.numberWithCommas((this.state.managerPHPBreed).toFixed(2))}</td>
-                                                <td className={this.state.managerPHPReachedROI ? "green-text" : ""}>{this.numberWithCommas((this.state.managerPHPROI).toFixed(2))}</td>
+                                                <td className={this.state.managerPHPReachedROI ? "green-text" : "red-text"}>{this.numberWithCommas((this.state.managerPHPROI).toFixed(2))}</td>
                                                 <td colSpan="2">{this.numberWithCommas((this.state.managerPHPIncome).toFixed(2))}</td>
                                             </tr>
                                             {/* Earning per cash out */}

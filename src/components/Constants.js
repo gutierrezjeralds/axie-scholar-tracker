@@ -46,6 +46,7 @@ const MESSAGE = {
     RONIN: "Ronin",
     TOTAL: "Total",
     EARNING: "Earning",
+    EARNINGS: "Earnings",
     TOTAL_EARNINGS: "Total Earnings",
     CLOSE: "Close",
     NAME: "Name",
@@ -93,7 +94,12 @@ const MESSAGE = {
     TOTAL_CURRENT_EARNINGS: "Total Current Earnings",
     EMAIL_LOWMMR_SUBJECT: "Team Loki MMR Ranking",
     EMAIL_LOWMMR_MESSAGE: "You receive this automated email due to your MMR Ranking, keep it up and learn more. If need help, don't hesitate to ping on our Messenger Group Chat. Stay Low Key as our tagline.",
-    EMAIL_WARNINGMMR_MESSAGE: "You receive this automated email due to your MMR Ranking, keep playing and learn more. Stay Low Key as our tagline."
+    EMAIL_WARNINGMMR_MESSAGE: "You receive this automated email due to your MMR Ranking, keep playing and learn more. Stay Low Key as our tagline.",
+    ROI_DESCRIPTIVE: "Return of Investment",
+    ROI: "ROI",
+    BREED: "Breed",
+    BUY: "Buy",
+    INCOME: "Income"
 }
 
 export const CONSTANTS = {

@@ -23,6 +23,12 @@ class Home extends React.Component {
             notifStr: "",
             isUser: this.props.user || "",
             isSponsorName: "",
+            managerPHPInvestment: 337000,
+            managerPHPROI: 0,
+            managerPHPBreed: 0,
+            managerPHPBuy: 0,
+            managerPHPIncome: 0,
+            managerPHPReachedROI: false,
             slpCurrentValue: 0,
             axsCurrentValue: 0,
             currentValueFrm: CONSTANTS.MESSAGE.COINGECKO,
@@ -674,18 +680,57 @@ class Home extends React.Component {
 
                                 // Set new value for Manager All Income and Set value for Total Earning per claimed
                                 if (details.managerEarning !== undefined && details.managerEarning.length > 0) {
+                                    details.roi = 0;
+                                    details.income = 0;
+                                    details.breed = 0;
+                                    details.buy = 0;
+                                    details.reachedRoi = false; // For validation if ROI is completed
                                     details.managerEarning.map((data, index) => {
                                         const earnedSLP = data.slp;
                                         const slpPrice = data.slpPrice;
 
                                         details.managerEarning[index].earning = 0;
-                                        if (slpPrice.toString() !== "hold") {
-                                            // Adding Total Earning
-                                            details.managerEarning[index].earning = earnedSLP * slpPrice;
-                                            // Update Total Income and SLP
+                                        // Adding Total Earning
+                                        details.managerEarning[index].earning = earnedSLP * slpPrice;
+                                        // Update Total Income and SLP
+                                        this.setState({
+                                            totalManagerAllSLP: this.state.totalManagerAllSLP + earnedSLP,
+                                            totalManagerAllPHP: this.state.totalManagerAllPHP + details.managerEarning[index].earning
+                                        })
+
+                                        if (data.category && (data.category.toLowerCase()) === "withdraw") {
+                                            if (!this.state.managerPHPReachedROI) {
+                                                // Adding Return of Investment
+                                                this.setState({
+                                                    managerPHPROI: this.state.managerPHPROI + details.managerEarning[index].earning
+                                                })
+
+                                                // Reached the ROI
+                                                if (this.state.managerPHPROI >= this.state.managerPHPInvestment) {
+                                                    this.setState({
+                                                        managerPHPReachedROI: true
+                                                    })
+                                                }
+                                            } else {
+                                                // Adding total of Income
+                                                this.setState({
+                                                    managerPHPIncome: this.state.managerPHPIncome + details.managerEarning[index].earning
+                                                })
+                                            }
+                                        }
+
+                                        if (data.category && (data.category.toLowerCase()) === "breed") {
+                                            // Adding total cost for breeding
                                             this.setState({
-                                                totalManagerAllSLP: this.state.totalManagerAllSLP + earnedSLP,
-                                                totalManagerAllPHP: this.state.totalManagerAllPHP + details.managerEarning[index].earning
+                                                managerPHPBreed: this.state.managerPHPBreed + details.managerEarning[index].earning
+                                            })
+                                            details.breed = details.breed + details.managerEarning[index].earning;
+                                        }
+
+                                        if (data.category && (data.category.toLowerCase()) === "buy") {
+                                            // Adding total cost for buying axie
+                                            this.setState({
+                                                managerPHPBuy: this.state.managerPHPBuy + details.managerEarning[index].earning
                                             })
                                         }
 
@@ -1136,12 +1181,30 @@ class Home extends React.Component {
                                             </tr>
                                         </MDBTableHead>
                                         <MDBTableBody>
+                                            {/* Total Earnings */}
                                             <tr className="text-center">
                                                 <td rowSpan="2" className="font-weight-bold v-align-middle text-uppercase">{CONSTANTS.MESSAGE.TOTAL_EARNINGS}</td>
                                                 <td colSpan="4" className="font-weight-bold">{CONSTANTS.MESSAGE.SLP}: {this.numberWithCommas(this.state.totalManagerAllSLP)}</td>
                                             </tr>
                                             <tr className="text-center">
                                                 <td colSpan="4" className="font-weight-bold table-gray-bg"><span>&#8369; </span>{this.numberWithCommas((this.state.totalManagerAllPHP).toFixed(2))}</td>
+                                            </tr>
+                                            {/* Income by Categories */}
+                                            <tr className="text-center">
+                                                <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.BUY}</td>
+                                                <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.BREED}</td>
+                                                <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.ROI}</td>
+                                                <td colSpan="2" className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.INCOME}</td>
+                                            </tr>
+                                            <tr className="text-center">
+                                                <td>{this.numberWithCommas((this.state.managerPHPBuy).toFixed(2))}</td>
+                                                <td>{this.numberWithCommas((this.state.managerPHPBreed).toFixed(2))}</td>
+                                                <td className={this.state.managerPHPReachedROI ? "green-text" : ""}>{this.numberWithCommas((this.state.managerPHPROI).toFixed(2))}</td>
+                                                <td colSpan="2">{this.numberWithCommas((this.state.managerPHPIncome).toFixed(2))}</td>
+                                            </tr>
+                                            {/* Earning per cash out */}
+                                            <tr className="rgba-teal-strong-bg">
+                                                <td colSpan="5" className="text-center font-weight-bold white-text">{CONSTANTS.MESSAGE.EARNINGS}</td>
                                             </tr>
                                             <tr className="text-center">
                                                 <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.DATE}</td>

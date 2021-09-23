@@ -31,6 +31,13 @@
                 "slp": 9691,
                 "slpPrice": 3.34,
                 "category": "breed"
+            },
+            {
+                "id": 4,
+                "date": "2021-09-23",
+                "slp": 1600,
+                "slpPrice": 4.13,
+                "category": "breed"
             }
         ],
         "claimedEarning": [

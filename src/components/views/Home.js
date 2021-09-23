@@ -1200,7 +1200,7 @@ class Home extends React.Component {
                                                 <td>{this.numberWithCommas((this.state.managerPHPBuy).toFixed(2))}</td>
                                                 <td>{this.numberWithCommas((this.state.managerPHPBreed).toFixed(2))}</td>
                                                 <td className={this.state.managerPHPReachedROI ? "green-text" : "red-text"}>{this.numberWithCommas((this.state.managerPHPROI).toFixed(2))}</td>
-                                                <td colSpan="2">{this.numberWithCommas((this.state.managerPHPIncome).toFixed(2))}</td>
+                                                <td>{this.numberWithCommas((this.state.managerPHPIncome).toFixed(2))}</td>
                                             </tr>
                                             {/* Earning per cash out */}
                                             <tr className="rgba-teal-strong-bg">
@@ -1211,7 +1211,6 @@ class Home extends React.Component {
                                                 <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.SLP}</td>
                                                 <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.SLP_PRICE}</td>
                                                 <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.EARNING}</td>
-                                                <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.CATEGORY}</td>
                                             </tr>
                                             {
                                                 Object.keys(this.state.modalManagerAllEarning).length > 0 ? (
@@ -1221,7 +1220,6 @@ class Home extends React.Component {
                                                             <td>{items.slp}</td>
                                                             <td className="text-uppercase">{items.slpPrice}</td>
                                                             <td>{(items.earning).toLocaleString()}</td>
-                                                            <td>{(items.category).toUpperCase()}</td>
                                                         </tr>
                                                     ))
                                                 ) : ("")

@@ -826,6 +826,28 @@ body, #root{
     }
 }
 
+// Single player datatable display
+.single-player-datatable-handler {
+    .player-datatable-container {
+        // Hide entries select option
+        div[data-test="datatable-select"] {
+            display: none !important;
+        }
+        // Hide input search
+        div[data-test="datatable-search"] {
+            display: none !important;
+        }
+        // Hide entries info
+        div[data-test="datatable-info"] {
+            display: none !important;
+        }
+        // Hide pagination
+        div[data-test="datatable-pagination"] {
+            display: none !important;
+        }
+    }
+}
+
 // Style for detault datatable details container
 .default-datatable-container {
     .dataTables_info {

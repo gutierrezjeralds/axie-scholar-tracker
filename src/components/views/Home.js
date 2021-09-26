@@ -446,6 +446,11 @@ class Home extends React.Component {
                                 // Return
                                 return true;
                             });
+
+                            // Adding body document if the playerDataTableis single data x initDisplay
+                            if (initDisplay.length <= 1) {
+                                document.body.classList.add('single-player-datatable-handler');
+                            }
     
                             // Return data x Set state
                             this.setState({

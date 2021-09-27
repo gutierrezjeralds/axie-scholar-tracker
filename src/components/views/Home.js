@@ -17,6 +17,7 @@ const guildImages = [
     '/assets/images/guides/buff_debuff.jpg',
     '/assets/images/guides/attack_details.jpg',
     '/assets/images/guides/damange.jpg',
+    '/assets/images/guides/battle_phase.jpg',
     '/assets/images/guides/scholar_guide_details.jpg',
     '/assets/images/guides/aventure_repeat.jpg',
     '/assets/images/guides/adventure_map.jpg',

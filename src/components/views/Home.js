@@ -358,9 +358,31 @@ class Home extends React.Component {
     sendEmail = (eDMData) => {
         emailjs.send(eDMData.service_id, eDMData.template_id, eDMData.template_params, eDMData.user_id)
         .then(function(response) {
+            // Sent successful
             console.log('Message successfully sent!', eDMData.template_params.from_name, response.status, response.text);
-        }, function(error) {
-            console.error('Oh well, you failed. Here some thoughts on the error that occured:', error)
+        }, function() {
+            // Send Email via Ajax
+            $.ajax({
+                url: "https://api.emailjs.com/api/v1.0/email/send",
+                type: 'POST',
+                data: JSON.stringify(eDMData),
+                contentType: 'application/json',
+                cache: false
+            })
+            .then(
+                (result) => {
+                    // Sent successful
+                    console.log('Message successfully sent!', eDMData.template_params.from_name, result.status, result.text);
+                },
+                (error) => {
+                    console.error('Oh well, you failed. Here some thoughts on the error that occured:', error)
+                }
+            )
+            .catch(
+                (err) => {
+                    console.error('Oh well, you failed. Here some thoughts on the error that occured:', err)
+                }
+            )
         });
     }
     

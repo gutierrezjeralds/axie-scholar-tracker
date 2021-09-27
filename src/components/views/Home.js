@@ -77,7 +77,7 @@ class Home extends React.Component {
     }
 
     componentDidMount() {
-        // this.pageRefresh(120000); // Refresh in 2 minutes
+        this.pageRefresh(120000); // Refresh in 2 minutes
         this.getCoingecko();
         // this.getBinance();
         this.getRecord();

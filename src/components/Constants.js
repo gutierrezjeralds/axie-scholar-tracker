@@ -9,7 +9,7 @@ const MESSAGE = {
     INVALID_CREDENTIAL: "Invalid credential. Please try again.",
     SOMETHING_WENT_WRONG: "Something went wrong!",
     NODATA_FOUND: "No Data Found.",
-    PAGE_REFRESH: "Page refresh automatically within 120 seconds.",
+    PAGE_REFRESH: "Page refresh automatically within 60 seconds.",
     PRICE_BASEON: "Prices are based on",
     BINANCE: "Binance",
     COINGECKO: "CoinGecko",

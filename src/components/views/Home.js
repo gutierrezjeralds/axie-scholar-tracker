@@ -5,12 +5,24 @@ import {
     MDBBox, MDBContainer, MDBRow, MDBCol, MDBCard, MDBCardBody,
     MDBTable, MDBTableBody, MDBTableHead,
     MDBModal, MDBModalHeader, MDBModalBody,
-    MDBDataTable
+    MDBDataTable, MDBIcon, MDBAnimation
 } from "mdbreact";
 import Moment from 'react-moment';
 import moment from 'moment';
 import Cookies from 'js-cookie'
 import emailjs from 'emailjs-com';
+import Lightbox from 'react-image-lightbox';
+
+const guildImages = [
+    '/assets/images/guides/buff_debuff.jpg',
+    '/assets/images/guides/attack_details.jpg',
+    '/assets/images/guides/damange.jpg',
+    '/assets/images/guides/scholar_guide_details.jpg',
+    '/assets/images/guides/aventure_repeat.jpg',
+    '/assets/images/guides/adventure_map.jpg',
+    '/assets/images/guides/arena_slp_rewards_1.jpg',
+    '/assets/images/guides/arena_slp_rewards_2.jpg'
+];
 
 class Home extends React.Component {
     constructor(props) {
@@ -58,12 +70,14 @@ class Home extends React.Component {
             isViewMangerEarning: CONSTANTS.MESSAGE.VIEW_CURRENT_EARNINGS,
             totalManagerAllSLP: 0,
             totalManagerAllPHP: 0,
-            modalManagerAllEarning: []
+            modalManagerAllEarning: [],
+            photoIndex: 0,
+            isLightBoxOpen: false,
         }
     }
 
     componentDidMount() {
-        this.pageRefresh(120000); // Refresh in 2 minutes
+        // this.pageRefresh(120000); // Refresh in 2 minutes
         this.getCoingecko();
         // this.getBinance();
         this.getRecord();
@@ -1373,6 +1387,14 @@ class Home extends React.Component {
         document.title = CONSTANTS.MESSAGE.HOMETITLE;
         return (
             <MDBBox tag="div" className="home-wrapper">
+                {/* Open Guides */}
+                <MDBAnimation type="bounce" className="z-index-1 position-fixed guides-btn">
+                    <button type="button" className="btn btn-default waves-effect waves-light"
+                        onClick={() => this.setState({ isLightBoxOpen: true })}>
+                        <MDBIcon icon="info-circle" className="fa-3x" />
+                    </button>
+                </MDBAnimation>
+
                 {
                     !this.state.isLoaded ? (
                         // Loading
@@ -1420,6 +1442,8 @@ class Home extends React.Component {
                                                     striped bordered hover responsive noBottomColumns
                                                     sortable={false}
                                                     data={this.state.playerDataTable}
+                                                    entries={5}
+                                                    entriesOptions={[ 5, 10, 15 ]}
                                                     className="player-datatable-container text-white"
                                                 />
                                             </MDBCol>
@@ -1431,6 +1455,28 @@ class Home extends React.Component {
                                 </MDBRow>
                             </MDBContainer>
                         )
+                    )
+                }
+
+                {/* Light Box */}
+                {
+                    this.state.isLightBoxOpen && (
+                        <Lightbox
+                            mainSrc={guildImages[this.state.photoIndex]}
+                            nextSrc={guildImages[(this.state.photoIndex + 1) % guildImages.length]}
+                            prevSrc={guildImages[(this.state.photoIndex + guildImages.length - 1) % guildImages.length]}
+                            onCloseRequest={() => this.setState({ isLightBoxOpen: false })}
+                            onMovePrevRequest={() =>
+                                this.setState({
+                                    photoIndex: (this.state.photoIndex + guildImages.length - 1) % guildImages.length,
+                                })
+                            }
+                            onMoveNextRequest={() =>
+                                this.setState({
+                                    photoIndex: (this.state.photoIndex + 1) % guildImages.length,
+                                })
+                            }
+                        />
                     )
                 }
 

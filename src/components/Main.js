@@ -5,6 +5,7 @@ import Home from './views/Home'
 import Login from './views/Login'
 import Cookies from 'js-cookie'
 import { MDBBox } from 'mdbreact'
+import 'react-image-lightbox/style.css'; // This only needs to be imported once in your app
 
 class Main extends React.Component {
     constructor(props) {

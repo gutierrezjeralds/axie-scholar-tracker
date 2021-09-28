@@ -99,7 +99,8 @@ const MESSAGE = {
     ROI: "ROI",
     BREED: "Breed",
     BUY: "Buy",
-    INCOME: "Income"
+    INCOME: "Income",
+    GUIDE_HERE: "Guides here!"
 }
 
 export const CONSTANTS = {

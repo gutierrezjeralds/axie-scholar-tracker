@@ -144,6 +144,14 @@ class Home extends React.Component {
         setTimeout( function() {
             window.location.reload();
         }, time);
+
+        // Guide information button Bounce every 5 seconds
+        setInterval(function() {
+            $(".guides-btn").removeClass("bounce").removeAttr("style");
+            setTimeout(function() {
+                $(".guides-btn").addClass("bounce").css({"animation-name": "bounce", "visibility": "visible", "animation-iteration-count": "1"});
+            }, 1000);
+        }, 5000);
     }
 
     // API reload
@@ -1412,6 +1420,7 @@ class Home extends React.Component {
             <MDBBox tag="div" className="home-wrapper">
                 {/* Open Guides */}
                 <MDBAnimation type="bounce" className="z-index-1 position-fixed guides-btn">
+                    <MDBBox tag="span" className="guides-btn-title d-none">{CONSTANTS.MESSAGE.GUIDE_HERE}</MDBBox>
                     <button type="button" className="btn btn-default waves-effect waves-light"
                         onClick={() => this.setState({ isLightBoxOpen: true })}>
                         <MDBIcon icon="info-circle" className="fa-3x" />

@@ -141,7 +141,7 @@
         "claimedEarning": []
     },
     {
-        "id": 5,
+        "id": 6,
         "ethAddress": "ronin:26acfd9cebe8a9b20066010455aa7289a9f4f882",
         "name": "Dean",
         "email": "pundano31@gmail.com",
@@ -151,6 +151,19 @@
         "sponsorName": "",
         "totalIncome": 0,
         "started": "2021-09-25",
+        "claimedEarning": []
+    },
+    {
+        "id": 7,
+        "ethAddress": "ronin:f39becd5ca4f09e60693e84d5691e73690441c23",
+        "name": "Karen",
+        "email": "karenfajardo2030@gmail.com",
+        "manager": 20,
+        "scholar": 80,
+        "sponsor": 0,
+        "sponsorName": "",
+        "totalIncome": 0,
+        "started": "2021-10-01",
         "claimedEarning": []
     }
 ]

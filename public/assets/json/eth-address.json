@@ -1,7 +1,7 @@
 [
     {
         "id": 1,
-        "ethAddress": "ronin:c0a2796857293218ee40d0eb1fbcbf59f8f23efb",
+        "roninAddress": "ronin:c0a2796857293218ee40d0eb1fbcbf59f8f23efb",
         "name": "BunnyBalds",
         "email": "gutierrez.jeralds@yahoo.com",
         "manager": 100,
@@ -52,12 +52,18 @@
                 "date": "2021-08-29",
                 "slp": 2237,
                 "slpPrice": 6.76
+            },
+            {
+                "id": 3,
+                "date": "2021-09-20",
+                "slp": 3118,
+                "slpPrice": 3.34
             }
         ]
     },
     {
         "id": 2,
-        "ethAddress": "ronin:411bf3e5386c688920392dbfc8af6685405d12d8",
+        "roninAddress": "ronin:411bf3e5386c688920392dbfc8af6685405d12d8",
         "name": "taengpusa",
         "email": "vincejaspergutierrez@gmail.com",
         "manager": 50,
@@ -77,7 +83,7 @@
     },
     {
         "id": 3,
-        "ethAddress": "ronin:1263e0cf33a3cafbf9e9090665aa8f9a23b05268",
+        "roninAddress": "ronin:1263e0cf33a3cafbf9e9090665aa8f9a23b05268",
         "name": "Janok",
         "email": "pauljohnsgutierrez.052030@gmail.com",
         "manager": 50,
@@ -103,7 +109,7 @@
     },
     {
         "id": 4,
-        "ethAddress": "ronin:e3b430f34db38d6ce76f679330b8d81baf2121f5",
+        "roninAddress": "ronin:e3b430f34db38d6ce76f679330b8d81baf2121f5",
         "name": "Juls",
         "email": "isaiahlou@yahoo.com",
         "manager": 50,
@@ -129,7 +135,7 @@
     },
     {
         "id": 5,
-        "ethAddress": "ronin:bcb2952ef31c29d007025bc2e4f3c7271c419272",
+        "roninAddress": "ronin:bcb2952ef31c29d007025bc2e4f3c7271c419272",
         "name": "JCarl",
         "email": "katigbakjangkarl@gmail.com",
         "manager": 50,
@@ -142,7 +148,7 @@
     },
     {
         "id": 6,
-        "ethAddress": "ronin:26acfd9cebe8a9b20066010455aa7289a9f4f882",
+        "roninAddress": "ronin:26acfd9cebe8a9b20066010455aa7289a9f4f882",
         "name": "Dean",
         "email": "pundano31@gmail.com",
         "manager": 50,
@@ -155,7 +161,7 @@
     },
     {
         "id": 7,
-        "ethAddress": "ronin:f39becd5ca4f09e60693e84d5691e73690441c23",
+        "roninAddress": "ronin:f39becd5ca4f09e60693e84d5691e73690441c23",
         "name": "Karen",
         "email": "karenfajardo2030@gmail.com",
         "manager": 20,

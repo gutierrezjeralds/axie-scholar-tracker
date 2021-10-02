@@ -407,7 +407,7 @@ class Home extends React.Component {
                 if (result.length > 0) {
                     // Fetch player details in api of sky mavis
                     const dataResultPromise = result.map(async (item) => {
-                        const ethAddress = item.ethAddress ? `0x${item.ethAddress.substring(6)}` : "";
+                        const ethAddress = item.roninAddress ? `0x${item.roninAddress.substring(6)}` : "";
                         let userEthAddress = null;
 
                         if (item.email.toLowerCase() === this.state.isUser.toLowerCase() ||
@@ -599,8 +599,12 @@ class Home extends React.Component {
                     if (Object.keys(result).length > 0) { // Has player details
                         // Get Player ranking base on Sky Mavis API
                         const ranking = await this.getPlayerRanking(ethAddress);
+                        // Get Player battle log base on Game API Axie Technology
+                        const battleLogs = await this.getPlayerBattleLog(details.roninAddress, ethAddress);
+
+                        // Creating object
                         let roninBalance = 0, totalSLP = 0
-                        if (!ranking.error) {
+                        if (ranking.error === undefined) {
                             // Adding text color of MMR based on MMR level
                             ranking.textStyle = "black-text";
                             ranking.eloStatus = "default";
@@ -824,6 +828,14 @@ class Home extends React.Component {
                                 }
                             }
 
+                            // Update value of win, lose, draw and win rate based in Battle Log
+                            if(battleLogs.error === undefined) {
+                                ranking.win_total = battleLogs.win_total;
+                                ranking.lose_total = battleLogs.lose_total;
+                                ranking.draw_total = battleLogs.draw_total;
+                                ranking.win_rate = battleLogs.win_rate;
+                            }
+
                             // Adding Player details and ranking in result object
                             result.details = details;
                             result.ranking = ranking;
@@ -922,13 +934,13 @@ class Home extends React.Component {
                             player.win_rate = 0;
                             if (player.win_total > 0 || player.lose_total > 0 || player.draw_total > 0) {
                                 const winRate = ( (player.win_total / (player.win_total + player.lose_total + player.draw_total)) * 100 ).toFixed(2);
-                                player.win_rate = winRate.toString() === "100.00" ? 100 : winRate;
+                                player.win_rate = !isNaN(winRate) ? winRate.toString() === "100.00" ? "100" : winRate : "0.00"
                             }
                             // Return
                             return resolve(player);
                         }
                     }
-                    return resolve({error: false});
+                    return resolve({error: true});
                 },
                 // Note: it's important to handle errors here
                 // instead of a catch() block so that we don't swallow
@@ -969,6 +981,80 @@ class Home extends React.Component {
                 error: true
             })
                 
+            console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
+            return err;
+        });
+    }
+
+    // Get Player battle log base on Game API Axie Technology
+    getPlayerBattleLog = async (roninAddress, ethAddress) => {
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                url: "https://game-api.axie.technology/battlelog/" + roninAddress + "?limit=20",
+                dataType: "json",
+                cache: false
+            })
+            .then(
+                async (result) => {
+                    if (result.length > 0 && result[0].success && result[0].items.length > 0) {
+                        // Get Today Battle log only
+                        let winTotal = 0, loseTotal = 0, drawTotal = 0;
+                        let logsPromise = result[0].items.map(async function (logs) {
+                            // Get the Client id winner today
+                            const isToday = moment().isSame(moment(logs.created_at), 'date');
+                            if (isToday) {
+                                if (logs.winner === 0) {
+                                    // 0 = Winner 1
+                                    if (logs.first_client_id === ethAddress) {
+                                        winTotal = winTotal + 1;
+                                    } else {
+                                        loseTotal = loseTotal + 1;
+                                    }
+                                } else if (logs.winner === 1) {
+                                    // 1 = Winner 2
+                                    if (logs.second_client_id === ethAddress) {
+                                        winTotal = winTotal + 1;
+                                    } else {
+                                        loseTotal = loseTotal + 1;
+                                    }
+                                } else {
+                                    // 2 = Draw // if (logs.winner === 2)
+                                    drawTotal = drawTotal + 1;
+                                }
+                            }
+                            
+                            return true;
+                        });
+
+                        return await Promise.all(logsPromise).then(async function () {
+                            const winRate = ( (winTotal / (winTotal + loseTotal + drawTotal)) * 100 ).toFixed(2);
+                            const battleLog = {
+                                win_total: winTotal,
+                                lose_total: loseTotal,
+                                draw_total: drawTotal,
+                                win_rate: !isNaN(winRate) ? winRate.toString() === "100.00" ? "100" : winRate : "0.00"
+                            }
+                            // Return
+                            return resolve(battleLog);
+                        });
+                    }
+                    return resolve({error: true});
+                },
+                // Note: it's important to handle errors here
+                // instead of a catch() block so that we don't swallow
+                // exceptions from actual bugs in components.
+                (error) => {
+                    console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, error)
+                    return reject({error: true})
+                }
+            )
+            .catch(
+                (err) => {
+                    console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
+                    return reject({error: true});
+                }
+            )
+        }).catch(err => {
             console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
             return err;
         });

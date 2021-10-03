@@ -511,6 +511,7 @@ class Home extends React.Component {
                                         {label: CONSTANTS.MESSAGE.TOTAL_SLP, field: "totalSLP"},
                                         {label: CONSTANTS.MESSAGE.EARNINGS_PHP, field: "earningsPHP"},
                                         {label: CONSTANTS.MESSAGE.CLAIMON, field: "claimOn"},
+                                        {label: CONSTANTS.MESSAGE.PVP_ENERGY, field: "pvpEnergy"},
                                         {label: CONSTANTS.MESSAGE.MMR, field: "mmr"},
                                         {label: CONSTANTS.MESSAGE.RANK, field: "rank", sort: "desc"}
                                     ], rows: initDisplay
@@ -600,7 +601,7 @@ class Home extends React.Component {
                         // Get Player ranking base on Sky Mavis API
                         const ranking = await this.getPlayerRanking(ethAddress);
                         // Get Player battle log base on Game API Axie Technology
-                        const battleLogs = await this.getPlayerBattleLog(details.roninAddress, ethAddress);
+                        const battleLogs = await this.getPlayerBattleLog(details.roninAddress, ethAddress, details.pvpEnergy);
 
                         // Creating object
                         let roninBalance = 0, totalSLP = 0
@@ -630,6 +631,7 @@ class Home extends React.Component {
                             result.averageSLPDay = 0;
                             result.sharedManagerSLP = 0;
                             result.sharedSponsorSLP = 0;
+                            result.pvp_energy = details.pvp_energy !== undefined ? details.pvp_energy + "/" + details.pvp_energy : "20/20"; // 20 is Default energy
 
                             // Set new value for Claim On (Days) x last_claimed_item_at_add - current date
                             const lastClaimedDate = new Date(moment.unix(result.last_claimed_item_at)).getTime();
@@ -834,6 +836,8 @@ class Home extends React.Component {
                                 ranking.lose_total = battleLogs.lose_total;
                                 ranking.draw_total = battleLogs.draw_total;
                                 ranking.win_rate = battleLogs.win_rate;
+                                // Update PVP Energy left
+                                result.pvp_energy = battleLogs.pvp_energy;
                             }
 
                             // Adding Player details and ranking in result object
@@ -861,6 +865,7 @@ class Home extends React.Component {
                                 sponsorEarningsPHP: <MDBBox data-th={CONSTANTS.MESSAGE.EARNINGS_PHP} tag="span">{this.numberWithCommas((result.totalSponsorEarningPHP).toFixed(2))}</MDBBox>,
                                 nameMmr: `${result.name} (${ranking.elo})`,
                                 nameInGameSLP: `${result.name} (${result.inGameSLP})`,
+                                pvpEnergy: <MDBBox data-th={CONSTANTS.MESSAGE.PVP_ENERGY} tag="span">{result.pvp_energy}</MDBBox>,
                                 clickEvent: this.modalPlayerDetailsToggle(result.client_id, [result])
                             };
                             
@@ -987,10 +992,11 @@ class Home extends React.Component {
     }
 
     // Get Player battle log base on Game API Axie Technology
-    getPlayerBattleLog = async (roninAddress, ethAddress) => {
+    getPlayerBattleLog = async (roninAddress, ethAddress, pvpEnergy) => {
         return new Promise((resolve, reject) => {
+            const setPvpEnergy = pvpEnergy !== undefined ? pvpEnergy : 20; // 20 is Default energy
             $.ajax({
-                url: "https://game-api.axie.technology/battlelog/" + roninAddress + "?limit=20",
+                url: "https://game-api.axie.technology/battlelog/" + roninAddress + "?limit=" + setPvpEnergy,
                 dataType: "json",
                 cache: false
             })
@@ -1028,11 +1034,13 @@ class Home extends React.Component {
 
                         return await Promise.all(logsPromise).then(async function () {
                             const winRate = ( (winTotal / (winTotal + loseTotal + drawTotal)) * 100 ).toFixed(2);
+                            const pvpEnergyLeft = setPvpEnergy - (winTotal + loseTotal + drawTotal);
                             const battleLog = {
                                 win_total: winTotal,
                                 lose_total: loseTotal,
                                 draw_total: drawTotal,
-                                win_rate: !isNaN(winRate) ? winRate.toString() === "100.00" ? "100" : winRate : "0.00"
+                                win_rate: !isNaN(winRate) ? winRate.toString() === "100.00" ? "100" : winRate : "0.00",
+                                pvp_energy: pvpEnergyLeft + "/" + setPvpEnergy
                             }
                             // Return
                             return resolve(battleLog);

@@ -100,7 +100,8 @@ const MESSAGE = {
     BREED: "Breed",
     BUY: "Buy",
     INCOME: "Income",
-    GUIDE_HERE: "Guides here!"
+    GUIDE_HERE: "Guides here!",
+    PVP_ENERGY: "PvP Energy"
 }
 
 export const CONSTANTS = {

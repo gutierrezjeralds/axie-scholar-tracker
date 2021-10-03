@@ -10,6 +10,7 @@
         "sponsorName": "",
         "totalIncome": 0,
         "started": "2021-07-20",
+        "pvpEnergy": 20,
         "managerEarning": [
             {
                 "id": 1,
@@ -72,6 +73,7 @@
         "sponsorName": "",
         "totalIncome": 0,
         "started": "2021-07-31",
+        "pvpEnergy": 20,
         "claimedEarning": [
             {
                 "id": 1,
@@ -92,6 +94,7 @@
         "sponsorName": "",
         "totalIncome": 0,
         "started": "2021-08-01",
+        "pvpEnergy": 20,
         "claimedEarning": [
             {
                 "id": 1,
@@ -118,6 +121,7 @@
         "sponsorName": "",
         "totalIncome": 0,
         "started": "2021-08-14",
+        "pvpEnergy": 20,
         "claimedEarning": [
             {
                 "id": 1,
@@ -144,6 +148,7 @@
         "sponsorName": "",
         "totalIncome": 0,
         "started": "2021-08-30",
+        "pvpEnergy": 20,
         "claimedEarning": []
     },
     {
@@ -157,6 +162,7 @@
         "sponsorName": "",
         "totalIncome": 0,
         "started": "2021-09-25",
+        "pvpEnergy": 20,
         "claimedEarning": []
     },
     {
@@ -170,6 +176,7 @@
         "sponsorName": "",
         "totalIncome": 0,
         "started": "2021-10-01",
+        "pvpEnergy": 20,
         "claimedEarning": []
     }
 ]

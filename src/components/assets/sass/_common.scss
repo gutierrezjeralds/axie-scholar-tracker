@@ -858,12 +858,15 @@ body, #root{
     }
 }
 
-// Style for button of light box guides
-.guides-btn {
+// Style for button of light box guides and export data
+.guides-btn, .export-btn {
     margin-top: 30px;
     right: 22px;
     button {
         padding: 5px;
         border-radius: 25px !important;
+    }
+    .export {
+        padding: 10px;
     }
 }

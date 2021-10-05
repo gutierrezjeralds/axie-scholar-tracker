@@ -101,7 +101,10 @@ const MESSAGE = {
     BUY: "Buy",
     INCOME: "Income",
     GUIDE_HERE: "Guides here!",
-    PVP_ENERGY: "PvP Energy"
+    PVP_ENERGY: "PvP Energy",
+    MANAGER_SLP: "Manager SLP",
+    SPONSOR_SLP: "Sponsor SLP",
+    SCHOLAR_SLP: "Scholar SLP",
 }
 
 export const CONSTANTS = {

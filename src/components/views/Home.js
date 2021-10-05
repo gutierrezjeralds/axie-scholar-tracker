@@ -12,6 +12,12 @@ import moment from 'moment';
 import Cookies from 'js-cookie'
 import emailjs from 'emailjs-com';
 import Lightbox from 'react-image-lightbox';
+import ReactExport from "react-export-excel";
+
+// Export data
+const ExcelFile = ReactExport.ExcelFile;
+const ExcelSheet = ReactExport.ExcelFile.ExcelSheet;
+const ExcelColumn = ReactExport.ExcelFile.ExcelColumn;
 
 const guildImages = [
     '/assets/images/guides/buff_debuff.jpg',
@@ -506,10 +512,10 @@ class Home extends React.Component {
                                         {label: CONSTANTS.MESSAGE.NAME, field: "name"},
                                         {label: CONSTANTS.MESSAGE.AVERAGE_SLP_PERDAY_V2, field: "averageSLP"},
                                         {label: CONSTANTS.MESSAGE.INGAME_SLP, field: "ingameSLP"},
-                                        {label: CONSTANTS.MESSAGE.SHARED_SLP, field: "sharedSLP"},
+                                        {label: CONSTANTS.MESSAGE.SHARED_SLP, field: "sharedScholarSLP"},
                                         {label: CONSTANTS.MESSAGE.RONIN_SLP, field: "roninSLP"},
-                                        {label: CONSTANTS.MESSAGE.TOTAL_SLP, field: "totalSLP"},
-                                        {label: CONSTANTS.MESSAGE.EARNINGS_PHP, field: "earningsPHP"},
+                                        {label: CONSTANTS.MESSAGE.TOTAL_SLP, field: "totalScholarEarningSLP"},
+                                        {label: CONSTANTS.MESSAGE.EARNINGS_PHP, field: "totalScholarEarningPHP"},
                                         {label: CONSTANTS.MESSAGE.CLAIMON, field: "claimOn"},
                                         {label: CONSTANTS.MESSAGE.PVP_ENERGY, field: "pvpEnergy"},
                                         {label: CONSTANTS.MESSAGE.MMR, field: "mmr"},
@@ -627,7 +633,7 @@ class Home extends React.Component {
                             result.last_claimed_item_at_add = moment.unix(result.last_claimed_item_at).add(1, 'days');
                             result.claim_on_days = 0;
                             result.inGameSLP = result.total;
-                            result.totalEarningSLP = result.total;
+                            result.totalScholarEarningSLP = result.total;
                             result.averageSLPDay = 0;
                             result.sharedManagerSLP = 0;
                             result.sharedSponsorSLP = 0;
@@ -648,7 +654,7 @@ class Home extends React.Component {
                                 }
                             }
 
-                            result.sharedSLP = result.inGameSLP;
+                            result.sharedScholarSLP = result.inGameSLP;
                             result.scholarSLP = result.inGameSLP;
                             if (Object.keys(details).length > 0) {
                                 // Update name if the orig name is empty
@@ -670,9 +676,9 @@ class Home extends React.Component {
                                         // Set new Shared SLP
                                         result.scholarSLP = 0;
                                         if (roninBalance > totalSLP) {
-                                            result.sharedSLP = Math.floor(roninBalance - totalSLP);
+                                            result.sharedScholarSLP = Math.floor(roninBalance - totalSLP);
                                         } else {
-                                            result.sharedSLP = Math.floor(totalSLP - roninBalance);
+                                            result.sharedScholarSLP = Math.floor(totalSLP - roninBalance);
                                         }
 
                                         // Adding ronin balance in total Manage SLP x // Set new Total Manager's Earning
@@ -701,14 +707,14 @@ class Home extends React.Component {
                                 if ((details.scholar).toString() !== "0" || details.scholar > 0) { // Condition for Scholar Players
                                     // Set new Shared SLP
                                     const iskoShare = (details.scholar).toString() === "100" ? 1 : "0." + details.scholar;
-                                    result.sharedSLP = Math.floor(result.inGameSLP * iskoShare);
+                                    result.sharedScholarSLP = Math.floor(result.inGameSLP * iskoShare);
                                     result.scholarSLP = Math.floor(result.inGameSLP * iskoShare);
                                 }
 
                                 // Set new total SLP x computed base on Shared SLP plus total SLP
-                                result.totalEarningSLP = roninBalance + result.sharedSLP;
-                                // Set new total PHP x computed base on totalEarningSLP multiply slpCurrentValue
-                                result.totalEarningPHP = result.totalEarningSLP * this.state.slpCurrentValue;
+                                result.totalScholarEarningSLP = roninBalance + result.sharedScholarSLP;
+                                // Set new total PHP x computed base on totalScholarEarningSLP multiply slpCurrentValue
+                                result.totalScholarEarningPHP = result.totalScholarEarningSLP * this.state.slpCurrentValue;
                                 // Set new total Manager SLP Earning x computed base on sharedManagerSLP multiply slpCurrentValue
                                 result.totalManagerEarningPHP = result.sharedManagerSLP * this.state.slpCurrentValue;
                                 // Set new total Sponsor SLP Earning x computed base on sharedSponsorSLP multiply slpCurrentValue
@@ -852,10 +858,10 @@ class Home extends React.Component {
                                 name: result.name,
                                 averageSLP: <MDBBox data-th={CONSTANTS.MESSAGE.AVERAGE_SLP_PERDAY_V2} tag="span">{result.averageSLPDay}</MDBBox>,
                                 ingameSLP: <MDBBox data-th={CONSTANTS.MESSAGE.INGAME_SLP} tag="span">{this.numberWithCommas(result.inGameSLP)}</MDBBox>,
-                                sharedSLP: <MDBBox data-th={CONSTANTS.MESSAGE.SHARED_SLP} tag="span" className="d-inline d-md-block d-lg-block">{this.numberWithCommas(result.sharedSLP)} <MDBBox tag="span" className="d-inline d-md-block d-lg-block">({(details.manager).toString() === "100" ? details.manager : details.scholar}%)</MDBBox></MDBBox>,
+                                sharedScholarSLP: <MDBBox data-th={CONSTANTS.MESSAGE.SHARED_SLP} tag="span" className="d-inline d-md-block d-lg-block">{this.numberWithCommas(result.sharedScholarSLP)} <MDBBox tag="span" className="d-inline d-md-block d-lg-block">({(details.manager).toString() === "100" ? details.manager : details.scholar}%)</MDBBox></MDBBox>,
                                 roninSLP: <MDBBox data-th={CONSTANTS.MESSAGE.RONIN_SLP} tag="span">{this.numberWithCommas(roninBalance)}</MDBBox>,
-                                totalSLP: <MDBBox data-th={CONSTANTS.MESSAGE.TOTAL_SLP} tag="span">{this.numberWithCommas(result.totalEarningSLP)}</MDBBox>,
-                                earningsPHP: <MDBBox data-th={CONSTANTS.MESSAGE.EARNINGS_PHP} tag="span">{this.numberWithCommas((result.totalEarningPHP).toFixed(2))}</MDBBox>,
+                                totalScholarEarningSLP: <MDBBox data-th={CONSTANTS.MESSAGE.TOTAL_SLP} tag="span">{this.numberWithCommas(result.totalScholarEarningSLP)}</MDBBox>,
+                                totalScholarEarningPHP: <MDBBox data-th={CONSTANTS.MESSAGE.EARNINGS_PHP} tag="span">{this.numberWithCommas((result.totalScholarEarningPHP).toFixed(2))}</MDBBox>,
                                 claimOn: <MDBBox data-th={CONSTANTS.MESSAGE.CLAIMON} tag="span" className="d-block">{moment.unix(result.last_claimed_item_at).add(14, "days").format("MMM DD, HH:MM A")} <MDBBox tag="span" className="d-block">{result.claim_on_days} {CONSTANTS.MESSAGE.DAYS}</MDBBox></MDBBox>,
                                 mmr: <MDBBox data-th={CONSTANTS.MESSAGE.MMR} tag="span" className={ranking.textStyle}>{this.numberWithCommas(ranking.elo)}</MDBBox>,
                                 rank: <MDBBox data-th={CONSTANTS.MESSAGE.RANK} tag="span">{this.numberWithCommas(ranking.rank)}</MDBBox>,
@@ -1508,13 +1514,40 @@ class Home extends React.Component {
         )
     }
 
+    renderExportDataTable() {
+        if ( this.state.isPlayerLoaded && this.state.isLoaded && !this.state.error ) {
+            if (this.state.isUser === CONSTANTS.MESSAGE.MANAGER && Object.keys(this.state.playerRecords).length > 0) {
+                return (
+                    <ExcelFile filename={CONSTANTS.MESSAGE.TEAMLOKI} element={
+                        <button
+                            type="button"
+                            className="btn btn-primary waves-effect waves-light d-none d-md-block d-lg-block export">
+                                <MDBIcon icon="file-export" className="fa-2x" />
+                        </button>
+                    }>
+                        <ExcelSheet data={this.state.playerRecords} name={CONSTANTS.MESSAGE.TEAMLOKI}>
+                            <ExcelColumn label={CONSTANTS.MESSAGE.NAME} value="name"/>
+                            <ExcelColumn label={CONSTANTS.MESSAGE.INGAME_SLP} value="inGameSLP"/>
+                            <ExcelColumn label={CONSTANTS.MESSAGE.MANAGER_SLP} value="sharedManagerSLP"/>
+                            <ExcelColumn label={CONSTANTS.MESSAGE.SPONSOR_SLP} value="sharedSponsorSLP"/>
+                            <ExcelColumn label={CONSTANTS.MESSAGE.SCHOLAR_SLP} value="sharedScholarSLP"/>
+                            <ExcelColumn label={CONSTANTS.MESSAGE.CLAIMON} value={(col) => col.last_claimed_item_at ? moment.unix(col.last_claimed_item_at).add(14, "days").format("MMM DD, HH:MM A") : ""}/>
+                        </ExcelSheet>
+                    </ExcelFile>
+                )
+            }
+        }
+    }
+
     render() {
         document.title = CONSTANTS.MESSAGE.HOMETITLE;
         return (
             <MDBBox tag="div" className="home-wrapper">
-                {/* Open Guides */}
                 <MDBAnimation type="bounce" className="z-index-1 position-fixed guides-btn">
-                    <MDBBox tag="span" className="guides-btn-title d-none">{CONSTANTS.MESSAGE.GUIDE_HERE}</MDBBox>
+                    {/* Export Data */}
+                    {this.renderExportDataTable()}
+
+                    {/* Open Guides */}
                     <button type="button" className="btn btn-default waves-effect waves-light"
                         onClick={() => this.setState({ isLightBoxOpen: true })}>
                         <MDBIcon icon="info-circle" className="fa-3x" />

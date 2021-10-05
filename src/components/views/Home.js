@@ -510,7 +510,7 @@ class Home extends React.Component {
                                 playerDataTable: {
                                     columns: [
                                         {label: CONSTANTS.MESSAGE.NAME, field: "name"},
-                                        {label: CONSTANTS.MESSAGE.AVERAGE_SLP_PERDAY_V2, field: "averageSLP"},
+                                        {label: CONSTANTS.MESSAGE.AVG_SLP_PERDAY, field: "averageSLP"},
                                         {label: CONSTANTS.MESSAGE.INGAME_SLP, field: "ingameSLP"},
                                         {label: CONSTANTS.MESSAGE.SHARED_SLP, field: "sharedScholarSLP"},
                                         {label: CONSTANTS.MESSAGE.RONIN_SLP, field: "roninSLP"},
@@ -518,8 +518,7 @@ class Home extends React.Component {
                                         {label: CONSTANTS.MESSAGE.EARNINGS_PHP, field: "totalScholarEarningPHP"},
                                         {label: CONSTANTS.MESSAGE.CLAIMON, field: "claimOn"},
                                         {label: CONSTANTS.MESSAGE.PVP_ENERGY, field: "pvpEnergy"},
-                                        {label: CONSTANTS.MESSAGE.MMR, field: "mmr"},
-                                        {label: CONSTANTS.MESSAGE.RANK, field: "rank", sort: "desc"}
+                                        {label: CONSTANTS.MESSAGE.MMR, field: "mmrRank"}
                                     ], rows: initDisplay
                                 },
                                 mmrDatatable: {
@@ -862,9 +861,10 @@ class Home extends React.Component {
                                 roninSLP: <MDBBox data-th={CONSTANTS.MESSAGE.RONIN_SLP} tag="span">{this.numberWithCommas(roninBalance)}</MDBBox>,
                                 totalScholarEarningSLP: <MDBBox data-th={CONSTANTS.MESSAGE.TOTAL_SLP} tag="span">{this.numberWithCommas(result.totalScholarEarningSLP)}</MDBBox>,
                                 totalScholarEarningPHP: <MDBBox data-th={CONSTANTS.MESSAGE.EARNINGS_PHP} tag="span">{this.numberWithCommas((result.totalScholarEarningPHP).toFixed(2))}</MDBBox>,
-                                claimOn: <MDBBox data-th={CONSTANTS.MESSAGE.CLAIMON} tag="span" className="d-block">{moment.unix(result.last_claimed_item_at).add(14, "days").format("MMM DD, HH:MM A")} <MDBBox tag="span" className="d-block">{result.claim_on_days} {CONSTANTS.MESSAGE.DAYS}</MDBBox></MDBBox>,
+                                claimOn: <MDBBox data-th={CONSTANTS.MESSAGE.CLAIMON} tag="span" className="d-block">{moment.unix(result.last_claimed_item_at).add(14, "days").format("MMM DD, hh:mm A")} <MDBBox tag="span" className="d-block">{result.claim_on_days} {CONSTANTS.MESSAGE.DAYS}</MDBBox></MDBBox>,
                                 mmr: <MDBBox data-th={CONSTANTS.MESSAGE.MMR} tag="span" className={ranking.textStyle}>{this.numberWithCommas(ranking.elo)}</MDBBox>,
                                 rank: <MDBBox data-th={CONSTANTS.MESSAGE.RANK} tag="span">{this.numberWithCommas(ranking.rank)}</MDBBox>,
+                                mmrRank: <MDBBox data-th={CONSTANTS.MESSAGE.MMR} tag="span"><MDBBox tag="span" className={ranking.textStyle}>{this.numberWithCommas(ranking.elo)}</MDBBox> <MDBBox tag="span" className="d-inline d-md-block d-lg-block">({this.numberWithCommas(ranking.rank)})</MDBBox></MDBBox>,
                                 sharedManagerSLP: <MDBBox data-th={CONSTANTS.MESSAGE.SHARED_SLP} tag="span">{this.numberWithCommas(result.sharedManagerSLP)}</MDBBox>,
                                 managerEarningsPHP: <MDBBox data-th={CONSTANTS.MESSAGE.EARNINGS_PHP} tag="span">{this.numberWithCommas((result.totalManagerEarningPHP).toFixed(2))}</MDBBox>,
                                 sharedSponsorSLP: <MDBBox data-th={CONSTANTS.MESSAGE.SHARED_SLP} tag="span">{this.numberWithCommas(result.sharedSponsorSLP)}</MDBBox>,

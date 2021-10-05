@@ -66,6 +66,7 @@ const MESSAGE = {
     AVERAGE: "Average",
     AVERAGE_SLP_PERDAY: "Average SLP per day",
     AVERAGE_SLP_PERDAY_V2: "Average SLP / Day",
+    AVG_SLP_PERDAY: "Avg. SLP / Day",
     SHARE_SLP: "Share SLP",
     VIEW_TOTALINCOME: "View Total Income",
     TOTALINCOME: "Total Income",

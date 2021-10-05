@@ -670,15 +670,15 @@ class Home extends React.Component {
                                 if ((details.manager).toString() === "100" || details.manager > 0) { // Condition for Manager
                                     // Set new Shared SLP
                                     const managerShare = (details.manager).toString() === "100" ? 1 : "0." + details.manager;
-                                    result.sharedManagerSLP = Math.floor(result.inGameSLP * managerShare);
+                                    result.sharedManagerSLP = Math.ceil(result.inGameSLP * managerShare);
 
                                     if ((details.manager).toString() === "100") {
                                         // Set new Shared SLP
                                         result.scholarSLP = 0;
                                         if (roninBalance > totalSLP) {
-                                            result.sharedScholarSLP = Math.floor(roninBalance - totalSLP);
+                                            result.sharedScholarSLP = Math.ceil(roninBalance - totalSLP);
                                         } else {
-                                            result.sharedScholarSLP = Math.floor(totalSLP - roninBalance);
+                                            result.sharedScholarSLP = Math.ceil(totalSLP - roninBalance);
                                         }
 
                                         // Adding ronin balance in total Manage SLP x // Set new Total Manager's Earning

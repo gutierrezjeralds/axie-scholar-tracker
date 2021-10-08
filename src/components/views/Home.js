@@ -1417,12 +1417,12 @@ class Home extends React.Component {
                                                 {/* Market Place link */}
                                                 <MDBCol size="12" md="6" lg="6">
                                                     <MDBBox tag="u" className="d-block d-md-none d-lg-none">
-                                                        <a href={"https://marketplace.axieinfinity.com/profile/" + items.details.ethAddress + "/axie"} target="_blank" rel="noreferrer" className="black-text">
+                                                        <a href={"https://marketplace.axieinfinity.com/profile/" + items.details.roninAddress + "/axie"} target="_blank" rel="noreferrer" className="black-text">
                                                             {CONSTANTS.MESSAGE.OPEN_MARKETPLACE_PROFILE}
                                                         </a>
                                                     </MDBBox>
                                                     <MDBBox tag="u" className="d-none d-md-block d-lg-block text-right">
-                                                        <a href={"https://marketplace.axieinfinity.com/profile/" + items.details.ethAddress + "/axie"} target="_blank" rel="noreferrer" className="black-text">
+                                                        <a href={"https://marketplace.axieinfinity.com/profile/" + items.details.roninAddress + "/axie"} target="_blank" rel="noreferrer" className="black-text">
                                                             {CONSTANTS.MESSAGE.OPEN_MARKETPLACE_PROFILE}
                                                         </a>
                                                     </MDBBox>

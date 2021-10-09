@@ -819,6 +819,15 @@ class Home extends React.Component {
                                             totalAverageSLP: this.state.totalAverageSLP + result.averageSLPDay
                                         })
                                     }
+
+                                    // Minus the total InGame SLP if has Manager SLP Claimed
+                                    if (details.managerClaimed > 0) {
+                                        if (result.inGameSLP > details.managerClaimed) {
+                                            result.inGameSLP = result.inGameSLP - details.managerClaimed;
+                                        } else {
+                                            result.inGameSLP = details.managerClaimed - result.inGameSLP;
+                                        }
+                                    }
                                 }
 
                                 // Send Email if the MMR is low x for Scholar's only x send if user is manager

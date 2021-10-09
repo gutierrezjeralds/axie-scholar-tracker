@@ -12,12 +12,12 @@ import moment from 'moment';
 import Cookies from 'js-cookie'
 import emailjs from 'emailjs-com';
 import Lightbox from 'react-image-lightbox';
-import ReactExport from "react-export-excel";
+// import ReactExport from "react-export-excel";
 
 // Export data
-const ExcelFile = ReactExport.ExcelFile;
-const ExcelSheet = ReactExport.ExcelFile.ExcelSheet;
-const ExcelColumn = ReactExport.ExcelFile.ExcelColumn;
+// const ExcelFile = ReactExport.ExcelFile;
+// const ExcelSheet = ReactExport.ExcelFile.ExcelSheet;
+// const ExcelColumn = ReactExport.ExcelFile.ExcelColumn;
 
 const guildImages = [
     '/assets/images/guides/buff_debuff.jpg',
@@ -1526,24 +1526,24 @@ class Home extends React.Component {
     renderExportDataTable() {
         if ( this.state.isPlayerLoaded && this.state.isLoaded && !this.state.error ) {
             if (this.state.isUser === CONSTANTS.MESSAGE.MANAGER && Object.keys(this.state.playerRecords).length > 0) {
-                return (
-                    <ExcelFile filename={CONSTANTS.MESSAGE.TEAMLOKI + "_" + moment().format("MMDDYYYY_HHmmss")} element={
-                        <button
-                            type="button"
-                            className="btn btn-primary waves-effect waves-light d-none d-md-block d-lg-block export">
-                                <MDBIcon icon="file-export" className="fa-2x" />
-                        </button>
-                    }>
-                        <ExcelSheet data={this.state.playerRecords} name={CONSTANTS.MESSAGE.TEAMLOKI}>
-                            <ExcelColumn label={CONSTANTS.MESSAGE.NAME} value="name"/>
-                            <ExcelColumn label={CONSTANTS.MESSAGE.INGAME_SLP} value="inGameSLP"/>
-                            <ExcelColumn label={CONSTANTS.MESSAGE.MANAGER_SLP} value="sharedManagerSLP"/>
-                            <ExcelColumn label={CONSTANTS.MESSAGE.SPONSOR_SLP} value="sharedSponsorSLP"/>
-                            <ExcelColumn label={CONSTANTS.MESSAGE.SCHOLAR_SLP} value="sharedScholarSLP"/>
-                            <ExcelColumn label={CONSTANTS.MESSAGE.CLAIMON} value={(col) => col.last_claimed_item_at ? moment.unix(col.last_claimed_item_at).add(14, "days").format("MMM DD, HH:MM A") : ""}/>
-                        </ExcelSheet>
-                    </ExcelFile>
-                )
+                // return (
+                    // <ExcelFile filename={CONSTANTS.MESSAGE.TEAMLOKI + "_" + moment().format("MMDDYYYY_HHmmss")} element={
+                    //     <button
+                    //         type="button"
+                    //         className="btn btn-primary waves-effect waves-light d-none d-md-block d-lg-block export">
+                    //             <MDBIcon icon="file-export" className="fa-2x" />
+                    //     </button>
+                    // }>
+                    //     <ExcelSheet data={this.state.playerRecords} name={CONSTANTS.MESSAGE.TEAMLOKI}>
+                    //         <ExcelColumn label={CONSTANTS.MESSAGE.NAME} value="name"/>
+                    //         <ExcelColumn label={CONSTANTS.MESSAGE.INGAME_SLP} value="inGameSLP"/>
+                    //         <ExcelColumn label={CONSTANTS.MESSAGE.MANAGER_SLP} value="sharedManagerSLP"/>
+                    //         <ExcelColumn label={CONSTANTS.MESSAGE.SPONSOR_SLP} value="sharedSponsorSLP"/>
+                    //         <ExcelColumn label={CONSTANTS.MESSAGE.SCHOLAR_SLP} value="sharedScholarSLP"/>
+                    //         <ExcelColumn label={CONSTANTS.MESSAGE.CLAIMON} value={(col) => col.last_claimed_item_at ? moment.unix(col.last_claimed_item_at).add(14, "days").format("MMM DD, HH:MM A") : ""}/>
+                    //     </ExcelSheet>
+                    // </ExcelFile>
+                // )
             }
         }
     }

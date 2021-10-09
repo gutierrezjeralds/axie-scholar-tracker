@@ -1527,7 +1527,7 @@ class Home extends React.Component {
         if ( this.state.isPlayerLoaded && this.state.isLoaded && !this.state.error ) {
             if (this.state.isUser === CONSTANTS.MESSAGE.MANAGER && Object.keys(this.state.playerRecords).length > 0) {
                 return (
-                    <ExcelFile filename={CONSTANTS.MESSAGE.TEAMLOKI} element={
+                    <ExcelFile filename={CONSTANTS.MESSAGE.TEAMLOKI + "_" + moment().format("MMDDYYYY_HHmmss")} element={
                         <button
                             type="button"
                             className="btn btn-primary waves-effect waves-light d-none d-md-block d-lg-block export">

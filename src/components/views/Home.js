@@ -803,19 +803,6 @@ class Home extends React.Component {
 
                                 // Has InGame SLP
                                 if (result.inGameSLP > 0) {
-                                    this.setState({
-                                        totalInGameSLP: this.state.totalInGameSLP + result.inGameSLP, // Set Total InGame SLP
-                                        totalScholarSLP: this.state.totalScholarSLP + result.scholarSLP // Set Total Scholar SLP
-                                    })
-
-                                    // Set Average SLP per Day
-                                    if (result.claim_on_days > 0) {
-                                        result.averageSLPDay = Math.floor(result.inGameSLP / result.claim_on_days);
-                                        this.setState({
-                                            totalAverageSLP: this.state.totalAverageSLP + result.averageSLPDay
-                                        })
-                                    }
-
                                     // Minus the total InGame SLP and add in ronin if has Manager SLP Claimed x Manager Ronin Claimed
                                     if (details.managerClaimed > 0) {
                                         result.managerRoninClaimed = true; // Indicator for Manager Claimed
@@ -839,6 +826,20 @@ class Home extends React.Component {
                                             // Zero manager shared
                                             result.sharedManagerSLP = 0;
                                         }
+                                    }
+
+                                    // Update Total InGame and Scholar SLP
+                                    this.setState({
+                                        totalInGameSLP: this.state.totalInGameSLP + result.inGameSLP, // Set Total InGame SLP
+                                        totalScholarSLP: this.state.totalScholarSLP + result.scholarSLP // Set Total Scholar SLP
+                                    })
+
+                                    // Set Average SLP per Day
+                                    if (result.claim_on_days > 0) {
+                                        result.averageSLPDay = Math.floor(result.inGameSLP / result.claim_on_days);
+                                        this.setState({
+                                            totalAverageSLP: this.state.totalAverageSLP + result.averageSLPDay
+                                        })
                                     }
                                 }
 

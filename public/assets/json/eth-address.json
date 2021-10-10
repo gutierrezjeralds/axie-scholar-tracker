@@ -40,6 +40,12 @@
                 "slp": 1100,
                 "slpPrice": 4.13,
                 "category": "breed"
+            },
+            {
+                "id": 5,
+                "date": "2021-10-10",
+                "slp": 10789,
+                "slpPrice": 4.06
             }
         ],
         "claimedEarning": [
@@ -60,6 +66,12 @@
                 "date": "2021-09-20",
                 "slp": 3118,
                 "slpPrice": 3.34
+            },
+            {
+                "id": 4,
+                "date": "2021-10-10",
+                "slp": 3276,
+                "slpPrice": 4.06
             }
         ]
     },
@@ -75,7 +87,7 @@
         "totalIncome": 0,
         "started": "2021-07-31",
         "pvpEnergy": 20,
-        "managerClaimed": 0,
+        "managerClaimed": 1743,
         "claimedEarning": [
             {
                 "id": 1,
@@ -109,7 +121,7 @@
         "totalIncome": 0,
         "started": "2021-08-01",
         "pvpEnergy": 20,
-        "managerClaimed": 0,
+        "managerClaimed": 1319,
         "claimedEarning": [
             {
                 "id": 1,
@@ -137,7 +149,7 @@
         "totalIncome": 0,
         "started": "2021-08-14",
         "pvpEnergy": 20,
-        "managerClaimed": 0,
+        "managerClaimed": 496,
         "claimedEarning": [
             {
                 "id": 1,
@@ -171,7 +183,7 @@
         "totalIncome": 0,
         "started": "2021-08-30",
         "pvpEnergy": 20,
-        "managerClaimed": 0,
+        "managerClaimed": 1148,
         "claimedEarning": []
     },
     {
@@ -186,7 +198,7 @@
         "totalIncome": 0,
         "started": "2021-09-25",
         "pvpEnergy": 20,
-        "managerClaimed": 0,
+        "managerClaimed": 861,
         "claimedEarning": []
     },
     {

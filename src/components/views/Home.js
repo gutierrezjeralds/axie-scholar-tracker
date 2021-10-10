@@ -12,12 +12,7 @@ import moment from 'moment';
 import Cookies from 'js-cookie'
 import emailjs from 'emailjs-com';
 import Lightbox from 'react-image-lightbox';
-// import ReactExport from "react-export-excel";
-
-// Export data
-// const ExcelFile = ReactExport.ExcelFile;
-// const ExcelSheet = ReactExport.ExcelFile.ExcelSheet;
-// const ExcelColumn = ReactExport.ExcelFile.ExcelColumn;
+import { ExportCSV } from './ExportCSV';
 
 const guildImages = [
     '/assets/images/guides/buff_debuff.jpg',
@@ -80,6 +75,7 @@ class Home extends React.Component {
             modalManagerAllEarning: [],
             photoIndex: 0,
             isLightBoxOpen: false,
+            exportData: []
         }
     }
 
@@ -434,9 +430,10 @@ class Home extends React.Component {
                     });
 
                     await Promise.all(dataResultPromise).then(async (results) => {
-                        let initDisplay = [] // Data for initial display
-                        let mmrDisplay = [] // Data for players MMR list display in Modal
-                        let managerEarningsDisplay = [] // Data for Manager Earnings in Modal
+                        let initDisplay = []; // Data for initial display
+                        let mmrDisplay = []; // Data for players MMR list display in Modal
+                        let managerEarningsDisplay = []; // Data for Manager Earnings in Modal
+                        let disExportData = []; // Data to be exported
 
                         const dataResult = results.filter(item => !item.error && item.data !== undefined && item.eth !== undefined); // Filter valid data
                         if (dataResult && dataResult.length > 0) {
@@ -493,6 +490,11 @@ class Home extends React.Component {
                                         managerEarningsPHP: dataItem.data.managerEarningsPHP
                                     });
                                 }
+
+                                // Get the data to be export
+                                if (dataItem.export !== undefined && Object.keys(dataItem.export).length > 0) {
+                                    disExportData.push(dataItem.export);
+                                }
     
                                 // Return
                                 return true;
@@ -536,7 +538,8 @@ class Home extends React.Component {
                                         {label: CONSTANTS.MESSAGE.SHARED_SLP, field: "sharedManagerSLP"},
                                         {label: CONSTANTS.MESSAGE.EARNINGS_PHP, field: "managerEarningsPHP"}
                                     ], rows: managerEarningsDisplay
-                                }
+                                },
+                                exportData: disExportData
                             })
     
                             console.log("playerRecords", this.state.playerRecords)
@@ -905,9 +908,19 @@ class Home extends React.Component {
                                 pvpEnergy: <MDBBox data-th={CONSTANTS.MESSAGE.PVP_ENERGY} tag="span">{result.pvp_energy}</MDBBox>,
                                 clickEvent: this.modalPlayerDetailsToggle(result.client_id, [result])
                             };
+
+                            // Create Excel data
+                            const playerDataTableExport = {
+                                Name: result.name,
+                                InGameSLP: result.inGameSLP,
+                                ManagerSLP: result.sharedManagerSLP,
+                                SponsorSLP: result.sharedSponsorSLP,
+                                ScholarSLP: result.totalScholarEarningSLP,
+                                ClaimOn: moment.unix(result.last_claimed_item_at).add(14, "days").format("MMM DD, hh:mm A")
+                            }
                             
                             // Success return
-                            return resolve({error: false, data: playerDataTableRes, slp: result.inGameSLP, rank: ranking.rank, eth: userEthAddress});
+                            return resolve({error: false, data: playerDataTableRes, slp: result.inGameSLP, rank: ranking.rank, eth: userEthAddress, export: playerDataTableExport});
                         } else {
                             return reject({error: true});
                         }
@@ -1545,38 +1558,19 @@ class Home extends React.Component {
         )
     }
 
-    renderExportDataTable() {
-        if ( this.state.isPlayerLoaded && this.state.isLoaded && !this.state.error ) {
-            if (this.state.isUser === CONSTANTS.MESSAGE.MANAGER && Object.keys(this.state.playerRecords).length > 0) {
-                // return (
-                    // <ExcelFile filename={CONSTANTS.MESSAGE.TEAMLOKI + "_" + moment().format("MMDDYYYY_HHmmss")} element={
-                    //     <button
-                    //         type="button"
-                    //         className="btn btn-primary waves-effect waves-light d-none d-md-block d-lg-block export">
-                    //             <MDBIcon icon="file-export" className="fa-2x" />
-                    //     </button>
-                    // }>
-                    //     <ExcelSheet data={this.state.playerRecords} name={CONSTANTS.MESSAGE.TEAMLOKI}>
-                    //         <ExcelColumn label={CONSTANTS.MESSAGE.NAME} value="name"/>
-                    //         <ExcelColumn label={CONSTANTS.MESSAGE.INGAME_SLP} value="inGameSLP"/>
-                    //         <ExcelColumn label={CONSTANTS.MESSAGE.MANAGER_SLP} value="sharedManagerSLP"/>
-                    //         <ExcelColumn label={CONSTANTS.MESSAGE.SPONSOR_SLP} value="sharedSponsorSLP"/>
-                    //         <ExcelColumn label={CONSTANTS.MESSAGE.SCHOLAR_SLP} value="sharedScholarSLP"/>
-                    //         <ExcelColumn label={CONSTANTS.MESSAGE.CLAIMON} value={(col) => col.last_claimed_item_at ? moment.unix(col.last_claimed_item_at).add(14, "days").format("MMM DD, HH:MM A") : ""}/>
-                    //     </ExcelSheet>
-                    // </ExcelFile>
-                // )
-            }
-        }
-    }
-
     render() {
         document.title = CONSTANTS.MESSAGE.HOMETITLE;
         return (
             <MDBBox tag="div" className="home-wrapper">
                 <MDBAnimation type="bounce" className="z-index-1 position-fixed guides-btn">
-                    {/* Export Data */}
-                    {this.renderExportDataTable()}
+                    {
+                        // Export Data
+                        this.state.isPlayerLoaded && this.state.isLoaded && !this.state.error ? (
+                            this.state.isUser === CONSTANTS.MESSAGE.MANAGER && Object.keys(this.state.exportData).length > 0 ? (
+                                <ExportCSV csvData={this.state.exportData} fileName={CONSTANTS.MESSAGE.TEAMLOKI + "_" + moment().format("MMDDYYYY_HHmmss")}/>
+                            ) : ("")
+                        ) : ("")
+                    }
 
                     {/* Open Guides */}
                     <button type="button" className="btn btn-default waves-effect waves-light"

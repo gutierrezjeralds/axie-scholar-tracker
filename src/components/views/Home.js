@@ -637,6 +637,7 @@ class Home extends React.Component {
                             result.sharedManagerSLP = 0;
                             result.sharedSponsorSLP = 0;
                             result.pvp_energy = details.pvp_energy !== undefined ? details.pvp_energy + "/" + details.pvp_energy : "20/20"; // 20 is Default energy
+                            result.managerRoninClaimed = false;
 
                             // Set new value for Claim On (Days) x last_claimed_item_at_add - current date
                             const lastClaimedDate = new Date(moment.unix(result.last_claimed_item_at)).getTime();
@@ -820,13 +821,17 @@ class Home extends React.Component {
                                         })
                                     }
 
-                                    // Minus the total InGame SLP if has Manager SLP Claimed
+                                    // Minus the total InGame SLP and add in ronin if has Manager SLP Claimed x Manager Ronin Claimed
                                     if (details.managerClaimed > 0) {
+                                        result.managerRoninClaimed = true; // Indicator for Manager Claimed
+                                        // Minus the InGame SLP
                                         if (result.inGameSLP > details.managerClaimed) {
                                             result.inGameSLP = result.inGameSLP - details.managerClaimed;
                                         } else {
                                             result.inGameSLP = details.managerClaimed - result.inGameSLP;
                                         }
+                                        // Add Manager Claimed in Ronin
+                                        roninBalance = roninBalance + details.managerClaimed;
                                     }
                                 }
 
@@ -867,7 +872,7 @@ class Home extends React.Component {
                                 averageSLP: <MDBBox data-th={CONSTANTS.MESSAGE.AVERAGE_SLP_PERDAY_V2} tag="span">{result.averageSLPDay}</MDBBox>,
                                 ingameSLP: <MDBBox data-th={CONSTANTS.MESSAGE.INGAME_SLP} tag="span">{this.numberWithCommas(result.inGameSLP)}</MDBBox>,
                                 sharedScholarSLP: <MDBBox data-th={CONSTANTS.MESSAGE.SHARED_SLP} tag="span" className="d-inline d-md-block d-lg-block">{this.numberWithCommas(result.sharedScholarSLP)} <MDBBox tag="span" className="d-inline d-md-block d-lg-block">({(details.manager).toString() === "100" ? details.manager : details.scholar}%)</MDBBox></MDBBox>,
-                                roninSLP: <MDBBox data-th={CONSTANTS.MESSAGE.RONIN_SLP} tag="span">{this.numberWithCommas(roninBalance)}</MDBBox>,
+                                roninSLP: <MDBBox data-th={CONSTANTS.MESSAGE.RONIN_SLP} tag="span" className={result.managerRoninClaimed ? "red-text" : ""}>{this.numberWithCommas(roninBalance)}</MDBBox>,
                                 totalScholarEarningSLP: <MDBBox data-th={CONSTANTS.MESSAGE.TOTAL_SLP} tag="span">{this.numberWithCommas(result.totalScholarEarningSLP)}</MDBBox>,
                                 totalScholarEarningPHP: <MDBBox data-th={CONSTANTS.MESSAGE.EARNINGS_PHP} tag="span">{this.numberWithCommas((result.totalScholarEarningPHP).toFixed(2))}</MDBBox>,
                                 claimOn: <MDBBox data-th={CONSTANTS.MESSAGE.CLAIMON} tag="span" className="d-block">{moment.unix(result.last_claimed_item_at).add(14, "days").format("MMM DD, hh:mm A")} <MDBBox tag="span" className="d-block">{result.claim_on_days} {CONSTANTS.MESSAGE.DAYS}</MDBBox></MDBBox>,

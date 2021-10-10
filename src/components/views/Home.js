@@ -711,15 +711,6 @@ class Home extends React.Component {
                                     result.scholarSLP = Math.floor(result.inGameSLP * iskoShare);
                                 }
 
-                                // Set new total SLP x computed base on Shared SLP plus total SLP
-                                result.totalScholarEarningSLP = roninBalance + result.sharedScholarSLP;
-                                // Set new total PHP x computed base on totalScholarEarningSLP multiply slpCurrentValue
-                                result.totalScholarEarningPHP = result.totalScholarEarningSLP * this.state.slpCurrentValue;
-                                // Set new total Manager SLP Earning x computed base on sharedManagerSLP multiply slpCurrentValue
-                                result.totalManagerEarningPHP = result.sharedManagerSLP * this.state.slpCurrentValue;
-                                // Set new total Sponsor SLP Earning x computed base on sharedSponsorSLP multiply slpCurrentValue
-                                result.totalSponsorEarningPHP = result.sharedSponsorSLP * this.state.slpCurrentValue;
-
                                 // Set new value for Total Income and Set value for Total Earning per claimed
                                 if (details.claimedEarning.length > 0) {
                                     details.claimedEarning.map((data, index) => {
@@ -830,8 +821,23 @@ class Home extends React.Component {
                                         } else {
                                             result.inGameSLP = details.managerClaimed - result.inGameSLP;
                                         }
+                                        
                                         // Add Manager Claimed in Ronin
                                         roninBalance = roninBalance + details.managerClaimed;
+
+                                        // Update Manager Shared
+                                        if (result.inGameSLP > details.managerClaimed) {
+                                            const managerShare = (details.manager).toString() === "100" ? 1 : "0." + details.manager;
+                                            const currentInGameSLP = result.inGameSLP - details.managerClaimed; // Minus again for computation of Manager Shared SLP
+                                            result.sharedManagerSLP = Math.ceil(currentInGameSLP * managerShare);
+                                            // Adding ronin balance in total Manage SLP x // Set new Total Manager's Earning
+                                            this.setState({
+                                                totalManagerSLP: this.state.totalManagerSLP + result.sharedManagerSLP + roninBalance
+                                            })
+                                        } else {
+                                            // Zero manager shared
+                                            result.sharedManagerSLP = 0;
+                                        }
                                     }
                                 }
 
@@ -847,6 +853,15 @@ class Home extends React.Component {
                                         // this.sendMMRMessage(result.name, details.email, ranking.elo, CONSTANTS.MESSAGE.EMAIL_WARNINGMMR_MESSAGE);
                                     }
                                 }
+
+                                // Set new total SLP x computed base on Shared SLP plus total SLP
+                                result.totalScholarEarningSLP = roninBalance + result.sharedScholarSLP;
+                                // Set new total PHP x computed base on totalScholarEarningSLP multiply slpCurrentValue
+                                result.totalScholarEarningPHP = result.totalScholarEarningSLP * this.state.slpCurrentValue;
+                                // Set new total Manager SLP Earning x computed base on sharedManagerSLP multiply slpCurrentValue
+                                result.totalManagerEarningPHP = result.sharedManagerSLP * this.state.slpCurrentValue;
+                                // Set new total Sponsor SLP Earning x computed base on sharedSponsorSLP multiply slpCurrentValue
+                                result.totalSponsorEarningPHP = result.sharedSponsorSLP * this.state.slpCurrentValue;
                             }
 
                             // Update value of win, lose, draw and win rate based in Battle Log

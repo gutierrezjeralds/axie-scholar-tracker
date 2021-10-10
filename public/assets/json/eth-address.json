@@ -45,7 +45,8 @@
                 "id": 5,
                 "date": "2021-10-10",
                 "slp": 10789,
-                "slpPrice": 4.06
+                "slpPrice": 4.06,
+                "category": "breed"
             }
         ],
         "claimedEarning": [
@@ -198,7 +199,7 @@
         "totalIncome": 0,
         "started": "2021-09-25",
         "pvpEnergy": 20,
-        "managerClaimed": 861,
+        "managerClaimed": 0,
         "claimedEarning": []
     },
     {

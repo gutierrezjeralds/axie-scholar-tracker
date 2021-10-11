@@ -612,7 +612,7 @@ class Home extends React.Component {
                         const battleLogs = await this.getPlayerBattleLog(details.roninAddress, ethAddress, details.pvpEnergy);
 
                         // Creating object
-                        let roninBalance = 0, totalSLP = 0
+                        let roninBalance = 0, totalSLP = 0, managerSLPClaimed = 0;
                         if (ranking.error === undefined) {
                             // Adding text color of MMR based on MMR level
                             ranking.textStyle = "black-text";
@@ -807,7 +807,8 @@ class Home extends React.Component {
                                 // Has InGame SLP
                                 if (result.inGameSLP > 0) {
                                     // Minus the total InGame SLP and add in ronin if has Manager SLP Claimed x Manager Ronin Claimed
-                                    if (details.managerClaimed > 0) {
+                                    if (details.managerClaimed !== undefined && details.managerClaimed > 0) {
+                                        managerSLPClaimed = details.managerClaimed;
                                         result.managerRoninClaimed = true; // Indicator for Manager Claimed
                                         // Minus the InGame SLP
                                         if (result.inGameSLP > details.managerClaimed) {
@@ -860,7 +861,7 @@ class Home extends React.Component {
                                 }
 
                                 // Set new total SLP x computed base on Shared SLP plus total SLP
-                                result.totalScholarEarningSLP = roninBalance + result.sharedScholarSLP;
+                                result.totalScholarEarningSLP = roninBalance + result.sharedScholarSLP + managerSLPClaimed;
                                 // Set new total PHP x computed base on totalScholarEarningSLP multiply slpCurrentValue
                                 result.totalScholarEarningPHP = result.totalScholarEarningSLP * this.state.slpCurrentValue;
                                 // Set new total Manager SLP Earning x computed base on sharedManagerSLP multiply slpCurrentValue

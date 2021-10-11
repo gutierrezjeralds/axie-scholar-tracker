@@ -122,7 +122,7 @@
         "totalIncome": 0,
         "started": "2021-08-01",
         "pvpEnergy": 20,
-        "managerClaimed": 1319,
+        "managerClaimed": 0,
         "claimedEarning": [
             {
                 "id": 1,

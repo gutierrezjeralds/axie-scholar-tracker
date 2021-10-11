@@ -612,7 +612,7 @@ class Home extends React.Component {
                         const battleLogs = await this.getPlayerBattleLog(details.roninAddress, ethAddress, details.pvpEnergy);
 
                         // Creating object
-                        let roninBalance = 0, totalSLP = 0, managerSLPClaimed = 0;
+                        let roninBalance = 0, managerSLPClaimed = 0;
                         if (ranking.error === undefined) {
                             // Adding text color of MMR based on MMR level
                             ranking.textStyle = "black-text";
@@ -666,8 +666,7 @@ class Home extends React.Component {
                                 // Check if has balance in Ronin x Set new value for total in game slp
                                 if (result.blockchain_related.balance !== null && result.blockchain_related.balance > 0) {
                                     roninBalance = result.blockchain_related.balance;
-                                    totalSLP = result.total;
-                                    result.inGameSLP = totalSLP - roninBalance;
+                                    result.inGameSLP = result.total - roninBalance;
                                 }
 
                                 if ((details.manager).toString() === "100" || details.manager > 0) { // Condition for Manager
@@ -678,10 +677,10 @@ class Home extends React.Component {
                                     if ((details.manager).toString() === "100") {
                                         // Set new Shared SLP
                                         result.scholarSLP = 0;
-                                        if (roninBalance > totalSLP) {
-                                            result.sharedScholarSLP = Math.ceil(roninBalance - totalSLP);
+                                        if (roninBalance > result.total) {
+                                            result.sharedScholarSLP = Math.ceil(roninBalance - result.total);
                                         } else {
-                                            result.sharedScholarSLP = Math.ceil(totalSLP - roninBalance);
+                                            result.sharedScholarSLP = Math.ceil(result.total - roninBalance);
                                         }
 
                                         // Adding ronin balance in total Manage SLP x // Set new Total Manager's Earning

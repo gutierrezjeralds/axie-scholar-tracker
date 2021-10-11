@@ -685,11 +685,9 @@ class Home extends React.Component {
                                         }
 
                                         // Adding ronin balance in total Manage SLP x // Set new Total Manager's Earning
-                                        if (details.managerClaimed <= 0) {
-                                            this.setState({
-                                                totalManagerSLP: this.state.totalManagerSLP + result.sharedManagerSLP + roninBalance
-                                            })
-                                        }
+                                        this.setState({
+                                            totalManagerSLP: this.state.totalManagerSLP + result.sharedManagerSLP + roninBalance
+                                        })
                                     } else {
                                         // Set new Total Manager's Earning
                                         if (details.managerClaimed <= 0) {

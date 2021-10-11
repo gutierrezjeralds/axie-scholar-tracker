@@ -10,7 +10,7 @@
         "sponsorName": "",
         "totalIncome": 0,
         "started": "2021-07-20",
-        "pvpEnergy": 40,
+        "pvpEnergy": 20,
         "managerClaimed": 0,
         "managerEarning": [
             {
@@ -87,7 +87,7 @@
         "sponsorName": "",
         "totalIncome": 0,
         "started": "2021-07-31",
-        "pvpEnergy": 20,
+        "pvpEnergy": 40,
         "managerClaimed": 1743,
         "claimedEarning": [
             {

@@ -87,7 +87,7 @@
         "sponsorName": "",
         "totalIncome": 0,
         "started": "2021-07-31",
-        "pvpEnergy": 40,
+        "pvpEnergy": 20,
         "managerClaimed": 1743,
         "claimedEarning": [
             {
@@ -213,6 +213,36 @@
         "sponsorName": "",
         "totalIncome": 0,
         "started": "2021-10-01",
+        "pvpEnergy": 20,
+        "managerClaimed": 0,
+        "claimedEarning": []
+    },
+    {
+        "id": 8,
+        "roninAddress": "ronin:284e74b691bb6ac43163df9af47b19ba6950fdaf",
+        "name": "Jerome",
+        "email": "christianjeromegutierrez@gmail.com",
+        "manager": 50,
+        "scholar": 50,
+        "sponsor": 0,
+        "sponsorName": "",
+        "totalIncome": 0,
+        "started": "2021-10-16",
+        "pvpEnergy": 20,
+        "managerClaimed": 0,
+        "claimedEarning": []
+    },
+    {
+        "id": 9,
+        "roninAddress": "ronin:43e52c3691f1d2559f9a5edeba7f7c5c3363c34b",
+        "name": "Owens",
+        "email": "owens@gmail.com",
+        "manager": 50,
+        "scholar": 50,
+        "sponsor": 0,
+        "sponsorName": "",
+        "totalIncome": 0,
+        "started": "2021-10-16",
         "pvpEnergy": 20,
         "managerClaimed": 0,
         "claimedEarning": []

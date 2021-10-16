@@ -246,5 +246,20 @@
         "pvpEnergy": 20,
         "managerClaimed": 0,
         "claimedEarning": []
+    },
+    {
+        "id": 9,
+        "roninAddress": "ronin:eeb917c272a41406d4ff2d9f6b434527ecafa640",
+        "name": "JN",
+        "email": "johnnoviec.cruz+1@gmail.com",
+        "manager": 70,
+        "scholar": 30,
+        "sponsor": 0,
+        "sponsorName": "",
+        "totalIncome": 0,
+        "started": "2021-10-17",
+        "pvpEnergy": 20,
+        "managerClaimed": 0,
+        "claimedEarning": []
     }
 ]

@@ -1462,7 +1462,7 @@ class Home extends React.Component {
                                                 {
                                                     this.state.isUser === CONSTANTS.MESSAGE.MANAGER ? (
                                                         <MDBCol size="12">
-                                                            <MDBBox tag="span" className="d-block">
+                                                            <MDBBox tag="span" className="d-block selectable-text">
                                                                 {CONSTANTS.MESSAGE.EMAIL}: {items.details.email}
                                                             </MDBBox>
                                                         </MDBCol>

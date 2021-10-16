@@ -611,12 +611,19 @@ class Home extends React.Component {
                         // Get Player battle log base on Game API Axie Technology
                         const battleLogs = await this.getPlayerBattleLog(details.roninAddress, ethAddress, details.pvpEnergy);
 
-                        // Creating object
-                        let roninBalance = 0, managerSLPClaimed = 0;
-                        if (ranking.error === undefined) {
+                        if (ranking.error) {
+                            // Default object for ranking
+                            ranking.name = "";
+                            ranking.elo = 0;
+                            ranking.rank = 0;
+                            ranking.win_total = 0;
+                            ranking.lose_total = 0;
+                            ranking.draw_total = 0;
+                            ranking.win_rate = 0;
+                            ranking.textStyle = "";
+                            ranking.eloStatus = "";
+                        } else {
                             // Adding text color of MMR based on MMR level
-                            ranking.textStyle = "black-text";
-                            ranking.eloStatus = "default";
                             if (ranking.elo < 1300 && ranking.elo >= 1100) {
                                 // Estimated SLP gain on this MRR (6SLP) x Set as warning need to up
                                 ranking.textStyle = "orange-text";
@@ -630,298 +637,298 @@ class Home extends React.Component {
                                 ranking.textStyle = "green-text";
                                 ranking.eloStatus = "success";
                             }
+                        }
 
-                            result.name = ranking.name ? ranking.name : "";
-                            result.last_claimed_item_at_add = moment.unix(result.last_claimed_item_at).add(1, 'days');
-                            result.claim_on_days = 0;
-                            result.inGameSLP = result.total;
-                            result.totalScholarEarningSLP = result.total;
-                            result.averageSLPDay = 0;
-                            result.sharedManagerSLP = 0;
-                            result.sharedSponsorSLP = 0;
-                            result.pvp_energy = details.pvp_energy !== undefined ? details.pvp_energy + "/" + details.pvp_energy : "20/20"; // 20 is Default energy
-                            result.managerRoninClaimed = false;
+                        // Creating object
+                        let roninBalance = 0, managerSLPClaimed = 0;
+                        result.name = ranking.name ? ranking.name : "";
+                        result.last_claimed_item_at_add = moment.unix(result.last_claimed_item_at).add(1, 'days');
+                        result.claim_on_days = 0;
+                        result.inGameSLP = result.total;
+                        result.totalScholarEarningSLP = result.total;
+                        result.averageSLPDay = 0;
+                        result.sharedManagerSLP = 0;
+                        result.sharedSponsorSLP = 0;
+                        result.pvp_energy = details.pvp_energy !== undefined ? details.pvp_energy + "/" + details.pvp_energy : "20/20"; // 20 is Default energy
+                        result.managerRoninClaimed = false;
 
-                            // Set new value for Claim On (Days) x last_claimed_item_at_add - current date
-                            const lastClaimedDate = new Date(moment.unix(result.last_claimed_item_at)).getTime();
-                            const currentDate = new Date().getTime();
-                            if (currentDate > lastClaimedDate) {
-                                result.claim_on_days = Math.round((currentDate - lastClaimedDate) / (1000 * 3600 * 24)).toFixed(0);
+                        // Set new value for Claim On (Days) x last_claimed_item_at_add - current date
+                        const lastClaimedDate = new Date(moment.unix(result.last_claimed_item_at)).getTime();
+                        const currentDate = new Date().getTime();
+                        if (currentDate > lastClaimedDate) {
+                            result.claim_on_days = Math.round((currentDate - lastClaimedDate) / (1000 * 3600 * 24)).toFixed(0);
+                        }
+
+                        if (result.blockchain_related === null || result.blockchain_related.signature === null) {
+                            // Adding empty object
+                            result.blockchain_related.signature = {
+                                amount: 0,
+                                timestamp: ""
+                            }
+                        }
+
+                        result.sharedScholarSLP = result.inGameSLP;
+                        result.scholarSLP = result.inGameSLP;
+                        if (Object.keys(details).length > 0) {
+                            // Update name if the orig name is empty
+                            result.name = result.name ? result.name : details.name ? details.name : ethAddress;
+
+                            // Check if has balance in Ronin x Set new value for total in game slp
+                            if (result.blockchain_related.balance !== null && result.blockchain_related.balance > 0) {
+                                roninBalance = result.blockchain_related.balance;
+                                result.inGameSLP = result.total - roninBalance;
                             }
 
-                            if (result.blockchain_related === null || result.blockchain_related.signature === null) {
-                                // Adding empty object
-                                result.blockchain_related.signature = {
-                                    amount: 0,
-                                    timestamp: ""
-                                }
-                            }
+                            if ((details.manager).toString() === "100" || details.manager > 0) { // Condition for Manager
+                                // Set new Shared SLP
+                                const managerShare = (details.manager).toString() === "100" ? 1 : "0." + details.manager;
+                                result.sharedManagerSLP = Math.ceil(result.inGameSLP * managerShare);
 
-                            result.sharedScholarSLP = result.inGameSLP;
-                            result.scholarSLP = result.inGameSLP;
-                            if (Object.keys(details).length > 0) {
-                                // Update name if the orig name is empty
-                                result.name = result.name ? result.name : details.name ? details.name : ethAddress;
-
-                                // Check if has balance in Ronin x Set new value for total in game slp
-                                if (result.blockchain_related.balance !== null && result.blockchain_related.balance > 0) {
-                                    roninBalance = result.blockchain_related.balance;
-                                    result.inGameSLP = result.total - roninBalance;
-                                }
-
-                                if ((details.manager).toString() === "100" || details.manager > 0) { // Condition for Manager
+                                if ((details.manager).toString() === "100") {
                                     // Set new Shared SLP
-                                    const managerShare = (details.manager).toString() === "100" ? 1 : "0." + details.manager;
-                                    result.sharedManagerSLP = Math.ceil(result.inGameSLP * managerShare);
-
-                                    if ((details.manager).toString() === "100") {
-                                        // Set new Shared SLP
-                                        result.scholarSLP = 0;
-                                        if (roninBalance > result.total) {
-                                            result.sharedScholarSLP = Math.ceil(roninBalance - result.total);
-                                        } else {
-                                            result.sharedScholarSLP = Math.ceil(result.total - roninBalance);
-                                        }
-
-                                        // Adding ronin balance in total Manage SLP x // Set new Total Manager's Earning
-                                        this.setState({
-                                            totalManagerSLP: this.state.totalManagerSLP + result.sharedManagerSLP + roninBalance
-                                        })
+                                    result.scholarSLP = 0;
+                                    if (roninBalance > result.total) {
+                                        result.sharedScholarSLP = Math.ceil(roninBalance - result.total);
                                     } else {
-                                        // Set new Total Manager's Earning
-                                        if (details.managerClaimed <= 0) {
-                                            this.setState({
-                                                totalManagerSLP: this.state.totalManagerSLP + result.sharedManagerSLP
-                                            })
-                                        }
+                                        result.sharedScholarSLP = Math.ceil(result.total - roninBalance);
+                                    }
+
+                                    // Adding ronin balance in total Manage SLP x // Set new Total Manager's Earning
+                                    this.setState({
+                                        totalManagerSLP: this.state.totalManagerSLP + result.sharedManagerSLP + roninBalance
+                                    })
+                                } else {
+                                    // Set new Total Manager's Earning
+                                    if (details.managerClaimed <= 0) {
+                                        this.setState({
+                                            totalManagerSLP: this.state.totalManagerSLP + result.sharedManagerSLP
+                                        })
                                     }
                                 }
+                            }
 
-                                if ((details.sponsor).toString() !== "0" || details.sponsor > 0) { // Condition for Sponsor
-                                    // Set new Shared SLP
-                                    const sponsorShare = "0." + details.sponsor;
-                                    result.sharedSponsorSLP = Math.floor(result.inGameSLP * sponsorShare);
+                            if ((details.sponsor).toString() !== "0" || details.sponsor > 0) { // Condition for Sponsor
+                                // Set new Shared SLP
+                                const sponsorShare = "0." + details.sponsor;
+                                result.sharedSponsorSLP = Math.floor(result.inGameSLP * sponsorShare);
 
-                                    // Set new Total Sponsor's Earning
-                                    this.setState({
-                                        totalSponsorSLP: this.state.totalSponsorSLP + result.sharedSponsorSLP
-                                    })
-                                }
+                                // Set new Total Sponsor's Earning
+                                this.setState({
+                                    totalSponsorSLP: this.state.totalSponsorSLP + result.sharedSponsorSLP
+                                })
+                            }
 
-                                if ((details.scholar).toString() !== "0" || details.scholar > 0) { // Condition for Scholar Players
-                                    // Set new Shared SLP
-                                    const iskoShare = (details.scholar).toString() === "100" ? 1 : "0." + details.scholar;
-                                    result.sharedScholarSLP = Math.floor(result.inGameSLP * iskoShare);
-                                    result.scholarSLP = Math.floor(result.inGameSLP * iskoShare);
-                                }
+                            if ((details.scholar).toString() !== "0" || details.scholar > 0) { // Condition for Scholar Players
+                                // Set new Shared SLP
+                                const iskoShare = (details.scholar).toString() === "100" ? 1 : "0." + details.scholar;
+                                result.sharedScholarSLP = Math.floor(result.inGameSLP * iskoShare);
+                                result.scholarSLP = Math.floor(result.inGameSLP * iskoShare);
+                            }
 
-                                // Set new value for Total Income and Set value for Total Earning per claimed
-                                if (details.claimedEarning.length > 0) {
-                                    details.claimedEarning.map((data, index) => {
-                                        const earnedSLP = data.slp;
-                                        const slpPrice = data.slpPrice;
-                                        const totalIncome = details.totalIncome;
+                            // Set new value for Total Income and Set value for Total Earning per claimed
+                            if (details.claimedEarning.length > 0) {
+                                details.claimedEarning.map((data, index) => {
+                                    const earnedSLP = data.slp;
+                                    const slpPrice = data.slpPrice;
+                                    const totalIncome = details.totalIncome;
 
-                                        details.claimedEarning[index].earning = 0;
-                                        if (slpPrice.toString() !== "hold") {
-                                            // Adding Total Earning
-                                            details.claimedEarning[index].earning = earnedSLP * slpPrice;
-                                            // Update Total Income
-                                            details.totalIncome = totalIncome + details.claimedEarning[index].earning;
-                                        }
-
-                                        // Return
-                                        return true;
-                                    })
-                                }
-
-                                // Set new value for Manager All Income and Set value for Total Earning per claimed
-                                if (details.managerEarning !== undefined && details.managerEarning.length > 0) {
-                                    details.roi = 0;
-                                    details.income = 0;
-                                    details.breed = 0;
-                                    details.buy = 0;
-                                    details.reachedRoi = false; // For validation if ROI is completed
-                                    details.managerEarning.map((data, index) => {
-                                        const earnedSLP = data.slp;
-                                        const slpPrice = data.slpPrice;
-
-                                        details.managerEarning[index].earning = 0;
+                                    details.claimedEarning[index].earning = 0;
+                                    if (slpPrice.toString() !== "hold") {
                                         // Adding Total Earning
-                                        details.managerEarning[index].earning = earnedSLP * slpPrice;
-                                        // Update Total Income and SLP
-                                        this.setState({
-                                            totalManagerAllSLP: this.state.totalManagerAllSLP + earnedSLP,
-                                            totalManagerAllPHP: this.state.totalManagerAllPHP + details.managerEarning[index].earning
-                                        })
+                                        details.claimedEarning[index].earning = earnedSLP * slpPrice;
+                                        // Update Total Income
+                                        details.totalIncome = totalIncome + details.claimedEarning[index].earning;
+                                    }
 
-                                        if (data.category && (data.category.toLowerCase()) === "withdraw") {
-                                            if (!this.state.managerPHPReachedROI) {
-                                                // Adding Return of Investment
-                                                this.setState({
-                                                    managerPHPROI: this.state.managerPHPROI + details.managerEarning[index].earning
-                                                })
+                                    // Return
+                                    return true;
+                                })
+                            }
 
-                                                // Reached the ROI
-                                                if (this.state.managerPHPROI >= this.state.managerPHPInvestment) {
-                                                    this.setState({
-                                                        managerPHPReachedROI: true
-                                                    })
-                                                }
-                                            } else {
-                                                // Adding total of Income
+                            // Set new value for Manager All Income and Set value for Total Earning per claimed
+                            if (details.managerEarning !== undefined && details.managerEarning.length > 0) {
+                                details.roi = 0;
+                                details.income = 0;
+                                details.breed = 0;
+                                details.buy = 0;
+                                details.reachedRoi = false; // For validation if ROI is completed
+                                details.managerEarning.map((data, index) => {
+                                    const earnedSLP = data.slp;
+                                    const slpPrice = data.slpPrice;
+
+                                    details.managerEarning[index].earning = 0;
+                                    // Adding Total Earning
+                                    details.managerEarning[index].earning = earnedSLP * slpPrice;
+                                    // Update Total Income and SLP
+                                    this.setState({
+                                        totalManagerAllSLP: this.state.totalManagerAllSLP + earnedSLP,
+                                        totalManagerAllPHP: this.state.totalManagerAllPHP + details.managerEarning[index].earning
+                                    })
+
+                                    if (data.category && (data.category.toLowerCase()) === "withdraw") {
+                                        if (!this.state.managerPHPReachedROI) {
+                                            // Adding Return of Investment
+                                            this.setState({
+                                                managerPHPROI: this.state.managerPHPROI + details.managerEarning[index].earning
+                                            })
+
+                                            // Reached the ROI
+                                            if (this.state.managerPHPROI >= this.state.managerPHPInvestment) {
                                                 this.setState({
-                                                    managerPHPIncome: this.state.managerPHPIncome + details.managerEarning[index].earning
+                                                    managerPHPReachedROI: true
                                                 })
                                             }
-                                        }
-
-                                        if (data.category && (data.category.toLowerCase()) === "breed") {
-                                            // Adding total cost for breeding
-                                            this.setState({
-                                                managerPHPBreed: this.state.managerPHPBreed + details.managerEarning[index].earning
-                                            })
-                                            details.breed = details.breed + details.managerEarning[index].earning;
-                                        }
-
-                                        if (data.category && (data.category.toLowerCase()) === "buy") {
-                                            // Adding total cost for buying axie
-                                            this.setState({
-                                                managerPHPBuy: this.state.managerPHPBuy + details.managerEarning[index].earning
-                                            })
-                                        }
-
-                                        // Return
-                                        return true;
-                                    })
-
-                                    // Update Data for Manager All Earning
-                                    this.setState({
-                                        modalManagerAllEarning: details.managerEarning
-                                    })
-                                }
-
-                                // Has InGame SLP
-                                if (result.inGameSLP > 0) {
-                                    // Minus the total InGame SLP and add in ronin if has Manager SLP Claimed x Manager Ronin Claimed
-                                    if (details.managerClaimed !== undefined && details.managerClaimed > 0) {
-                                        managerSLPClaimed = details.managerClaimed;
-                                        result.managerRoninClaimed = true; // Indicator for Manager Claimed
-                                        // Minus the InGame SLP
-                                        if (result.inGameSLP > details.managerClaimed) {
-                                            result.inGameSLP = result.inGameSLP - details.managerClaimed;
                                         } else {
-                                            result.inGameSLP = details.managerClaimed - result.inGameSLP;
-                                        }
-
-                                        // Update Manager Shared
-                                        if (result.inGameSLP > details.managerClaimed) {
-                                            const managerShare = (details.manager).toString() === "100" ? 1 : "0." + details.manager;
-                                            const currentInGameSLP = result.inGameSLP - details.managerClaimed; // Minus again for computation of Manager Shared SLP
-                                            result.sharedManagerSLP = Math.ceil(currentInGameSLP * managerShare);
-                                            // Adding ronin balance in total Manage SLP x // Set new Total Manager's Earning
+                                            // Adding total of Income
                                             this.setState({
-                                                totalManagerSLP: this.state.totalManagerSLP + result.sharedManagerSLP
+                                                managerPHPIncome: this.state.managerPHPIncome + details.managerEarning[index].earning
                                             })
-                                        } else {
-                                            // Zero manager shared
-                                            result.sharedManagerSLP = 0;
                                         }
                                     }
 
-                                    // Update Total InGame and Scholar SLP
-                                    this.setState({
-                                        totalInGameSLP: this.state.totalInGameSLP + result.inGameSLP, // Set Total InGame SLP
-                                        totalScholarSLP: this.state.totalScholarSLP + result.scholarSLP // Set Total Scholar SLP
-                                    })
-
-                                    // Set Average SLP per Day
-                                    if (result.claim_on_days > 0) {
-                                        result.averageSLPDay = Math.floor(result.inGameSLP / result.claim_on_days);
+                                    if (data.category && (data.category.toLowerCase()) === "breed") {
+                                        // Adding total cost for breeding
                                         this.setState({
-                                            totalAverageSLP: this.state.totalAverageSLP + result.averageSLPDay
+                                            managerPHPBreed: this.state.managerPHPBreed + details.managerEarning[index].earning
+                                        })
+                                        details.breed = details.breed + details.managerEarning[index].earning;
+                                    }
+
+                                    if (data.category && (data.category.toLowerCase()) === "buy") {
+                                        // Adding total cost for buying axie
+                                        this.setState({
+                                            managerPHPBuy: this.state.managerPHPBuy + details.managerEarning[index].earning
                                         })
                                     }
+
+                                    // Return
+                                    return true;
+                                })
+
+                                // Update Data for Manager All Earning
+                                this.setState({
+                                    modalManagerAllEarning: details.managerEarning
+                                })
+                            }
+
+                            // Has InGame SLP
+                            if (result.inGameSLP > 0) {
+                                // Minus the total InGame SLP and add in ronin if has Manager SLP Claimed x Manager Ronin Claimed
+                                if (details.managerClaimed !== undefined && details.managerClaimed > 0) {
+                                    managerSLPClaimed = details.managerClaimed;
+                                    result.managerRoninClaimed = true; // Indicator for Manager Claimed
+                                    // Minus the InGame SLP
+                                    if (result.inGameSLP > details.managerClaimed) {
+                                        result.inGameSLP = result.inGameSLP - details.managerClaimed;
+                                    } else {
+                                        result.inGameSLP = details.managerClaimed - result.inGameSLP;
+                                    }
+
+                                    // Update Manager Shared
+                                    if (result.inGameSLP > details.managerClaimed) {
+                                        const managerShare = (details.manager).toString() === "100" ? 1 : "0." + details.manager;
+                                        const currentInGameSLP = result.inGameSLP - details.managerClaimed; // Minus again for computation of Manager Shared SLP
+                                        result.sharedManagerSLP = Math.ceil(currentInGameSLP * managerShare);
+                                        // Adding ronin balance in total Manage SLP x // Set new Total Manager's Earning
+                                        this.setState({
+                                            totalManagerSLP: this.state.totalManagerSLP + result.sharedManagerSLP
+                                        })
+                                    } else {
+                                        // Zero manager shared
+                                        result.sharedManagerSLP = 0;
+                                    }
                                 }
 
-                                // Send Email if the MMR is low x for Scholar's only x send if user is manager
-                                if (this.state.isUser === CONSTANTS.MESSAGE.MANAGER) {
-                                    if (ranking.eloStatus === "danger") {
-                                        // Send an Email due to Lower MMR
-                                        this.sendMMRMessage(result.name, details.email, ranking.elo, CONSTANTS.MESSAGE.EMAIL_LOWMMR_MESSAGE);
-                                    }
-    
-                                    if (ranking.eloStatus === "warning") {
-                                        // Send an Email due to Warning MMR
-                                        // this.sendMMRMessage(result.name, details.email, ranking.elo, CONSTANTS.MESSAGE.EMAIL_WARNINGMMR_MESSAGE);
-                                    }
+                                // Update Total InGame and Scholar SLP
+                                this.setState({
+                                    totalInGameSLP: this.state.totalInGameSLP + result.inGameSLP, // Set Total InGame SLP
+                                    totalScholarSLP: this.state.totalScholarSLP + result.scholarSLP // Set Total Scholar SLP
+                                })
+
+                                // Set Average SLP per Day
+                                if (result.claim_on_days > 0) {
+                                    result.averageSLPDay = Math.floor(result.inGameSLP / result.claim_on_days);
+                                    this.setState({
+                                        totalAverageSLP: this.state.totalAverageSLP + result.averageSLPDay
+                                    })
+                                }
+                            }
+
+                            // Send Email if the MMR is low x for Scholar's only x send if user is manager
+                            if (this.state.isUser === CONSTANTS.MESSAGE.MANAGER) {
+                                if (ranking.eloStatus === "danger") {
+                                    // Send an Email due to Lower MMR
+                                    this.sendMMRMessage(result.name, details.email, ranking.elo, CONSTANTS.MESSAGE.EMAIL_LOWMMR_MESSAGE);
                                 }
 
-                                // Set new total SLP x computed base on Shared SLP plus total SLP
-                                result.totalScholarEarningSLP = roninBalance + result.sharedScholarSLP + managerSLPClaimed;
-                                // Set new total PHP x computed base on totalScholarEarningSLP multiply slpCurrentValue
-                                result.totalScholarEarningPHP = result.totalScholarEarningSLP * this.state.slpCurrentValue;
-                                // Set new total Manager SLP Earning x computed base on sharedManagerSLP multiply slpCurrentValue
-                                result.totalManagerEarningPHP = result.sharedManagerSLP * this.state.slpCurrentValue;
-                                // Set new total Sponsor SLP Earning x computed base on sharedSponsorSLP multiply slpCurrentValue
-                                result.totalSponsorEarningPHP = result.sharedSponsorSLP * this.state.slpCurrentValue;
+                                if (ranking.eloStatus === "warning") {
+                                    // Send an Email due to Warning MMR
+                                    // this.sendMMRMessage(result.name, details.email, ranking.elo, CONSTANTS.MESSAGE.EMAIL_WARNINGMMR_MESSAGE);
+                                }
                             }
 
-                            // Update value of win, lose, draw and win rate based in Battle Log
-                            if(battleLogs.error === undefined) {
-                                ranking.win_total = battleLogs.win_total;
-                                ranking.lose_total = battleLogs.lose_total;
-                                ranking.draw_total = battleLogs.draw_total;
-                                ranking.win_rate = battleLogs.win_rate;
-                                // Update PVP Energy left
-                                result.pvp_energy = battleLogs.pvp_energy;
-                            }
-
-                            // Adding Player details and ranking in result object
-                            result.details = details;
-                            result.ranking = ranking;
-
-                            // Get all ETH Address x for other display x MMR Ranking x etc
-                            this.state.playerRecords.push(result);
-
-                            // Update Player Datatable row details
-                            const playerDataTableRes = {
-                                name: result.name,
-                                averageSLP: <MDBBox data-th={CONSTANTS.MESSAGE.AVERAGE_SLP_PERDAY_V2} tag="span">{result.averageSLPDay}</MDBBox>,
-                                ingameSLP: <MDBBox data-th={CONSTANTS.MESSAGE.INGAME_SLP} tag="span">{this.numberWithCommas(result.inGameSLP)}</MDBBox>,
-                                sharedScholarSLP: <MDBBox data-th={CONSTANTS.MESSAGE.SHARED_SLP} tag="span" className="d-inline d-md-block d-lg-block">{this.numberWithCommas(result.sharedScholarSLP)} <MDBBox tag="span" className="d-inline d-md-block d-lg-block">({(details.manager).toString() === "100" ? details.manager : details.scholar}%)</MDBBox></MDBBox>,
-                                roninSLP: <MDBBox data-th={CONSTANTS.MESSAGE.RONIN_SLP} tag="span">{this.numberWithCommas(roninBalance)} <MDBBox tag="span" className="d-inline d-md-block d-lg-block red-text">{result.managerRoninClaimed ? "(" + this.numberWithCommas(result.details.managerClaimed) + ")" : ""}</MDBBox></MDBBox>,
-                                totalScholarEarningSLP: <MDBBox data-th={CONSTANTS.MESSAGE.TOTAL_SLP} tag="span">{this.numberWithCommas(result.totalScholarEarningSLP)}</MDBBox>,
-                                totalScholarEarningPHP: <MDBBox data-th={CONSTANTS.MESSAGE.EARNINGS_PHP} tag="span">{this.numberWithCommas((result.totalScholarEarningPHP).toFixed(2))}</MDBBox>,
-                                claimOn: <MDBBox data-th={CONSTANTS.MESSAGE.CLAIMON} tag="span" className="d-block">{moment.unix(result.last_claimed_item_at).add(14, "days").format("MMM DD, hh:mm A")} <MDBBox tag="span" className="d-block">{result.claim_on_days} {CONSTANTS.MESSAGE.DAYS}</MDBBox></MDBBox>,
-                                mmr: <MDBBox data-th={CONSTANTS.MESSAGE.MMR} tag="span" className={ranking.textStyle}>{this.numberWithCommas(ranking.elo)}</MDBBox>,
-                                rank: <MDBBox data-th={CONSTANTS.MESSAGE.RANK} tag="span">{this.numberWithCommas(ranking.rank)}</MDBBox>,
-                                mmrRank: <MDBBox data-th={CONSTANTS.MESSAGE.MMR} tag="span"><MDBBox tag="span" className={ranking.textStyle}>{this.numberWithCommas(ranking.elo)}</MDBBox> <MDBBox tag="span" className="d-inline d-md-block d-lg-block">({this.numberWithCommas(ranking.rank)})</MDBBox></MDBBox>,
-                                sharedManagerSLP: <MDBBox data-th={CONSTANTS.MESSAGE.SHARED_SLP} tag="span">{this.numberWithCommas(result.sharedManagerSLP)}</MDBBox>,
-                                managerEarningsPHP: <MDBBox data-th={CONSTANTS.MESSAGE.EARNINGS_PHP} tag="span">{this.numberWithCommas((result.totalManagerEarningPHP).toFixed(2))}</MDBBox>,
-                                sharedSponsorSLP: <MDBBox data-th={CONSTANTS.MESSAGE.SHARED_SLP} tag="span">{this.numberWithCommas(result.sharedSponsorSLP)}</MDBBox>,
-                                sponsorEarningsPHP: <MDBBox data-th={CONSTANTS.MESSAGE.EARNINGS_PHP} tag="span">{this.numberWithCommas((result.totalSponsorEarningPHP).toFixed(2))}</MDBBox>,
-                                nameMmr: `${result.name} (${ranking.elo})`,
-                                nameInGameSLP: `${result.name} (${result.inGameSLP})`,
-                                pvpEnergy: <MDBBox data-th={CONSTANTS.MESSAGE.PVP_ENERGY} tag="span">{result.pvp_energy}</MDBBox>,
-                                clickEvent: this.modalPlayerDetailsToggle(result.client_id, [result])
-                            };
-
-                            // Create Excel data
-                            const playerDataTableExport = {
-                                Name: result.name,
-                                InGameSLP: result.inGameSLP,
-                                ManagerSLP: result.sharedManagerSLP,
-                                SponsorSLP: result.sharedSponsorSLP,
-                                ScholarSLP: result.totalScholarEarningSLP,
-                                ClaimOn: moment.unix(result.last_claimed_item_at).add(14, "days").format("MMM DD, hh:mm A")
-                            }
-                            
-                            // Success return
-                            return resolve({error: false, data: playerDataTableRes, slp: result.inGameSLP, rank: ranking.rank, eth: userEthAddress, export: playerDataTableExport});
-                        } else {
-                            return reject({error: true});
+                            // Set new total SLP x computed base on Shared SLP plus total SLP
+                            result.totalScholarEarningSLP = roninBalance + result.sharedScholarSLP + managerSLPClaimed;
+                            // Set new total PHP x computed base on totalScholarEarningSLP multiply slpCurrentValue
+                            result.totalScholarEarningPHP = result.totalScholarEarningSLP * this.state.slpCurrentValue;
+                            // Set new total Manager SLP Earning x computed base on sharedManagerSLP multiply slpCurrentValue
+                            result.totalManagerEarningPHP = result.sharedManagerSLP * this.state.slpCurrentValue;
+                            // Set new total Sponsor SLP Earning x computed base on sharedSponsorSLP multiply slpCurrentValue
+                            result.totalSponsorEarningPHP = result.sharedSponsorSLP * this.state.slpCurrentValue;
                         }
+
+                        // Update value of win, lose, draw and win rate based in Battle Log
+                        if(battleLogs.error === undefined) {
+                            ranking.win_total = battleLogs.win_total;
+                            ranking.lose_total = battleLogs.lose_total;
+                            ranking.draw_total = battleLogs.draw_total;
+                            ranking.win_rate = battleLogs.win_rate;
+                            // Update PVP Energy left
+                            result.pvp_energy = battleLogs.pvp_energy;
+                        }
+
+                        // Adding Player details and ranking in result object
+                        result.details = details;
+                        result.ranking = ranking;
+
+                        // Get all ETH Address x for other display x MMR Ranking x etc
+                        this.state.playerRecords.push(result);
+
+                        // Update Player Datatable row details
+                        const playerDataTableRes = {
+                            name: result.name,
+                            averageSLP: <MDBBox data-th={CONSTANTS.MESSAGE.AVERAGE_SLP_PERDAY_V2} tag="span">{result.averageSLPDay}</MDBBox>,
+                            ingameSLP: <MDBBox data-th={CONSTANTS.MESSAGE.INGAME_SLP} tag="span">{this.numberWithCommas(result.inGameSLP)}</MDBBox>,
+                            sharedScholarSLP: <MDBBox data-th={CONSTANTS.MESSAGE.SHARED_SLP} tag="span" className="d-inline d-md-block d-lg-block">{this.numberWithCommas(result.sharedScholarSLP)} <MDBBox tag="span" className="d-inline d-md-block d-lg-block">({(details.manager).toString() === "100" ? details.manager : details.scholar}%)</MDBBox></MDBBox>,
+                            roninSLP: <MDBBox data-th={CONSTANTS.MESSAGE.RONIN_SLP} tag="span">{this.numberWithCommas(roninBalance)} <MDBBox tag="span" className="d-inline d-md-block d-lg-block red-text">{result.managerRoninClaimed ? "(" + this.numberWithCommas(result.details.managerClaimed) + ")" : ""}</MDBBox></MDBBox>,
+                            totalScholarEarningSLP: <MDBBox data-th={CONSTANTS.MESSAGE.TOTAL_SLP} tag="span">{this.numberWithCommas(result.totalScholarEarningSLP)}</MDBBox>,
+                            totalScholarEarningPHP: <MDBBox data-th={CONSTANTS.MESSAGE.EARNINGS_PHP} tag="span">{this.numberWithCommas((result.totalScholarEarningPHP).toFixed(2))}</MDBBox>,
+                            claimOn: <MDBBox data-th={CONSTANTS.MESSAGE.CLAIMON} tag="span" className="d-block">{moment.unix(result.last_claimed_item_at).add(14, "days").format("MMM DD, hh:mm A")} <MDBBox tag="span" className="d-block">{result.claim_on_days} {CONSTANTS.MESSAGE.DAYS}</MDBBox></MDBBox>,
+                            mmr: <MDBBox data-th={CONSTANTS.MESSAGE.MMR} tag="span" className={ranking.textStyle}>{this.numberWithCommas(ranking.elo)}</MDBBox>,
+                            rank: <MDBBox data-th={CONSTANTS.MESSAGE.RANK} tag="span">{this.numberWithCommas(ranking.rank)}</MDBBox>,
+                            mmrRank: <MDBBox data-th={CONSTANTS.MESSAGE.MMR} tag="span"><MDBBox tag="span" className={ranking.textStyle}>{this.numberWithCommas(ranking.elo)}</MDBBox> <MDBBox tag="span" className="d-inline d-md-block d-lg-block">({this.numberWithCommas(ranking.rank)})</MDBBox></MDBBox>,
+                            sharedManagerSLP: <MDBBox data-th={CONSTANTS.MESSAGE.SHARED_SLP} tag="span">{this.numberWithCommas(result.sharedManagerSLP)}</MDBBox>,
+                            managerEarningsPHP: <MDBBox data-th={CONSTANTS.MESSAGE.EARNINGS_PHP} tag="span">{this.numberWithCommas((result.totalManagerEarningPHP).toFixed(2))}</MDBBox>,
+                            sharedSponsorSLP: <MDBBox data-th={CONSTANTS.MESSAGE.SHARED_SLP} tag="span">{this.numberWithCommas(result.sharedSponsorSLP)}</MDBBox>,
+                            sponsorEarningsPHP: <MDBBox data-th={CONSTANTS.MESSAGE.EARNINGS_PHP} tag="span">{this.numberWithCommas((result.totalSponsorEarningPHP).toFixed(2))}</MDBBox>,
+                            nameMmr: `${result.name} (${ranking.elo})`,
+                            nameInGameSLP: `${result.name} (${result.inGameSLP})`,
+                            pvpEnergy: <MDBBox data-th={CONSTANTS.MESSAGE.PVP_ENERGY} tag="span">{result.pvp_energy}</MDBBox>,
+                            clickEvent: this.modalPlayerDetailsToggle(result.client_id, [result])
+                        };
+
+                        // Create Excel data
+                        const playerDataTableExport = {
+                            Name: result.name,
+                            InGameSLP: result.inGameSLP,
+                            ManagerSLP: result.sharedManagerSLP,
+                            SponsorSLP: result.sharedSponsorSLP,
+                            ScholarSLP: result.totalScholarEarningSLP,
+                            ClaimOn: moment.unix(result.last_claimed_item_at).add(14, "days").format("MMM DD, hh:mm A")
+                        }
+                        
+                        // Success return
+                        return resolve({error: false, data: playerDataTableRes, slp: result.inGameSLP, rank: ranking.rank, eth: userEthAddress, export: playerDataTableExport});
                     } else {
                         return reject({error: true});
                     }
@@ -999,41 +1006,17 @@ class Home extends React.Component {
                 // instead of a catch() block so that we don't swallow
                 // exceptions from actual bugs in components.
                 (error) => {
-                    this.setState({
-                        isLoaded: true,
-                        isNotif: true,
-                        notifCat: "error",
-                        notifStr: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
-                        error: true
-                    })
-                        
                     console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, error)
                     return reject({error: true})
                 }
             )
             .catch(
                 (err) => {
-                    this.setState({
-                        isLoaded: true,
-                        isNotif: true,
-                        notifCat: "error",
-                        notifStr: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
-                        error: true
-                    })
-                        
                     console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
                     return reject({error: true});
                 }
             )
         }).catch(err => {
-            this.setState({
-                isLoaded: true,
-                isNotif: true,
-                notifCat: "error",
-                notifStr: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
-                error: true
-            })
-                
             console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
             return err;
         });
@@ -1055,7 +1038,13 @@ class Home extends React.Component {
                         let winTotal = 0, loseTotal = 0, drawTotal = 0;
                         let logsPromise = result[0].items.map(async function (logs) {
                             // Get the Client id winner today
-                            const isToday = moment().isSame(moment(logs.created_at), 'date');
+                            const battleLogData = moment(logs.created_at).format('YYYY-MM-DD HH:mm');
+                            const todayDate = moment().utc().format('YYYY-MM-DD 00:00');
+                            const gapData = moment().utc().add(24, "hours").format('YYYY-MM-DD HH:mm');
+                            // const battleLogDataUnix = moment(battleLogData).unix();
+                            // const todayDateUnix = moment(todayDate).unix();
+                            // const gapDataUnix = moment(gapData).unix();
+                            const isToday = moment(battleLogData).isSame(todayDate, 'date');
                             if (isToday) {
                                 if (logs.winner === 0) {
                                     // 0 = Winner 1

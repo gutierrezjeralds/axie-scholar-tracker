@@ -1439,7 +1439,7 @@ class Home extends React.Component {
                                         // Retreive only first loop x must be single display x "this.state.modalPlayerDetails" is already filtered
                                         <React.Fragment key={items.client_id}>
                                             <MDBRow between>
-                                                {/* Started pplaying */}
+                                                {/* Started playing */}
                                                 <MDBCol size="12" md="6" lg="6">
                                                     <MDBBox tag="span" className="d-block">
                                                         {CONSTANTS.MESSAGE.STARTED} <Moment format="MMM DD, YYYY">{items.details.started}</Moment>
@@ -1458,6 +1458,16 @@ class Home extends React.Component {
                                                         </a>
                                                     </MDBBox>
                                                 </MDBCol>
+                                                {/* Email */}
+                                                {
+                                                    this.state.isUser === CONSTANTS.MESSAGE.MANAGER ? (
+                                                        <MDBCol size="12">
+                                                            <MDBBox tag="span" className="d-block">
+                                                                {CONSTANTS.MESSAGE.EMAIL}: {items.details.email}
+                                                            </MDBBox>
+                                                        </MDBCol>
+                                                    ) : ("")
+                                                }
                                             </MDBRow>
                                         </React.Fragment>
                                     ) : ("")

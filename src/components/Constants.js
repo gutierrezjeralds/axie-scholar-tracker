@@ -106,6 +106,7 @@ const MESSAGE = {
     MANAGER_SLP: "Manager SLP",
     SPONSOR_SLP: "Sponsor SLP",
     SCHOLAR_SLP: "Scholar SLP",
+    EMAIL: "Email"
 }
 
 export const CONSTANTS = {

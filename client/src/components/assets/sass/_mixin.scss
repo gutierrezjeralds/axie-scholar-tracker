@@ -1,0 +1,64 @@
+@mixin mediaQueries($deviceType) {
+    @if $deviceType == mixin-xxl {
+        // Extra Extra Large devices (greater than 1500px)
+    	@media (min-width: 1500px) {
+            @content;
+        }
+    }
+	@else if $deviceType == mixin-min-large {
+		// Extra Large devices (greater than 1200px)
+        @media (min-width: 1200px) {
+            @content;
+        }
+	}
+
+	@else if $deviceType == mixin-max-large {
+		// Large devices (desktops, less than 1200px)
+        @media (max-width: 1199px) {
+            @content;
+        }
+	}
+
+	@else if $deviceType == mixin-min-medium {
+		// Medium devices (greater than 993px)
+        @media (min-width: 992px) {
+            @content;
+        }
+	}
+
+	@else if $deviceType == mixin-max-medium {
+		// Medium devices (tablets, less than 992px)
+        @media (max-width: 991px) {
+            @content;
+        }
+    }
+    
+    @else if $deviceType == mixin-min-small {
+        // Small devices (greater than 769px)
+        @media (min-width: 768px) {
+            @content;
+        }
+    }
+
+    @else if $deviceType == mixin-max-small {
+        // Small devices (landscape phones, less than 768px)
+        @media (max-width: 767px) {
+            @content;
+        }
+    }
+    
+    @else if $deviceType == mixin-min-xs {
+        // Extra small devices (greater than 577px)
+        @media (min-width: 576px) {
+            @content;
+        }
+    }
+    
+    @else if $deviceType == mixin-max-xs {
+        // Extra small devices (portrait phones, less than 576px)
+        @media (max-width: 575px) {
+            @content;
+        }
+    }
+
+}

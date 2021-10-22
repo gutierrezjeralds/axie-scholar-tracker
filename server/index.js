@@ -50,6 +50,11 @@ app.get("/api", (req, res) => {
     res.json({ message: "Hello from server!" });
 });
 
+// All other GET requests not handled before will return our React app
+app.get('*', (req, res) => {
+    res.sendFile(path.resolve(__dirname, '../client/build', 'index.html'));
+});
+
 // GET Method x Daily SLP x Yesterday and Today
 app.get("/api/dailySLP", async (req, res) => {
     try {

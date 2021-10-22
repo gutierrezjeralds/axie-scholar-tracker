@@ -50,11 +50,6 @@ app.get("/api", (req, res) => {
     res.json({ message: "Hello from server!" });
 });
 
-// All other GET requests not handled before will return our React app
-app.get('*', (req, res) => {
-    res.sendFile(path.resolve(__dirname, '../client/build', 'index.html'));
-});
-
 // GET Method x Daily SLP x Yesterday and Today
 app.get("/api/dailySLP", async (req, res) => {
     try {
@@ -72,6 +67,7 @@ app.get("/api/dailySLP", async (req, res) => {
         const query = `${CONSTANTS.QUERY.SELECT.DAILYSLP}`;
         dbConn.query(query, function (error, results) {
             console.log(CONSTANTS.MESSAGE.END_SELECTQUERY);
+            console.log(CONSTANTS.MESSAGE.END_SELECTQUERY, results);
             // End DB Connection
             dbConn.end();
             if (error) {

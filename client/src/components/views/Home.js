@@ -426,6 +426,7 @@ class Home extends React.Component {
                     $.ajax(params).then(
                         async (result) => {
                             if (!result.error) {
+                                console.log(result)
                                 // Add new daily slp json in cookie
                                 if (dataCookie && dataCookie.length > 0) {
                                     // From POST Method x Update Cookie value

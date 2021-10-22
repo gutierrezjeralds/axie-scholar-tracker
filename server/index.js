@@ -9,7 +9,11 @@ app.use(express.json());
 // Have Node serve the files for our built React app
 app.use(express.static(path.resolve(__dirname, '../client/build')));
 
-// https://www.freemysqlhosting.net/
+/*
+    https://www.freemysqlhosting.net/
+    ReactJS Buildpack Heroku
+    ** https://buildpack-registry.s3.amazonaws.com/buildpacks/mars/create-react-app.tgz
+*/
 const conn = {
     host: "sql6.freemysqlhosting.net", // Replace with your host name
     user: "sql6445790",      // Replace with your database username
@@ -49,6 +53,11 @@ const CONSTANTS = {
 app.get("/api", (req, res) => {
     res.json({ message: "Hello from server!" });
 });
+
+// All other GET requests not handled before will return our React app
+// app.get('*', (req, res) => {
+//     res.sendFile(path.resolve(__dirname, '../client/build', 'index.html'));
+// });
 
 // GET Method x Daily SLP x Yesterday and Today
 app.get("/api/dailySLP", async (req, res) => {

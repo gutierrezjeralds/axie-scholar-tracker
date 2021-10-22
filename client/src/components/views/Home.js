@@ -1073,7 +1073,7 @@ class Home extends React.Component {
                         const playerDataTableRes = {
                             name: result.name,
                             averageSLP: <MDBBox data-th={CONSTANTS.MESSAGE.AVERAGE_SLP_PERDAY_V2} tag="span">{result.averageSLPDay}</MDBBox>,
-                            dailySLP: <MDBBox data-th={CONSTANTS.MESSAGE.DAILYSLP} tag="span">Y:{result.yesterdaySLP} <MDBBox tag="span" className="d-inline d-md-block d-lg-block">T: {result.todaySLP}</MDBBox></MDBBox>,
+                            dailySLP: <MDBBox data-th={CONSTANTS.MESSAGE.DAILYSLP} tag="span"><strong>Y:</strong> {result.yesterdaySLP} <MDBBox tag="span" className="d-inline d-md-block d-lg-block"><strong>T:</strong> {result.todaySLP}</MDBBox></MDBBox>,
                             ingameSLP: <MDBBox data-th={CONSTANTS.MESSAGE.INGAME_SLP} tag="span">{this.numberWithCommas(result.inGameSLP)}</MDBBox>,
                             sharedScholarSLP: <MDBBox data-th={CONSTANTS.MESSAGE.SHARED_SLP} tag="span" className="d-inline d-md-block d-lg-block">{this.numberWithCommas(result.sharedScholarSLP)} <MDBBox tag="span" className="d-inline d-md-block d-lg-block">({(details.manager).toString() === "100" ? details.manager : details.scholar}%)</MDBBox></MDBBox>,
                             roninSLP: <MDBBox data-th={CONSTANTS.MESSAGE.RONIN_SLP} tag="span">{this.numberWithCommas(roninBalance)} <MDBBox tag="span" className="d-inline d-md-block d-lg-block red-text">{result.managerRoninClaimed ? "(" + this.numberWithCommas(result.details.managerClaimed) + ")" : ""}</MDBBox></MDBBox>,

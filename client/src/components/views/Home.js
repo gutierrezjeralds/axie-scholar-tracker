@@ -637,7 +637,7 @@ class Home extends React.Component {
                                 exportData: disExportData
                             })
     
-                            // console.log("playerRecords", this.state.playerRecords)
+                            console.log("playerRecords", this.state.playerRecords)
                         } else {
                             // No data found
                             this.setState({
@@ -1068,9 +1068,10 @@ class Home extends React.Component {
                         result.yesterdaySLP = playerDataDailySLP.YESTERDAYRES;
                         result.todaySLP = playerDataDailySLP.TODAY;
 
-                        // Adding Player details and ranking in result object
+                        // Adding Player daily slp, details and ranking in result object
                         result.details = details;
                         result.ranking = ranking;
+                        result.dailySLP = playerDataDailySLP;
 
                         // Get all ETH Address x for other display x MMR Ranking x etc
                         this.state.playerRecords.push(result);

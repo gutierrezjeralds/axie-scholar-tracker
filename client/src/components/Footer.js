@@ -1,5 +1,4 @@
 import React from 'react'
-import $ from 'jquery';
 import { MDBContainer, MDBFooter, MDBBox } from "mdbreact";
 import { CONSTANTS } from './Constants';
 

@@ -120,7 +120,7 @@ app.post("/api/dailySLP", async (req, res) => {
                 console.log(CONSTANTS.MESSAGE.STARTEDPOST, items.ADDRESS);
                 if (items.ACTION === CONSTANTS.MESSAGE.INSERT) { // INSERT
                     console.log(CONSTANTS.MESSAGE.STARTED_INSERTQUERY);
-                    const query = `${CONSTANTS.QUERY.INSERT.DAILYSLP} (ADDRESS, YESTERDAY, TODAY, TODATE) VALUES ('${items.ADDRESS}', '${items.YESTERDAY}', '${items.TODAY}', '${items.TODATE}') ON DUPLICATE KEY UPDATE ADDRESS = VALUES(ADDRESS)`;
+                    const query = `${CONSTANTS.QUERY.INSERT.DAILYSLP} (ADDRESS, YESTERDAY, YESTERDAYRES, TODAY, TODATE) VALUES ('${items.ADDRESS}', '${items.YESTERDAY}', '${items.YESTERDAYRES}', '${items.TODAY}', '${items.TODATE}') ON DUPLICATE KEY UPDATE ADDRESS = VALUES(ADDRESS)`;
                     dbConn.query(query, function (error) {
                         if (error) {
                             console.log(CONSTANTS.MESSAGE.ERROR_PROCEDURE, error);
@@ -128,7 +128,7 @@ app.post("/api/dailySLP", async (req, res) => {
                     });
                 } else { // UPDATE
                     console.log(CONSTANTS.MESSAGE.STARTED_UPDATEQUERY);
-                    const query = `${CONSTANTS.QUERY.UPDATE.DAILYSLP} SET YESTERDAY = '${items.YESTERDAY}', TODAY = '${items.TODAY}', TODATE = '${items.TODATE}' WHERE ADDRESS = '${items.ADDRESS}'`;
+                    const query = `${CONSTANTS.QUERY.UPDATE.DAILYSLP} SET YESTERDAY = '${items.YESTERDAY}', YESTERDAYRES = '${items.YESTERDAYRES}', TODAY = '${items.TODAY}', TODATE = '${items.TODATE}' WHERE ADDRESS = '${items.ADDRESS}'`;
                     dbConn.query(query, function (error) {
                         if (error) {
                             console.log(CONSTANTS.MESSAGE.ERROR_PROCEDURE, error);

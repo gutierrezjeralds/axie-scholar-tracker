@@ -987,6 +987,7 @@ class Home extends React.Component {
                         let playerDataDailySLP = {
                             ADDRESS: details.roninAddress,
                             YESTERDAY: result.inGameSLP,
+                            YESTERDAYRES: 0,
                             TODAY: 0,
                             TODATE: moment().format("YYYY-MM-DD HH:mm:ss"),
                             ACTION: CONSTANTS.MESSAGE.INSERT
@@ -1000,7 +1001,7 @@ class Home extends React.Component {
                                     if (dailySLPFilter.length > 0) {
                                         // Get TODAY SLP base on InGameSLP and YESTERDAY SLP
                                         // const todaySLP = Number(result.inGameSLP) - Number(50);
-                                        const todaySLP = Number(result.inGameSLP) - Number(dailySLPFilter[0].YESTERDAY);
+                                        let todaySLP = Number(result.inGameSLP) - Number(dailySLPFilter[0].YESTERDAY);
                                         // Update daily slp object with new value of yesterday
                                         const todayDate = moment().format('YYYY-MM-DD HH:mm:ss');
                                         const isSameTODate = moment(dailySLPFilter[0].TODATE).isSame(todayDate, 'date');
@@ -1008,14 +1009,17 @@ class Home extends React.Component {
                                             // ToDate and date today is not equal x Check if the ToDate (time) is less than to 8AM (Reset of energy)
                                             // const duration = (moment.duration(moment().diff(dailySLPFilter[0].TODATE))).asHours();
                                             const todateTime = moment(dailySLPFilter[0].TODATE).format('HHmmss');
-                                            if (Number(todateTime) > Number("080000")) {
-                                                // Get YESTERDAY SLP base on InGameSLP and YESTERDAY SLP
-                                                const yesterdySLP = Number(result.inGameSLP) - Number(todaySLP);
+                                            if (Number(todateTime) >= Number("080000")) {
+                                                // Get YESTERDAY SLP base on YESTERDAY and TODAY SLP
+                                                const yesterdySLP = Number(dailySLPFilter[0].YESTERDAY) + Number(dailySLPFilter[0].TODAY);
+                                                // Get TODAY SLP base on InGameSLP and YESTERDAY SLP
+                                                const todaysSLP = Number(result.inGameSLP) - Number(yesterdySLP);
                                                 // Update Daily SLP x Newly added object in database x TODAY SLP is 0
                                                 playerDataDailySLP = {
                                                     ADDRESS: details.roninAddress,
                                                     YESTERDAY: yesterdySLP,
-                                                    TODAY: todaySLP,
+                                                    YESTERDAYRES: dailySLPFilter[0].TODAY,
+                                                    TODAY: todaysSLP,
                                                     TODATE: moment().format("YYYY-MM-DD HH:mm:ss"),
                                                     ACTION: CONSTANTS.MESSAGE.UPDATE
                                                 };
@@ -1025,6 +1029,7 @@ class Home extends React.Component {
                                                     playerDataDailySLP = {
                                                         ADDRESS: details.roninAddress,
                                                         YESTERDAY: dailySLPFilter[0].YESTERDAY,
+                                                        YESTERDAYRES: dailySLPFilter[0].YESTERDAYRES,
                                                         TODAY: todaySLP,
                                                         TODATE: dailySLPFilter[0].TODATE,
                                                         ACTION: CONSTANTS.MESSAGE.UPDATE
@@ -1041,6 +1046,7 @@ class Home extends React.Component {
                                                 playerDataDailySLP = {
                                                     ADDRESS: details.roninAddress,
                                                     YESTERDAY: dailySLPFilter[0].YESTERDAY,
+                                                    YESTERDAYRES: dailySLPFilter[0].YESTERDAYRES,
                                                     TODAY: todaySLP,
                                                     TODATE: dailySLPFilter[0].TODATE,
                                                     ACTION: CONSTANTS.MESSAGE.UPDATE
@@ -1059,7 +1065,7 @@ class Home extends React.Component {
                         }
 
                         // Adding Yesterday and Today in result
-                        result.yesterdaySLP = playerDataDailySLP.YESTERDAY;
+                        result.yesterdaySLP = playerDataDailySLP.YESTERDAYRES;
                         result.todaySLP = playerDataDailySLP.TODAY;
 
                         // Adding Player details and ranking in result object
@@ -1073,7 +1079,7 @@ class Home extends React.Component {
                         const playerDataTableRes = {
                             name: result.name,
                             averageSLP: <MDBBox data-th={CONSTANTS.MESSAGE.AVERAGE_SLP_PERDAY_V2} tag="span">{result.averageSLPDay}</MDBBox>,
-                            dailySLP: <MDBBox data-th={CONSTANTS.MESSAGE.DAILYSLP} tag="span"><strong>Y:</strong> {result.yesterdaySLP} <MDBBox tag="span" className="d-inline d-md-block d-lg-block"><strong>T:</strong> {result.todaySLP}</MDBBox></MDBBox>,
+                            dailySLP: <MDBBox data-th={CONSTANTS.MESSAGE.DAILYSLP} tag="span"><MDBBox tag="span" className={Number(result.yesterdaySLP) > Number(result.todaySLP) ? "green-text d-inline d-md-block d-lg-block" : "red-text d-inline d-md-block d-lg-block"}><strong>Y:</strong> {result.yesterdaySLP}</MDBBox> <MDBBox tag="span" className={Number(result.yesterdaySLP) > Number(result.todaySLP) ? "red-text d-inline d-md-block d-lg-block" : "green-text d-inline d-md-block d-lg-block"}><strong>T:</strong> {result.todaySLP}</MDBBox></MDBBox>,
                             ingameSLP: <MDBBox data-th={CONSTANTS.MESSAGE.INGAME_SLP} tag="span">{this.numberWithCommas(result.inGameSLP)}</MDBBox>,
                             sharedScholarSLP: <MDBBox data-th={CONSTANTS.MESSAGE.SHARED_SLP} tag="span" className="d-inline d-md-block d-lg-block">{this.numberWithCommas(result.sharedScholarSLP)} <MDBBox tag="span" className="d-inline d-md-block d-lg-block">({(details.manager).toString() === "100" ? details.manager : details.scholar}%)</MDBBox></MDBBox>,
                             roninSLP: <MDBBox data-th={CONSTANTS.MESSAGE.RONIN_SLP} tag="span">{this.numberWithCommas(roninBalance)} <MDBBox tag="span" className="d-inline d-md-block d-lg-block red-text">{result.managerRoninClaimed ? "(" + this.numberWithCommas(result.details.managerClaimed) + ")" : ""}</MDBBox></MDBBox>,

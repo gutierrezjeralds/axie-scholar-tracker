@@ -1019,7 +1019,7 @@ class Home extends React.Component {
                                                 // Today SLP is same x no change required
                                                 playerDataDailySLPwillSave = false;
                                                 result.dailySLP = dailySLPFilter[0];
-                                                result.dailySLP.noChange = true;
+                                                result.dailySLP.noChange = "isSameTODate";
                                             }
                                         }
                                     } else {
@@ -1037,19 +1037,21 @@ class Home extends React.Component {
                                             // Today SLP is same x no change required
                                             playerDataDailySLPwillSave = false;
                                             result.dailySLP = dailySLPFilter[0];
-                                            result.dailySLP.noChange = true;
+                                            result.dailySLP.noChange = "";
                                         }
                                     }
                                 } else {
                                     // No existing data in fetching of Daily SLP x Add new records
-                                    result.dailySLP = {
-                                        ADDRESS: details.roninAddress,
-                                        YESTERDAY: result.inGameSLP,
-                                        YESTERDAYRES: 0,
-                                        TODAY: 0,
-                                        TODATE: moment().format("YYYY-MM-DD HH:mm:ss"),
-                                        ACTION: CONSTANTS.MESSAGE.INSERT
-                                    };
+                                    if (result.inGameSLP <= 0) {
+                                        result.dailySLP = {
+                                            ADDRESS: details.roninAddress,
+                                            YESTERDAY: 0,
+                                            YESTERDAYRES: 0,
+                                            TODAY: 0,
+                                            TODATE: moment().format("YYYY-MM-DD HH:mm:ss"),
+                                            ACTION: CONSTANTS.MESSAGE.INSERT
+                                        };
+                                    }
                                 }
                             } catch (err) {
                                 // Has error in generate daily slp x used default data for display in table

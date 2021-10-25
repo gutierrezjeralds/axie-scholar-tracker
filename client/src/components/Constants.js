@@ -113,7 +113,8 @@ const MESSAGE = {
     EMPTY: "EMPTY",
     INSERT: "Insert",
     UPDATE: "UPDATE",
-    ERROR_FETCH_DAILYSLP: 'Error in fetching data of Daily SLP'
+    ERROR_FETCH_DAILYSLP: 'Error in fetching data of Daily SLP',
+    UPDATE_ISKODATA: "Update Scholar Data"
 }
 
 export const CONSTANTS = {

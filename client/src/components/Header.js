@@ -27,6 +27,12 @@ class Header extends React.Component {
         window.location.reload();
     }
 
+    // Open scholar data json
+    onWindowsOpen(event) {
+        event.preventDefault();
+        window.open("https://github.com/gutierrezjeralds/teamloki-tracker/edit/main/client/public/assets/json/eth-address.json");
+    }
+
     render() {
         return (
             <MDBBox tag="header">
@@ -46,6 +52,11 @@ class Header extends React.Component {
                                             <MDBBox tag="span" className="mr-2">{CONSTANTS.MESSAGE.TOTHE_MOON}</MDBBox>
                                         </MDBDropdownToggle>
                                         <MDBDropdownMenu>
+                                            {
+                                                this.state.isUser === CONSTANTS.MESSAGE.MANAGER ? (
+                                                    <MDBDropdownItem  onClick={this.onWindowsOpen.bind(this)}>{CONSTANTS.MESSAGE.UPDATE_ISKODATA}</MDBDropdownItem>
+                                                ) : ("")
+                                            }
                                             <MDBDropdownItem onClick={this.onLogoutHandle.bind(this)}>{CONSTANTS.MESSAGE.LOGOUT}</MDBDropdownItem>
                                         </MDBDropdownMenu>
                                     </MDBDropdown>

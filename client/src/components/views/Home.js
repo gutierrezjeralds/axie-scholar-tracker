@@ -612,7 +612,7 @@ class Home extends React.Component {
                                 exportData: disExportData
                             })
     
-                            console.log("playerRecords", this.state.playerRecords)
+                            // console.log("playerRecords", this.state.playerRecords)
                         } else {
                             // No data found
                             this.setState({
@@ -769,7 +769,7 @@ class Home extends React.Component {
                                     })
                                 } else {
                                     // Set new Total Manager's Earning
-                                    if (details.managerClaimed <= 0) {
+                                    if (details.managerDebtClaimed <= 0) {
                                         this.setState({
                                             totalManagerSLP: this.state.totalManagerSLP + result.sharedManagerSLP
                                         })
@@ -884,20 +884,20 @@ class Home extends React.Component {
                             // Has InGame SLP
                             if (result.inGameSLP > 0) {
                                 // Minus the total InGame SLP and add in ronin if has Manager SLP Claimed x Manager Ronin Claimed
-                                if (details.managerClaimed !== undefined && details.managerClaimed > 0) {
-                                    managerSLPClaimed = details.managerClaimed;
+                                if (details.managerDebtClaimed !== undefined && details.managerDebtClaimed > 0) {
+                                    managerSLPClaimed = details.managerDebtClaimed;
                                     result.managerRoninClaimed = true; // Indicator for Manager Claimed
                                     // Minus the InGame SLP
-                                    if (result.inGameSLP > details.managerClaimed) {
-                                        result.inGameSLP = result.inGameSLP - details.managerClaimed;
+                                    if (result.inGameSLP > details.managerDebtClaimed) {
+                                        result.inGameSLP = result.inGameSLP - details.managerDebtClaimed;
                                     } else {
-                                        result.inGameSLP = details.managerClaimed - result.inGameSLP;
+                                        result.inGameSLP = details.managerDebtClaimed - result.inGameSLP;
                                     }
 
                                     // Update Manager Shared
-                                    if (result.inGameSLP > details.managerClaimed) {
+                                    if (result.inGameSLP > details.managerDebtClaimed) {
                                         const managerShare = (details.manager).toString() === "100" ? 1 : "0." + details.manager;
-                                        const currentInGameSLP = result.inGameSLP - details.managerClaimed; // Minus again for computation of Manager Shared SLP
+                                        const currentInGameSLP = result.inGameSLP - details.managerDebtClaimed; // Minus again for computation of Manager Shared SLP
                                         result.sharedManagerSLP = Math.ceil(currentInGameSLP * managerShare);
                                         // Adding ronin balance in total Manage SLP x // Set new Total Manager's Earning
                                         this.setState({
@@ -1090,7 +1090,7 @@ class Home extends React.Component {
                             dailySLP: <MDBBox data-th={CONSTANTS.MESSAGE.DAILYSLP} tag="span"><MDBBox tag="span" className={Number(result.dailySLP.YESTERDAYRES) > Number(result.dailySLP.TODAY) ? "green-text d-inline d-md-block d-lg-block" : "red-text d-inline d-md-block d-lg-block"}><strong>Y:</strong> {result.dailySLP.YESTERDAYRES}</MDBBox> <MDBBox tag="span" className={Number(result.dailySLP.YESTERDAYRES) > Number(result.dailySLP.TODAY) ? "red-text d-inline d-md-block d-lg-block" : "green-text d-inline d-md-block d-lg-block"}><strong>T:</strong> {result.dailySLP.TODAY}</MDBBox></MDBBox>,
                             ingameSLP: <MDBBox data-th={CONSTANTS.MESSAGE.INGAME_SLP} tag="span">{this.numberWithCommas(result.inGameSLP)}</MDBBox>,
                             sharedScholarSLP: <MDBBox data-th={CONSTANTS.MESSAGE.SHARED_SLP} tag="span" className="d-inline d-md-block d-lg-block">{this.numberWithCommas(result.sharedScholarSLP)} <MDBBox tag="span" className="d-inline d-md-block d-lg-block">({(details.manager).toString() === "100" ? details.manager : details.scholar}%)</MDBBox></MDBBox>,
-                            roninSLP: <MDBBox data-th={CONSTANTS.MESSAGE.RONIN_SLP} tag="span">{this.numberWithCommas(roninBalance)} <MDBBox tag="span" className="d-inline d-md-block d-lg-block red-text">{result.managerRoninClaimed ? "(" + this.numberWithCommas(result.details.managerClaimed) + ")" : ""}</MDBBox></MDBBox>,
+                            roninSLP: <MDBBox data-th={CONSTANTS.MESSAGE.RONIN_SLP} tag="span">{this.numberWithCommas(roninBalance)} <MDBBox tag="span" className="d-inline d-md-block d-lg-block red-text">{result.managerRoninClaimed ? "(" + this.numberWithCommas(result.details.managerDebtClaimed) + ")" : ""}</MDBBox></MDBBox>,
                             totalScholarEarningSLP: <MDBBox data-th={CONSTANTS.MESSAGE.TOTAL_SLP} tag="span">{this.numberWithCommas(result.totalScholarEarningSLP)}</MDBBox>,
                             totalScholarEarningPHP: <MDBBox data-th={CONSTANTS.MESSAGE.EARNINGS_PHP} tag="span">{this.numberWithCommas((result.totalScholarEarningPHP).toFixed(2))}</MDBBox>,
                             claimOn: <MDBBox data-th={CONSTANTS.MESSAGE.CLAIMON} tag="span" className="d-block">{moment.unix(result.last_claimed_item_at).add(14, "days").format("MMM DD, hh:mm A")} <MDBBox tag="span" className="d-block">{result.claim_on_days} {CONSTANTS.MESSAGE.DAYS}</MDBBox></MDBBox>,

@@ -11,7 +11,7 @@
         "totalIncome": 0,
         "started": "2021-07-20",
         "pvpEnergy": 20,
-        "managerClaimed": 0,
+        "managerDebtClaimed": 0,
         "managerEarning": [
             {
                 "id": 1,
@@ -88,7 +88,7 @@
         "totalIncome": 0,
         "started": "2021-07-31",
         "pvpEnergy": 20,
-        "managerClaimed": 0,
+        "managerDebtClaimed": 0,
         "claimedEarning": [
             {
                 "id": 1,
@@ -128,7 +128,7 @@
         "totalIncome": 0,
         "started": "2021-08-01",
         "pvpEnergy": 20,
-        "managerClaimed": 0,
+        "managerDebtClaimed": 0,
         "claimedEarning": [
             {
                 "id": 1,
@@ -156,7 +156,7 @@
         "totalIncome": 0,
         "started": "2021-08-14",
         "pvpEnergy": 20,
-        "managerClaimed": 0,
+        "managerDebtClaimed": 0,
         "claimedEarning": [
             {
                 "id": 1,
@@ -202,7 +202,7 @@
         "totalIncome": 0,
         "started": "2021-08-30",
         "pvpEnergy": 20,
-        "managerClaimed": 1148,
+        "managerDebtClaimed": 1148,
         "claimedEarning": []
     },
     {
@@ -217,7 +217,7 @@
         "totalIncome": 0,
         "started": "2021-09-25",
         "pvpEnergy": 20,
-        "managerClaimed": 0,
+        "managerDebtClaimed": 0,
         "claimedEarning": []
     },
     {
@@ -232,7 +232,7 @@
         "totalIncome": 0,
         "started": "2021-10-01",
         "pvpEnergy": 20,
-        "managerClaimed": 0,
+        "managerDebtClaimed": 0,
         "claimedEarning": []
     },
     {
@@ -247,7 +247,7 @@
         "totalIncome": 0,
         "started": "2021-10-16",
         "pvpEnergy": 20,
-        "managerClaimed": 0,
+        "managerDebtClaimed": 0,
         "claimedEarning": []
     },
     {
@@ -262,7 +262,7 @@
         "totalIncome": 0,
         "started": "2021-10-16",
         "pvpEnergy": 20,
-        "managerClaimed": 0,
+        "managerDebtClaimed": 0,
         "claimedEarning": []
     },
     {
@@ -277,7 +277,7 @@
         "totalIncome": 0,
         "started": "2021-10-17",
         "pvpEnergy": 20,
-        "managerClaimed": 0,
+        "managerDebtClaimed": 0,
         "claimedEarning": []
     }
 ]

@@ -970,12 +970,13 @@ class Home extends React.Component {
                                         todaySLP = result.inGameSLP; // retain old data for newly claimed, must be update on the next day
                                     }
                                     // Check if the data from fetch is same date as date today
+                                    const toDate = moment(dailySLPFilter[0].TODATE).format('YYYY-MM-DD HH:mm:ss');
                                     const todayDate = moment().format('YYYY-MM-DD HH:mm:ss');
-                                    const isSameTODate = moment(dailySLPFilter[0].TODATE).isSame(todayDate, 'date');
+                                    const isSameTODate = moment(toDate).isSame(todayDate, 'date');
                                     if (!isSameTODate) {
                                         // ToDate and date today is not equal x Check if the ToDate (time) is less than to 8AM (Reset of energy)
                                         // const duration = (moment.duration(moment().diff(dailySLPFilter[0].TODATE))).asHours();
-                                        const todateTime = moment(dailySLPFilter[0].TODATE).format('HHmmss');
+                                        const todateTime = moment(toDate).format('HHmmss');
                                         if (Number(todateTime) >= Number("080000")) {
                                             // Update existing record for new data x another date x based in 8AM energy reset
                                             if (Number(result.claim_on_days) === 1) {
@@ -985,7 +986,7 @@ class Home extends React.Component {
                                                     YESTERDAY: 0,
                                                     YESTERDAYRES: 0,
                                                     TODAY: 0,
-                                                    TODATE: moment().format("YYYY-MM-DD HH:mm:ss"),
+                                                    TODATE: todayDate,
                                                     ACTION: CONSTANTS.MESSAGE.UPDATE
                                                 };
                                             } else {
@@ -999,12 +1000,12 @@ class Home extends React.Component {
                                                     YESTERDAY: yesterdySLP,
                                                     YESTERDAYRES: dailySLPFilter[0].TODAY,
                                                     TODAY: todaysSLP,
-                                                    TODATE: moment().format("YYYY-MM-DD HH:mm:ss"),
+                                                    TODATE: todayDate,
                                                     ACTION: CONSTANTS.MESSAGE.UPDATE
                                                 };
                                             }
                                         } else {
-                                            if (todaySLP > 0 && Number(todaySLP) > Number(dailySLPFilter[0].TODAY)) {
+                                            if (Number(todaySLP) > Number(dailySLPFilter[0].TODAY)) {
                                                 // Update Daily SLP with new TODAY SLP
                                                 result.dailySLP = {
                                                     ADDRESS: details.roninAddress,
@@ -1018,10 +1019,11 @@ class Home extends React.Component {
                                                 // Today SLP is same x no change required
                                                 playerDataDailySLPwillSave = false;
                                                 result.dailySLP = dailySLPFilter[0];
+                                                result.dailySLP.noChange = true;
                                             }
                                         }
                                     } else {
-                                        if (todaySLP > 0 && Number(todaySLP) > Number(dailySLPFilter[0].TODAY)) {
+                                        if (Number(todaySLP) > Number(dailySLPFilter[0].TODAY)) {
                                             // Update Daily SLP with new TODAY SLP
                                             result.dailySLP = {
                                                 ADDRESS: details.roninAddress,
@@ -1035,6 +1037,7 @@ class Home extends React.Component {
                                             // Today SLP is same x no change required
                                             playerDataDailySLPwillSave = false;
                                             result.dailySLP = dailySLPFilter[0];
+                                            result.dailySLP.noChange = true;
                                         }
                                     }
                                 } else {

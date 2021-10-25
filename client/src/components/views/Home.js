@@ -399,7 +399,7 @@ class Home extends React.Component {
 
 
     // Get and Set Daily SLP
-    dailySLPAPI = async (method = false, data, dataCookie) => {
+    dailySLPAPI = async (method = false, data) => {
         const dailyAPIPromise = new Promise(async(resolve, reject) => {
             try {
                 let params = {
@@ -419,65 +419,45 @@ class Home extends React.Component {
                     }
                 }
         
-                // Get cookie if already has dailyslp JSON
-                const dailySLPJson = Cookies.get("dailySLPJson");
-                if ((!dailySLPJson || dailySLPJson === undefined) || method === CONSTANTS.MESSAGE.POST) {
-                    // If not exist x run api
-                    $.ajax(params).then(
-                        async (result) => {
-                            if (!result.error) {
-                                // Add new daily slp json in cookie
-                                if (dataCookie && dataCookie.length > 0) {
-                                    // From POST Method x Update Cookie value
-                                    Cookies.set("dailySLPJson", JSON.stringify(dataCookie));
-                                }
-                                if (result.data.length > 0) {
-                                    if (method !== CONSTANTS.MESSAGE.POST) {
-                                        // From GET Method x Update Cookie value
-                                        Cookies.set("dailySLPJson", JSON.stringify(result.data));
-                                    }
-                                }
-                            }
-
-                            // Return
-                            resolve(result);
-                        },
-                        // Note: it's important to handle errors here
-                        // instead of a catch() block so that we don't swallow
-                        // exceptions from actual bugs in components.
-                        (error) => {
-                            console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, error)
-                            // Return
-                            reject(error);
-                        }
-                    )
-                    .catch(
-                        (err) => {
-                            console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
-                            // Return
-                            reject(err);
-                        }
-                    )
-                } else {
-                    // Return
-                    resolve(true);
-                }
+                // If not exist x run api
+                $.ajax(params).then(
+                    async (result) => {
+                        // Return
+                        resolve(result);
+                    },
+                    // Note: it's important to handle errors here
+                    // instead of a catch() block so that we don't swallow
+                    // exceptions from actual bugs in components.
+                    (error) => {
+                        console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, error)
+                        // Return
+                        reject(error);
+                    }
+                )
+                .catch(
+                    (err) => {
+                        console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
+                        // Return
+                        reject(err);
+                    }
+                )
             } catch (err) {
                 // Return
                 reject(err);
             }
         })
 
-        await dailyAPIPromise.then(() => {
+        await dailyAPIPromise.then((results) => {
+            const dailySLPData = !results.error && results.data !== undefined ? results.data.length > 0 ? results.data : [] : [];
             if (!method || method === CONSTANTS.MESSAGE.GET) {
                 // For initial load x don't used when method is POST
-                this.getRecord();
+                this.getRecord(dailySLPData);
             }
         });
     }
     
     // Fetch Player Record Data
-    getRecord = () => {
+    getRecord = (dailySLPData) => {
         $.ajax({
             url: "../assets/json/eth-address.json",
             dataType: "json",
@@ -486,9 +466,6 @@ class Home extends React.Component {
         .then(
             async (result) => {
                 if (result.length > 0) {
-                    // Get Daily SLP Json Data in Cookie
-                    const dailySLPDataJson = Cookies.get("dailySLPJson");
-
                     // Fetch player details in api of sky mavis
                     const dataResultPromise = result.map(async (item) => {
                         const ethAddress = item.roninAddress ? `0x${item.roninAddress.substring(6)}` : "";
@@ -508,7 +485,7 @@ class Home extends React.Component {
                         }
 
                         // Return
-                        return await this.getPlayerDetails(item, ethAddress, userEthAddress, dailySLPDataJson);
+                        return await this.getPlayerDetails(item, ethAddress, userEthAddress, dailySLPData);
                     });
 
                     await Promise.all(dataResultPromise).then(async (results) => {
@@ -517,7 +494,6 @@ class Home extends React.Component {
                         let managerEarningsDisplay = []; // Data for Manager Earnings in Modal
                         let disExportData = []; // Data to be exported
                         let daialySLPData = [] // Data to be pass in DailySLP API
-                        let daialySLPCookie = [] // Data to be save in DailySLP Cookie
 
                         const dataResult = results.filter(item => !item.error && item.data !== undefined && item.eth !== undefined); // Filter valid data
                         if (dataResult && dataResult.length > 0) {
@@ -550,8 +526,7 @@ class Home extends React.Component {
                                 });
 
                                 // Data for Daily SLP
-                                daialySLPCookie.push(dataItem.dailySLP);
-                                if (!dataItem.dailySLPisSame) {
+                                if (dataItem.dailySLPwillSave) {
                                     daialySLPData.push(dataItem.dailySLP);
                                 }
     
@@ -597,7 +572,7 @@ class Home extends React.Component {
 
                             // Run Daily SLP API x Save cookie
                             if (daialySLPData.length > 0) {
-                                this.dailySLPAPI(CONSTANTS.MESSAGE.POST, daialySLPData, daialySLPCookie);
+                                this.dailySLPAPI(CONSTANTS.MESSAGE.POST, daialySLPData);
                             }
     
                             // Return data x Set state
@@ -691,7 +666,7 @@ class Home extends React.Component {
     }
 
     // Get Player details base on Sky Mavis API
-    getPlayerDetails = async (details, ethAddress, userEthAddress, dailySLPCookie) => {
+    getPlayerDetails = async (details, ethAddress, userEthAddress, dailySLPData) => {
         return new Promise((resolve, reject) => {
             $.ajax({
                 url: "https://game-api.skymavis.com/game-api/clients/" + ethAddress + "/items/1",
@@ -982,40 +957,44 @@ class Home extends React.Component {
                             result.pvp_energy = battleLogs.pvp_energy;
                         }
 
-                        // Ceate Daily SLP Data
-                        let playerDataDailySLPisSame = false;
-                        let playerDataDailySLP = {
-                            ADDRESS: details.roninAddress,
-                            YESTERDAY: result.inGameSLP,
-                            YESTERDAYRES: 0,
-                            TODAY: 0,
-                            TODATE: moment().format("YYYY-MM-DD HH:mm:ss"),
-                            ACTION: CONSTANTS.MESSAGE.INSERT
-                        };
-
-                        if (dailySLPCookie && dailySLPCookie !== undefined) {
+                        // Generate Daily SLP Data
+                        let playerDataDailySLPwillSave = true // For checking if has data data to be save x true or false x true need to save / false no data to be save
+                        if (dailySLPData.length > 0) {
                             try {
-                                if (JSON.parse(dailySLPCookie).length > 0) {
-                                    // Filter data of daily slp cookie based on ronin address
-                                    const dailySLPFilter = JSON.parse(dailySLPCookie).filter(item => item.ADDRESS === details.roninAddress); // Filter valid data
-                                    if (dailySLPFilter.length > 0) {
-                                        // Get TODAY SLP base on InGameSLP and YESTERDAY SLP
-                                        // const todaySLP = Number(result.inGameSLP) - Number(50);
-                                        let todaySLP = Number(result.inGameSLP) - Number(dailySLPFilter[0].YESTERDAY);
-                                        // Update daily slp object with new value of yesterday
-                                        const todayDate = moment().format('YYYY-MM-DD HH:mm:ss');
-                                        const isSameTODate = moment(dailySLPFilter[0].TODATE).isSame(todayDate, 'date');
-                                        if (!isSameTODate) {
-                                            // ToDate and date today is not equal x Check if the ToDate (time) is less than to 8AM (Reset of energy)
-                                            // const duration = (moment.duration(moment().diff(dailySLPFilter[0].TODATE))).asHours();
-                                            const todateTime = moment(dailySLPFilter[0].TODATE).format('HHmmss');
-                                            if (Number(todateTime) >= Number("080000")) {
+                                const dailySLPFilter = dailySLPData.filter(item => item.ADDRESS === details.roninAddress); // Filter valid data
+                                if (dailySLPFilter.length > 0) {
+                                    // Get TODAY SLP x Subtraction of InGameSLP and YESTERDAY
+                                    let todaySLP = Number(result.inGameSLP) - Number(dailySLPFilter[0].YESTERDAY);
+                                    if (Number(dailySLPFilter[0].YESTERDAY) > Number(result.inGameSLP)) {
+                                        // 0 ingameslp, already claimed
+                                        todaySLP = result.inGameSLP; // retain old data for newly claimed, must be update on the next day
+                                    }
+                                    // Check if the data from fetch is same date as date today
+                                    const todayDate = moment().format('YYYY-MM-DD HH:mm:ss');
+                                    const isSameTODate = moment(dailySLPFilter[0].TODATE).isSame(todayDate, 'date');
+                                    if (!isSameTODate) {
+                                        // ToDate and date today is not equal x Check if the ToDate (time) is less than to 8AM (Reset of energy)
+                                        // const duration = (moment.duration(moment().diff(dailySLPFilter[0].TODATE))).asHours();
+                                        const todateTime = moment(dailySLPFilter[0].TODATE).format('HHmmss');
+                                        if (Number(todateTime) >= Number("080000")) {
+                                            // Update existing record for new data x another date x based in 8AM energy reset
+                                            if (Number(result.claim_on_days) === 1) {
+                                                // Update daily slp for newly claimed x pass 1 day after claimed
+                                                result.dailySLP = {
+                                                    ADDRESS: details.roninAddress,
+                                                    YESTERDAY: 0,
+                                                    YESTERDAYRES: 0,
+                                                    TODAY: 0,
+                                                    TODATE: moment().format("YYYY-MM-DD HH:mm:ss"),
+                                                    ACTION: CONSTANTS.MESSAGE.UPDATE
+                                                };
+                                            } else {
                                                 // Get YESTERDAY SLP base on YESTERDAY and TODAY SLP
                                                 const yesterdySLP = Number(dailySLPFilter[0].YESTERDAY) + Number(dailySLPFilter[0].TODAY);
                                                 // Get TODAY SLP base on InGameSLP and YESTERDAY SLP
                                                 const todaysSLP = Number(result.inGameSLP) - Number(yesterdySLP);
-                                                // Update Daily SLP x Newly added object in database x TODAY SLP is 0
-                                                playerDataDailySLP = {
+                                                // Update daily slp with new date
+                                                result.dailySLP = {
                                                     ADDRESS: details.roninAddress,
                                                     YESTERDAY: yesterdySLP,
                                                     YESTERDAYRES: dailySLPFilter[0].TODAY,
@@ -1023,55 +1002,78 @@ class Home extends React.Component {
                                                     TODATE: moment().format("YYYY-MM-DD HH:mm:ss"),
                                                     ACTION: CONSTANTS.MESSAGE.UPDATE
                                                 };
-                                            } else {
-                                                if (todaySLP > 0 && (todaySLP).toString() !== (dailySLPFilter[0].TODAY).toString()) {
-                                                    // Update Daily SLP with new TODAY SLP
-                                                    playerDataDailySLP = {
-                                                        ADDRESS: details.roninAddress,
-                                                        YESTERDAY: dailySLPFilter[0].YESTERDAY,
-                                                        YESTERDAYRES: dailySLPFilter[0].YESTERDAYRES,
-                                                        TODAY: todaySLP,
-                                                        TODATE: dailySLPFilter[0].TODATE,
-                                                        ACTION: CONSTANTS.MESSAGE.UPDATE
-                                                    };
-                                                } else {
-                                                    // Today SLP is same x no change required
-                                                    playerDataDailySLPisSame = true;
-                                                    playerDataDailySLP = dailySLPFilter[0];
-                                                }
                                             }
                                         } else {
-                                            if (todaySLP > 0 && (todaySLP).toString() !== (dailySLPFilter[0].TODAY).toString()) {
+                                            if (todaySLP > 0 && Number(todaySLP) > Number(dailySLPFilter[0].TODAY)) {
                                                 // Update Daily SLP with new TODAY SLP
-                                                playerDataDailySLP = {
+                                                result.dailySLP = {
                                                     ADDRESS: details.roninAddress,
                                                     YESTERDAY: dailySLPFilter[0].YESTERDAY,
                                                     YESTERDAYRES: dailySLPFilter[0].YESTERDAYRES,
                                                     TODAY: todaySLP,
-                                                    TODATE: dailySLPFilter[0].TODATE,
+                                                    TODATE: moment(dailySLPFilter[0].TODATE).format("YYYY-MM-DD HH:mm:ss"),
                                                     ACTION: CONSTANTS.MESSAGE.UPDATE
                                                 };
                                             } else {
                                                 // Today SLP is same x no change required
-                                                playerDataDailySLPisSame = true;
-                                                playerDataDailySLP = dailySLPFilter[0];
+                                                playerDataDailySLPwillSave = false;
+                                                result.dailySLP = dailySLPFilter[0];
                                             }
                                         }
+                                    } else {
+                                        if (todaySLP > 0 && Number(todaySLP) > Number(dailySLPFilter[0].TODAY)) {
+                                            // Update Daily SLP with new TODAY SLP
+                                            result.dailySLP = {
+                                                ADDRESS: details.roninAddress,
+                                                YESTERDAY: dailySLPFilter[0].YESTERDAY,
+                                                YESTERDAYRES: dailySLPFilter[0].YESTERDAYRES,
+                                                TODAY: todaySLP,
+                                                TODATE: moment(dailySLPFilter[0].TODATE).format("YYYY-MM-DD HH:mm:ss"),
+                                                ACTION: CONSTANTS.MESSAGE.UPDATE
+                                            };
+                                        } else {
+                                            // Today SLP is same x no change required
+                                            playerDataDailySLPwillSave = false;
+                                            result.dailySLP = dailySLPFilter[0];
+                                        }
                                     }
+                                } else {
+                                    // No existing data in fetching of Daily SLP x Add new records
+                                    result.dailySLP = {
+                                        ADDRESS: details.roninAddress,
+                                        YESTERDAY: result.inGameSLP,
+                                        YESTERDAYRES: 0,
+                                        TODAY: 0,
+                                        TODATE: moment().format("YYYY-MM-DD HH:mm:ss"),
+                                        ACTION: CONSTANTS.MESSAGE.INSERT
+                                    };
                                 }
                             } catch (err) {
-                                console.log("dailySLPCookie", err)
+                                // Has error in generate daily slp x used default data for display in table
+                                playerDataDailySLPwillSave = false;
+                                result.dailySLP = {
+                                    ADDRESS: details.roninAddress,
+                                    YESTERDAY: 0,
+                                    YESTERDAYRES: 0,
+                                    TODAY: 0,
+                                    ERROR: err
+                                }
+                            }
+                        } else {
+                            // Has error in dailySLPData x used default data for display in table
+                            playerDataDailySLPwillSave = false;
+                            result.dailySLP = {
+                                ADDRESS: details.roninAddress,
+                                YESTERDAY: 0,
+                                YESTERDAYRES: 0,
+                                TODAY: 0,
+                                ERROR: CONSTANTS.MESSAGE.ERROR_FETCH_DAILYSLP
                             }
                         }
-
-                        // Adding Yesterday and Today in result
-                        result.yesterdaySLP = playerDataDailySLP.YESTERDAYRES;
-                        result.todaySLP = playerDataDailySLP.TODAY;
 
                         // Adding Player daily slp, details and ranking in result object
                         result.details = details;
                         result.ranking = ranking;
-                        result.dailySLP = playerDataDailySLP;
 
                         // Get all ETH Address x for other display x MMR Ranking x etc
                         this.state.playerRecords.push(result);
@@ -1080,7 +1082,7 @@ class Home extends React.Component {
                         const playerDataTableRes = {
                             name: result.name,
                             averageSLP: <MDBBox data-th={CONSTANTS.MESSAGE.AVERAGE_SLP_PERDAY_V2} tag="span">{result.averageSLPDay}</MDBBox>,
-                            dailySLP: <MDBBox data-th={CONSTANTS.MESSAGE.DAILYSLP} tag="span"><MDBBox tag="span" className={Number(result.yesterdaySLP) > Number(result.todaySLP) ? "green-text d-inline d-md-block d-lg-block" : "red-text d-inline d-md-block d-lg-block"}><strong>Y:</strong> {result.yesterdaySLP}</MDBBox> <MDBBox tag="span" className={Number(result.yesterdaySLP) > Number(result.todaySLP) ? "red-text d-inline d-md-block d-lg-block" : "green-text d-inline d-md-block d-lg-block"}><strong>T:</strong> {result.todaySLP}</MDBBox></MDBBox>,
+                            dailySLP: <MDBBox data-th={CONSTANTS.MESSAGE.DAILYSLP} tag="span"><MDBBox tag="span" className={Number(result.dailySLP.YESTERDAYRES) > Number(result.dailySLP.TODAY) ? "green-text d-inline d-md-block d-lg-block" : "red-text d-inline d-md-block d-lg-block"}><strong>Y:</strong> {result.dailySLP.YESTERDAYRES}</MDBBox> <MDBBox tag="span" className={Number(result.dailySLP.YESTERDAYRES) > Number(result.dailySLP.TODAY) ? "red-text d-inline d-md-block d-lg-block" : "green-text d-inline d-md-block d-lg-block"}><strong>T:</strong> {result.dailySLP.TODAY}</MDBBox></MDBBox>,
                             ingameSLP: <MDBBox data-th={CONSTANTS.MESSAGE.INGAME_SLP} tag="span">{this.numberWithCommas(result.inGameSLP)}</MDBBox>,
                             sharedScholarSLP: <MDBBox data-th={CONSTANTS.MESSAGE.SHARED_SLP} tag="span" className="d-inline d-md-block d-lg-block">{this.numberWithCommas(result.sharedScholarSLP)} <MDBBox tag="span" className="d-inline d-md-block d-lg-block">({(details.manager).toString() === "100" ? details.manager : details.scholar}%)</MDBBox></MDBBox>,
                             roninSLP: <MDBBox data-th={CONSTANTS.MESSAGE.RONIN_SLP} tag="span">{this.numberWithCommas(roninBalance)} <MDBBox tag="span" className="d-inline d-md-block d-lg-block red-text">{result.managerRoninClaimed ? "(" + this.numberWithCommas(result.details.managerClaimed) + ")" : ""}</MDBBox></MDBBox>,
@@ -1111,7 +1113,7 @@ class Home extends React.Component {
                         }
                         
                         // Success return
-                        return resolve({error: false, data: playerDataTableRes, slp: result.inGameSLP, rank: ranking.rank, eth: userEthAddress, export: playerDataTableExport, dailySLP: playerDataDailySLP, dailySLPisSame: playerDataDailySLPisSame});
+                        return resolve({error: false, data: playerDataTableRes, slp: result.inGameSLP, rank: ranking.rank, eth: userEthAddress, export: playerDataTableExport, dailySLP: result.dailySLP, dailySLPwillSave: playerDataDailySLPwillSave});
                     } else {
                         return reject({error: true});
                     }

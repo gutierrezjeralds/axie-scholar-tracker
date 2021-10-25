@@ -76,7 +76,6 @@ app.get("/api/dailySLP", async (req, res) => {
         const query = `${CONSTANTS.QUERY.SELECT.DAILYSLP}`;
         dbConn.query(query, function (error, results) {
             console.log(CONSTANTS.MESSAGE.END_SELECTQUERY);
-            console.log(CONSTANTS.MESSAGE.END_SELECTQUERY, results);
             // End DB Connection
             dbConn.end();
             if (error) {

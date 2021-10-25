@@ -1,0 +1,59 @@
+// Body color palette
+html, body {
+    // Stylish Color
+    .stylish-color-palette {
+        background-color: $stylish-color !important;
+        color: $blue-whale !important;
+        // Header
+        header {
+            .navbar, .top-nav-collapse {
+                background-color: $stylish-color-dark;
+            }
+            .nav-link {
+                color: $overcast !important;
+                &.active{
+                    color: $overcast !important;
+                }
+            }
+            span {
+                color: $white !important; 
+            }
+        }
+        // Guides Button
+        .guides-btn-title {
+            color: $white !important;
+        }
+        // Cards
+        .currency-details{
+            background-color: $white !important;
+            span {
+                color: $blue-whale !important;
+            }
+        }
+        .player-details {
+            background-color: $white !important;
+            span {
+                color: $blue-whale !important;
+            }
+        }
+        // Style for player details datatable
+        .player-datatable-container {
+            thead, tbody {
+                color: $white !important;
+            }
+            tr {
+                &:hover {
+                    color: $white !important;
+                }
+            }
+        }
+        // Footer
+        footer {
+            background-color: $stylish-color-dark;
+            div, p, span, a, i {
+                color: $white !important;
+            }
+        }
+    }
+}
+// Body color palette

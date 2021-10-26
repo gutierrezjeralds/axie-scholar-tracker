@@ -612,7 +612,7 @@ class Home extends React.Component {
                                 exportData: disExportData
                             })
     
-                            // console.log("playerRecords", this.state.playerRecords)
+                            console.log("playerRecords", this.state.playerRecords)
                         } else {
                             // No data found
                             this.setState({
@@ -987,7 +987,9 @@ class Home extends React.Component {
                                                     YESTERDAYRES: 0,
                                                     TODAY: 0,
                                                     TODATE: todayDate,
-                                                    ACTION: CONSTANTS.MESSAGE.UPDATE
+                                                    ACTION: CONSTANTS.MESSAGE.UPDATE,
+                                                    MESSAGE: "UPDATE from energy reset and was claimed",
+                                                    UPDATEDON: todayDate
                                                 };
                                             } else {
                                                 // Get YESTERDAY SLP base on YESTERDAY and TODAY SLP
@@ -1001,7 +1003,9 @@ class Home extends React.Component {
                                                     YESTERDAYRES: dailySLPFilter[0].TODAY,
                                                     TODAY: todaysSLP,
                                                     TODATE: todayDate,
-                                                    ACTION: CONSTANTS.MESSAGE.UPDATE
+                                                    ACTION: CONSTANTS.MESSAGE.UPDATE,
+                                                    MESSAGE: "UPDATE from energy reset",
+                                                    UPDATEDON: todayDate
                                                 };
                                             }
                                         } else {
@@ -1013,7 +1017,9 @@ class Home extends React.Component {
                                                     YESTERDAYRES: dailySLPFilter[0].YESTERDAYRES,
                                                     TODAY: todaySLP,
                                                     TODATE: moment(dailySLPFilter[0].TODATE).format("YYYY-MM-DD HH:mm:ss"),
-                                                    ACTION: CONSTANTS.MESSAGE.UPDATE
+                                                    ACTION: CONSTANTS.MESSAGE.UPDATE,
+                                                    MESSAGE: "UPDATE from isSameTODate false",
+                                                    UPDATEDON: todayDate
                                                 };
                                             } else {
                                                 // Today SLP is same x no change required
@@ -1031,7 +1037,9 @@ class Home extends React.Component {
                                                 YESTERDAYRES: dailySLPFilter[0].YESTERDAYRES,
                                                 TODAY: todaySLP,
                                                 TODATE: moment(dailySLPFilter[0].TODATE).format("YYYY-MM-DD HH:mm:ss"),
-                                                ACTION: CONSTANTS.MESSAGE.UPDATE
+                                                ACTION: CONSTANTS.MESSAGE.UPDATE,
+                                                MESSAGE: "UPDATE from isSameTODate true",
+                                                UPDATEDON: todayDate
                                             };
                                         } else {
                                             // Today SLP is same x no change required

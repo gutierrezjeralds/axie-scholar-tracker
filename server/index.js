@@ -127,7 +127,11 @@ app.post("/api/dailySLP", async (req, res) => {
                     });
                 } else { // UPDATE
                     console.log(CONSTANTS.MESSAGE.STARTED_UPDATEQUERY);
-                    const query = `${CONSTANTS.QUERY.UPDATE.DAILYSLP} SET YESTERDAY = '${items.YESTERDAY}', YESTERDAYRES = '${items.YESTERDAYRES}', TODAY = '${items.TODAY}', TODATE = '${items.TODATE}' WHERE ADDRESS = '${items.ADDRESS}'`;
+                    let query = `${CONSTANTS.QUERY.UPDATE.DAILYSLP} SET YESTERDAY = '${items.YESTERDAY}', YESTERDAYRES = '${items.YESTERDAYRES}', TODAY = '${items.TODAY}', TODATE = '${items.TODATE}' WHERE ADDRESS = '${items.ADDRESS}'`;
+                    if (!items.ALLFIELDS) { // False, only TODATE SLP will be updating
+                        query = `${CONSTANTS.QUERY.UPDATE.DAILYSLP} SET TODAY = '${items.TODAY}' WHERE ADDRESS = '${items.ADDRESS}'`;
+                    }
+                    // DBConn Query
                     dbConn.query(query, function (error) {
                         if (error) {
                             console.log(CONSTANTS.MESSAGE.ERROR_PROCEDURE, error);

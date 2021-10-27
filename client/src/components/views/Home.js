@@ -989,7 +989,8 @@ class Home extends React.Component {
                                                     TODATE: todayDate,
                                                     ACTION: CONSTANTS.MESSAGE.UPDATE,
                                                     MESSAGE: "UPDATE from energy reset and was claimed",
-                                                    UPDATEDON: todayDate
+                                                    UPDATEDON: todayDate,
+                                                    ALLFIELDS: true // to be save, if all fields or not x if false, only TODAY
                                                 };
                                             } else {
                                                 // Get YESTERDAY SLP base on YESTERDAY and TODAY SLP
@@ -1005,7 +1006,8 @@ class Home extends React.Component {
                                                     TODATE: todayDate,
                                                     ACTION: CONSTANTS.MESSAGE.UPDATE,
                                                     MESSAGE: "UPDATE from energy reset",
-                                                    UPDATEDON: todayDate
+                                                    UPDATEDON: todayDate,
+                                                    ALLFIELDS: true // to be save, if all fields or not x if false, only TODAY
                                                 };
                                             }
                                         } else {
@@ -1019,7 +1021,8 @@ class Home extends React.Component {
                                                     TODATE: moment(dailySLPFilter[0].TODATE).format("YYYY-MM-DD HH:mm:ss"),
                                                     ACTION: CONSTANTS.MESSAGE.UPDATE,
                                                     MESSAGE: "UPDATE from isSameTODate false",
-                                                    UPDATEDON: todayDate
+                                                    UPDATEDON: todayDate,
+                                                    ALLFIELDS: false // to be save, if all fields or not x if false, only TODAY
                                                 };
                                             } else {
                                                 // Today SLP is same x no change required
@@ -1039,7 +1042,8 @@ class Home extends React.Component {
                                                 TODATE: moment(dailySLPFilter[0].TODATE).format("YYYY-MM-DD HH:mm:ss"),
                                                 ACTION: CONSTANTS.MESSAGE.UPDATE,
                                                 MESSAGE: "UPDATE from isSameTODate true",
-                                                UPDATEDON: todayDate
+                                                UPDATEDON: todayDate,
+                                                ALLFIELDS: false // to be save, if all fields or not x if false, only TODAY
                                             };
                                         } else {
                                             // Today SLP is same x no change required
@@ -1057,7 +1061,8 @@ class Home extends React.Component {
                                             YESTERDAYRES: 0,
                                             TODAY: 0,
                                             TODATE: moment().format("YYYY-MM-DD HH:mm:ss"),
-                                            ACTION: CONSTANTS.MESSAGE.INSERT
+                                            ACTION: CONSTANTS.MESSAGE.INSERT,
+                                            ALLFIELDS: true // to be save, if all fields or not x if false, only TODAY
                                         };
                                     }
                                 }

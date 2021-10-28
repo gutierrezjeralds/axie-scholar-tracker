@@ -114,6 +114,7 @@ const MESSAGE = {
     INSERT: "Insert",
     UPDATE: "UPDATE",
     ERROR_FETCH_DAILYSLP: 'Error in fetching data of Daily SLP',
+    ERROR_FILTER_DAILYSLP: 'Error in filter data of Daily SLP',
     UPDATE_ISKODATA: "Update Scholar Data"
 }
 

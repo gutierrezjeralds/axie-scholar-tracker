@@ -401,50 +401,51 @@ class Home extends React.Component {
     // Get and Set Daily SLP
     dailySLPAPI = async (method = false, data) => {
         const dailyAPIPromise = new Promise(async(resolve, reject) => {
-            try {
-                let params = {
-                    url: "/api/dailySLP",
-                    type: "GET",
-                    contentType: 'application/json',
-                    cache: false,
-                }
+            resolve({error: true});
+            // try {
+            //     let params = {
+            //         url: "/api/dailySLP",
+            //         type: "GET",
+            //         contentType: 'application/json',
+            //         cache: false,
+            //     }
         
-                if (method === CONSTANTS.MESSAGE.POST) {
-                    params = {
-                        url: "/api/dailySLP",
-                        type: "POST",
-                        data: JSON.stringify(data),
-                        contentType: 'application/json',
-                        cache: false,
-                    }
-                }
+            //     if (method === CONSTANTS.MESSAGE.POST) {
+            //         params = {
+            //             url: "/api/dailySLP",
+            //             type: "POST",
+            //             data: JSON.stringify(data),
+            //             contentType: 'application/json',
+            //             cache: false,
+            //         }
+            //     }
         
-                // If not exist x run api
-                $.ajax(params).then(
-                    async (result) => {
-                        // Return
-                        resolve(result);
-                    },
-                    // Note: it's important to handle errors here
-                    // instead of a catch() block so that we don't swallow
-                    // exceptions from actual bugs in components.
-                    (error) => {
-                        console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, error)
-                        // Return
-                        reject(error);
-                    }
-                )
-                .catch(
-                    (err) => {
-                        console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
-                        // Return
-                        reject(err);
-                    }
-                )
-            } catch (err) {
-                // Return
-                reject(err);
-            }
+            //     // If not exist x run api
+            //     $.ajax(params).then(
+            //         async (result) => {
+            //             // Return
+            //             resolve(result);
+            //         },
+            //         // Note: it's important to handle errors here
+            //         // instead of a catch() block so that we don't swallow
+            //         // exceptions from actual bugs in components.
+            //         (error) => {
+            //             console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, error)
+            //             // Return
+            //             reject(error);
+            //         }
+            //     )
+            //     .catch(
+            //         (err) => {
+            //             console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
+            //             // Return
+            //             reject(err);
+            //         }
+            //     )
+            // } catch (err) {
+            //     // Return
+            //     reject(err);
+            // }
         })
 
         await dailyAPIPromise.then((results) => {
@@ -1064,6 +1065,16 @@ class Home extends React.Component {
                                             ACTION: CONSTANTS.MESSAGE.INSERT,
                                             ALLFIELDS: true // to be save, if all fields or not x if false, only TODAY
                                         };
+                                    } else {
+                                        // Has error in dailySLPData x used default data for display in table
+                                        playerDataDailySLPwillSave = false;
+                                        result.dailySLP = {
+                                            ADDRESS: details.roninAddress,
+                                            YESTERDAY: 0,
+                                            YESTERDAYRES: 0,
+                                            TODAY: 0,
+                                            ERROR: CONSTANTS.MESSAGE.ERROR_FILTER_DAILYSLP
+                                        }
                                     }
                                 }
                             } catch (err) {

@@ -21,6 +21,16 @@ const conn = {
     database: "sql6445790" // Replace with your database Name
 }
 
+/*
+    Tables
+    ** TB_USERPROFILE
+    **** ID, ADDRESS, NAME, EMAIL, SHR_MANAGER, SHR_SCHOLAR, SHR_SPONSOR, SPONSOR_NAME, TIMESTAMP
+    ** TB_CLAIMED
+    **** ID, ADDRESS, SHR_MANAGER, SHR_SCHOLAR, SHR_SPONSOR, SLPCURRENCY, TIMESTAMP
+    ** TB_DAILYSLP
+    **** ID, ADDRESS, YESTERDAY, YESTERDAYRES, TODAY, TODATE, TIMESTAMP
+*/
+
 const CONSTANTS = {
     MESSAGE: {
         EMPTYPAYLOAD: "Empty Payload",
@@ -41,7 +51,8 @@ const CONSTANTS = {
             DAILYSLP: `SELECT * FROM TB_DAILYSLP`
         },
         INSERT: {
-            DAILYSLP: `INSERT INTO TB_DAILYSLP`
+            DAILYSLP: `INSERT INTO TB_DAILYSLP`,
+            USERPROFILE: `INSERT INTO TB_USERPROFILE`
         },
         UPDATE: {
             DAILYSLP: `UPDATE TB_DAILYSLP`
@@ -58,6 +69,49 @@ app.get("/api", (req, res) => {
 // app.get('*', (req, res) => {
 //     res.sendFile(path.resolve(__dirname, '../client/build', 'index.html'));
 // });
+
+// POST Method x Saving process of adding new scholar
+app.post("/api/addScholar", async (req, res) => {
+    try {
+        console.log(CONSTANTS.MESSAGE.STARTED_INSERTQUERY);
+        // Create DB Connection
+        const dbConn = mysql.createConnection({
+            host     : conn.host,
+            user     : conn.user,
+            password : conn.password,
+            database : conn.database
+        });
+        dbConn.connect();
+        
+        // Body payload
+        const payload = req.body;
+        console.log(payload)
+
+        // Execute Query
+        const query = `${CONSTANTS.QUERY.INSERT.USERPROFILE} (ADDRESS, NAME, EMAIL, SHR_MANAGER, SHR_SCHOLAR, SHR_SPONSOR) VALUES ('${payload.ADDRESS}', '${payload.NAME}', '${payload.EMAIL}', '${payload.SHR_MANAGER}', '${payload.SHR_SCHOLAR}', '${payload.SHR_SPONSOR}')`;
+        dbConn.query(query, function (error, results) {
+            console.log(CONSTANTS.MESSAGE.STARTED_INSERTQUERY);
+            // End DB Connection
+            dbConn.end();
+            if (error) {
+                return res.type("application/json").status(500).send({
+                    error: true,
+                    data: error
+                });
+            } else {
+                return res.type("application/json").status(200).send({
+                    error: false,
+                    data: results
+                });
+            }
+        });
+    } catch (err) {
+        return res.type("application/json").status(500).send({
+            error: true,
+            data: err
+        });
+    }
+});
 
 // GET Method x Daily SLP x Yesterday and Today
 app.get("/api/dailySLP", async (req, res) => {

@@ -25,6 +25,8 @@ const MESSAGE = {
     MANAGER: "Manager",
     SPONSOR: "Sponsor",
     SCHOLAR: "Scholar",
+    SPONSOR_SHARE: "Sponsor Share",
+    SPONSOR_NAME: "Sponsor Name",
     SLP: "SLP",
     AXS: "AXS",
     SLP_DESC: "Smooth Love Potion",
@@ -44,6 +46,7 @@ const MESSAGE = {
     SHARE: "Share",
     SHARED: "Shared",
     RONIN: "Ronin",
+    RONIN_ADDRESS: "Ronin Address",
     TOTAL: "Total",
     EARNING: "Earning",
     EARNINGS: "Earnings",
@@ -114,7 +117,10 @@ const MESSAGE = {
     INSERT: "Insert",
     UPDATE: "UPDATE",
     ERROR_FETCH_DAILYSLP: 'Error in fetching data of Daily SLP',
-    UPDATE_ISKODATA: "Update Scholar Data"
+    UPDATE_ISKODATA: "Update Scholar Data",
+    ADDNEW_ISKO: "Add Scholar",
+    SUBMIT: "Submit",
+    SHARELIMIT: "Sharing must be equal to 100"
 }
 
 export const CONSTANTS = {

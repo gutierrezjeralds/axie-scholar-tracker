@@ -54,7 +54,9 @@ class Header extends React.Component {
                                         <MDBDropdownMenu>
                                             {
                                                 this.state.isUser === CONSTANTS.MESSAGE.MANAGER ? (
-                                                    <MDBDropdownItem  onClick={this.onWindowsOpen.bind(this)}>{CONSTANTS.MESSAGE.UPDATE_ISKODATA}</MDBDropdownItem>
+                                                    <React.Fragment>
+                                                        <MDBDropdownItem onClick={this.onWindowsOpen.bind(this)}>{CONSTANTS.MESSAGE.UPDATE_ISKODATA}</MDBDropdownItem>
+                                                    </React.Fragment>
                                                 ) : ("")
                                             }
                                             <MDBDropdownItem onClick={this.onLogoutHandle.bind(this)}>{CONSTANTS.MESSAGE.LOGOUT}</MDBDropdownItem>

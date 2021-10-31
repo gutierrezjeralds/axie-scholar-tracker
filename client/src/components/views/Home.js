@@ -5,7 +5,7 @@ import {
     MDBBox, MDBContainer, MDBRow, MDBCol, MDBCard, MDBCardBody,
     MDBTable, MDBTableBody, MDBTableHead,
     MDBModal, MDBModalHeader, MDBModalBody,
-    MDBDataTable, MDBIcon, MDBAnimation
+    MDBDataTable, MDBIcon, MDBAnimation, MDBInput
 } from "mdbreact";
 import Moment from 'react-moment';
 import moment from 'moment';
@@ -64,6 +64,7 @@ class Home extends React.Component {
             isModalMMRRankOpen: false,
             modalMMRRankDetails: [],
             isModalPlayerDetailsOpen: false,
+            isModalAddRecordOpen: false,
             modalPlayerDetails: [],
             topMMR: 0, // For condition of getting top user
             topSLP: 0, // For condition of getting top user
@@ -75,7 +76,8 @@ class Home extends React.Component {
             modalManagerAllEarning: [],
             photoIndex: 0,
             isLightBoxOpen: false,
-            exportData: []
+            exportData: [],
+            isValidShare: 0
         }
     }
 
@@ -128,6 +130,13 @@ class Home extends React.Component {
         });
     }
 
+    // Modal Toggle for adding new team
+    modalAddRecordsToggle = () => () => {
+        this.setState({
+            isModalAddRecordOpen: !this.state.isModalAddRecordOpen
+        });
+    }
+
     // Hide and Show Manager Total Earning
     onManagerEarningHandle(event) {
         if (event.target.innerText === CONSTANTS.MESSAGE.VIEW_ALL_EARNINGS) {
@@ -143,8 +152,12 @@ class Home extends React.Component {
 
     // Page reload
     pageRefresh = (time) => {
-        setTimeout( function() {
-            window.location.reload();
+        setTimeout( () => {
+            if (!this.state.isModalAddRecordOpen) { // Dont reload when other modal is open
+                 return window.location.reload();
+            }
+            // Return
+            return true;
         }, time);
 
         // Guide information button Bounce every 5 seconds
@@ -397,6 +410,60 @@ class Home extends React.Component {
         });
     }
 
+    // Handle for saving record
+    onAddRecordHandle(event) {
+        event.preventDefault();
+        // Remove error message
+        this.setState({
+            isValidShare: 0
+        })
+
+        const shrManager = event.target.SHR_MANAGER.value ? event.target.SHR_MANAGER.value : "0";
+        const shrScholar = event.target.SHR_SCHOLAR.value ? event.target.SHR_SCHOLAR.value : "0";
+        const shrSponsor = event.target.SHR_SPONSOR.value ? event.target.SHR_SPONSOR.value : "0";
+        const shareTotal = Number(shrManager) + Number(shrScholar) + Number(shrSponsor);
+        if (shareTotal === 100) {
+            // Continue with the process
+            const datas = {
+                ADDRESS: event.target.ADDRESS.value,
+                NAME: event.target.NAME.value,
+                EMAIL: event.target.EMAIL.value,
+                SHR_MANAGER: shrManager,
+                SHR_SCHOLAR: shrScholar,
+                SHR_SPONSOR: shrSponsor,
+                SPONSOR_NAME: event.target.SPONSOR_NAME.value
+            }
+            // Run Ajax
+            $.ajax({
+                url: "/api/addScholar",
+                type: "POST",
+                data: JSON.stringify(datas),
+                contentType: 'application/json',
+                cache: false,
+            }).then(
+                async (result) => {
+                    // Return
+                    console.log(result);
+                },
+                // Note: it's important to handle errors here
+                // instead of a catch() block so that we don't swallow
+                // exceptions from actual bugs in components.
+                (error) => {
+                    console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, error)
+                }
+            )
+            .catch(
+                (err) => {
+                    console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
+                }
+            )
+        } else {
+            // Invalid total of Share
+            this.setState({
+                isValidShare: false
+            })
+        }
+    }
 
     // Get and Set Daily SLP
     dailySLPAPI = async (method = false, data) => {
@@ -419,7 +486,7 @@ class Home extends React.Component {
                     }
                 }
         
-                // If not exist x run api
+                // Run api
                 $.ajax(params).then(
                     async (result) => {
                         // Return
@@ -1744,6 +1811,46 @@ class Home extends React.Component {
         )
     }
 
+    // Render Modal for adding new team
+    renderModalAddRecords() {
+        return (
+            <React.Fragment>
+                <MDBModal isOpen={this.state.isModalAddRecordOpen} size="md">
+                    <MDBModalHeader toggle={this.modalAddRecordsToggle("")} className="blue-whale">{CONSTANTS.MESSAGE.ADDNEW_ISKO}</MDBModalHeader>
+                    <MDBModalBody>
+                        <form onSubmit={this.onAddRecordHandle.bind(this)}>
+                            <MDBBox tag="div" className="grey-text">
+                                <MDBInput label={CONSTANTS.MESSAGE.RONIN_ADDRESS} name="ADDRESS" type="text" icon="address-book" required />
+                                <MDBInput label={CONSTANTS.MESSAGE.NAME} name="NAME" type="text" icon="user" required />
+                                <MDBInput label={CONSTANTS.MESSAGE.EMAIL} name="EMAIL" type="email" icon="envelope" required />
+                                <MDBRow className="mt-1pt5rem-neg" between>
+                                    <MDBCol size="6">
+                                        <MDBInput label={CONSTANTS.MESSAGE.MANAGER} name="SHR_MANAGER" type="number" min="0" max="100" required />
+                                    </MDBCol>
+                                    <MDBCol size="6">
+                                        <MDBInput label={CONSTANTS.MESSAGE.SCHOLAR} name="SHR_SCHOLAR" type="number" min="0" max="100" required />
+                                    </MDBCol>
+                                </MDBRow>
+                                <MDBRow className="mt-1pt5rem-neg" between>
+                                    <MDBCol size="6">
+                                        <MDBInput label={CONSTANTS.MESSAGE.SPONSOR_NAME} name="SHR_SPONSOR" type="text" icon="user" />
+                                    </MDBCol>
+                                    <MDBCol size="6">
+                                        <MDBInput label={CONSTANTS.MESSAGE.SPONSOR_SHARE} name="SHR_SPONSOR" type="number" min="0" max="100" />
+                                    </MDBCol>
+                                </MDBRow>
+                                <MDBBox tag="div" className={this.state.isValidShare === 0 ? "d-none" : this.state.isValidShare ? "d-none" : "invalid-feedback mt-1pt5rem-neg mb-2 px-3 d-block"}>{CONSTANTS.MESSAGE.SHARELIMIT}</MDBBox>
+                            </MDBBox>
+                            <MDBBox tag="div" className="text-center">
+                                <button className="btn btn-default waves-effect waves-light">{CONSTANTS.MESSAGE.SUBMIT}</button>
+                            </MDBBox>
+                        </form>
+                    </MDBModalBody>
+                </MDBModal>
+            </React.Fragment>
+        )
+    }
+
     renderEmptyDetails() {
         return (
             <React.Fragment>
@@ -1764,10 +1871,17 @@ class Home extends React.Component {
             <MDBBox tag="div" className="home-wrapper">
                 <MDBAnimation type="bounce" className="z-index-1 position-fixed guides-btn">
                     {
-                        // Export Data
                         this.state.isPlayerLoaded && this.state.isLoaded && !this.state.error ? (
                             this.state.isUser === CONSTANTS.MESSAGE.MANAGER && Object.keys(this.state.exportData).length > 0 ? (
-                                <ExportCSV csvData={this.state.exportData} fileName={CONSTANTS.MESSAGE.TEAMLOKI + "_" + moment().format("MMDDYYYY_HHmmss")}/>
+                                <React.Fragment>
+                                    {/* Add New Scholar */}
+                                    <button type="button" className="btn btn-default waves-effect waves-light"
+                                        onClick={this.modalAddRecordsToggle()}>
+                                        <MDBIcon icon="plus-circle" className="fa-3x" />
+                                    </button>
+                                    {/* Export Data */}
+                                    <ExportCSV csvData={this.state.exportData} fileName={CONSTANTS.MESSAGE.TEAMLOKI + "_" + moment().format("MMDDYYYY_HHmmss")}/>
+                                </React.Fragment>
                             ) : ("")
                         ) : ("")
                     }
@@ -1868,6 +1982,7 @@ class Home extends React.Component {
                 {this.renderModalEarnings()}
                 {this.renderModalMMRRank()}
                 {this.renderModalPlayerDetails()}
+                {this.renderModalAddRecords()}
             </MDBBox>
         )
     }

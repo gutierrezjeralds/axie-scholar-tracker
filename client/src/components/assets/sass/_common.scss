@@ -234,6 +234,14 @@
 .rgba-teal-strong-bg {
     background-color: $rgba-teal-strong !important;
 }
+
+.transparent {
+    color: transparent !important;
+}
+.transparent-bg {
+    background-color: transparent !important;
+}
+
 //Line Height
 .line-height-0-6{
     line-height: 0.6 !important;
@@ -875,7 +883,7 @@ body, #root{
         padding: 5px;
         border-radius: 25px !important;
     }
-    .export {
+    .export, .iskoInputs {
         padding: 10px;
     }
 }

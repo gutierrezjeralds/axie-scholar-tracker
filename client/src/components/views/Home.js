@@ -5,14 +5,15 @@ import {
     MDBBox, MDBContainer, MDBRow, MDBCol, MDBCard, MDBCardBody,
     MDBTable, MDBTableBody, MDBTableHead,
     MDBModal, MDBModalHeader, MDBModalBody,
-    MDBDataTable, MDBIcon, MDBAnimation, MDBInput
+    MDBDataTable, MDBIcon, MDBAnimation, MDBInput,
+    MDBTabPane, MDBTabContent, MDBNav, MDBNavItem
 } from "mdbreact";
 import Moment from 'react-moment';
 import moment from 'moment';
 import Cookies from 'js-cookie'
 import emailjs from 'emailjs-com';
 import Lightbox from 'react-image-lightbox';
-import { ExportCSV } from './ExportCSV';
+// import { ExportCSV } from './ExportCSV';
 
 const guildImages = [
     '/assets/images/guides/buff_debuff.jpg',
@@ -64,7 +65,7 @@ class Home extends React.Component {
             isModalMMRRankOpen: false,
             modalMMRRankDetails: [],
             isModalPlayerDetailsOpen: false,
-            isModalAddRecordOpen: false,
+            isModalIskoInputsOpen: false,
             modalPlayerDetails: [],
             topMMR: 0, // For condition of getting top user
             topSLP: 0, // For condition of getting top user
@@ -77,7 +78,10 @@ class Home extends React.Component {
             photoIndex: 0,
             isLightBoxOpen: false,
             exportData: [],
-            isValidShare: 0
+            isValidAddTeam: 0,
+            errorMsg: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
+            PVPENERGY_DEFAULT: 20,
+            tabIskoInputsActive: "1"
         }
     }
 
@@ -85,7 +89,7 @@ class Home extends React.Component {
         this.pageRefresh(120000); // Refresh in 2 minutes
         this.getCoingecko();
         // this.getBinance();
-        this.dailySLPAPI();
+        this.getRecord();
     }
 
     // Adding comma in number x replacement in toLocaleString()
@@ -131,9 +135,9 @@ class Home extends React.Component {
     }
 
     // Modal Toggle for adding new team
-    modalAddRecordsToggle = () => () => {
+    modalIskoInputs = () => () => {
         this.setState({
-            isModalAddRecordOpen: !this.state.isModalAddRecordOpen
+            isModalIskoInputsOpen: !this.state.isModalIskoInputsOpen
         });
     }
 
@@ -150,10 +154,19 @@ class Home extends React.Component {
         }
     }
 
+    // Tabs Toggle for Scholar inputs
+    tabsIskoInputs = tab => e => {
+        if (this.state.tabIskoInputsActive !== tab) {
+            this.setState({
+                tabIskoInputsActive: tab
+            });
+        }
+    };
+
     // Page reload
     pageRefresh = (time) => {
         setTimeout( () => {
-            if (!this.state.isModalAddRecordOpen) { // Dont reload when other modal is open
+            if (!this.state.isModalIskoInputsOpen) { // Dont reload when other modal is open
                  return window.location.reload();
             }
             // Return
@@ -415,14 +428,18 @@ class Home extends React.Component {
         event.preventDefault();
         // Remove error message
         this.setState({
-            isValidShare: 0
+            isValidShare: 0,
+            isLoaded: false,
+            isModalIskoInputsOpen: false // Close modal while processing
         })
 
         const shrManager = event.target.SHR_MANAGER.value ? event.target.SHR_MANAGER.value : "0";
         const shrScholar = event.target.SHR_SCHOLAR.value ? event.target.SHR_SCHOLAR.value : "0";
         const shrSponsor = event.target.SHR_SPONSOR.value ? event.target.SHR_SPONSOR.value : "0";
         const shareTotal = Number(shrManager) + Number(shrScholar) + Number(shrSponsor);
+        const dateToday = moment().format("YYYY-MM-DD HH:mm:ss");
         if (shareTotal === 100) {
+            const sponsorName = Number(shrManager) + Number(shrScholar) === 100 ? "" : event.target.SPONSOR_NAME.value ? event.target.SPONSOR_NAME.value : "";
             // Continue with the process
             const datas = {
                 ADDRESS: event.target.ADDRESS.value,
@@ -431,7 +448,8 @@ class Home extends React.Component {
                 SHR_MANAGER: shrManager,
                 SHR_SCHOLAR: shrScholar,
                 SHR_SPONSOR: shrSponsor,
-                SPONSOR_NAME: event.target.SPONSOR_NAME.value
+                SPONSOR_NAME: sponsorName,
+                STARTED_ON: dateToday
             }
             // Run Ajax
             $.ajax({
@@ -444,106 +462,105 @@ class Home extends React.Component {
                 async (result) => {
                     // Return
                     console.log(result);
+                    if (!result.error) {
+                        // Sucess response x reload the page
+                        window.location.reload();
+                    } else {
+                        // Has error
+                        this.setState({
+                            isValidAddTeam: false,
+                            errorMsg: CONSTANTS.MESSAGE.UNEXPECTED_ERROR
+                        })
+                    }
                 },
                 // Note: it's important to handle errors here
                 // instead of a catch() block so that we don't swallow
                 // exceptions from actual bugs in components.
                 (error) => {
                     console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, error)
+                    this.setState({
+                        isValidAddTeam: false,
+                        errorMsg: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
+                        isLoaded: true,
+                        isModalIskoInputsOpen: true // Open modal after processing with error
+                    })
                 }
             )
             .catch(
                 (err) => {
                     console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
+                    this.setState({
+                        isValidAddTeam: false,
+                        errorMsg: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
+                        isLoaded: true,
+                        isModalIskoInputsOpen: true // Open modal after processing with error
+                    })
                 }
             )
         } else {
             // Invalid total of Share
             this.setState({
-                isValidShare: false
+                isValidAddTeam: false,
+                errorMsg: CONSTANTS.MESSAGE.SHARELIMIT,
+                isLoaded: true,
+                isModalIskoInputsOpen: true // Open modal after processing with error
             })
         }
     }
 
-    // Get and Set Daily SLP
-    dailySLPAPI = async (method = false, data) => {
-        const dailyAPIPromise = new Promise(async(resolve, reject) => {
-            try {
-                let params = {
-                    url: "/api/dailySLP",
-                    type: "GET",
-                    contentType: 'application/json',
-                    cache: false,
-                }
-        
-                if (method === CONSTANTS.MESSAGE.POST) {
-                    params = {
-                        url: "/api/dailySLP",
-                        type: "POST",
-                        data: JSON.stringify(data),
-                        contentType: 'application/json',
-                        cache: false,
-                    }
-                }
-        
-                // Run api
-                $.ajax(params).then(
-                    async (result) => {
-                        // Return
-                        resolve(result);
-                    },
-                    // Note: it's important to handle errors here
-                    // instead of a catch() block so that we don't swallow
-                    // exceptions from actual bugs in components.
-                    (error) => {
-                        console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, error)
-                        // Return
-                        reject(error);
-                    }
-                )
-                .catch(
-                    (err) => {
-                        console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
-                        // Return
-                        reject(err);
-                    }
-                )
-            } catch (err) {
-                // Return
-                reject(err);
+    // Update Daily SLP
+    dailySLPAPI = async (datas) => {
+        // Run api
+        $.ajax({
+            url: "/api/dailySLP",
+            type: "POST",
+            data: JSON.stringify(datas),
+            contentType: 'application/json',
+            cache: false,
+        }).then(
+            async (result) => {
+                console.log("dailySLPAPI", result)
+            },
+            // Note: it's important to handle errors here
+            // instead of a catch() block so that we don't swallow
+            // exceptions from actual bugs in components.
+            (error) => {
+                console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, error)
             }
-        })
-
-        await dailyAPIPromise.then((results) => {
-            const dailySLPData = !results.error && results.data !== undefined ? results.data.length > 0 ? results.data : [] : [];
-            if (!method || method === CONSTANTS.MESSAGE.GET) {
-                // For initial load x don't used when method is POST
-                this.getRecord(dailySLPData);
+        )
+        .catch(
+            (err) => {
+                console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
             }
-        });
+        )
     }
     
     // Fetch Player Record Data
-    getRecord = (dailySLPData) => {
+    getRecord = () => {
         $.ajax({
-            url: "../assets/json/eth-address.json",
-            dataType: "json",
-            cache: false
+            url: "/api/records",
+            type: "GET",
+            contentType: 'application/json',
+            cache: false,
         })
         .then(
-            async (result) => {
-                if (result.length > 0) {
+            async (response) => {
+                const dataRecords = response.data;
+                const dataClaimed = response.claimed;
+                console.log("result", response)
+                if (dataRecords.length > 0) {
                     // Fetch player details in api of sky mavis
-                    const dataResultPromise = result.map(async (item) => {
-                        const ethAddress = item.roninAddress ? `0x${item.roninAddress.substring(6)}` : "";
+                    const dataResultPromise = dataRecords.map(async (item) => {
+                        const ethAddress = item.ADDRESS ? `0x${item.ADDRESS.substring(6)}` : "";
                         let userEthAddress = null;
+                        const iSponsorName = item.SPONSOR_NAME ? item.SPONSOR_NAME.toLowerCase() : ""
 
-                        if (item.email.toLowerCase() === this.state.isUser.toLowerCase() ||
-                            item.name.toLowerCase() === this.state.isUser.toLowerCase() ||
-                            item.sponsorName.toLowerCase() === this.state.isUser.toLowerCase()) {
+                        if (item.EMAIL.toLowerCase() === this.state.isUser.toLowerCase() ||
+                            item.NAME.toLowerCase() === this.state.isUser.toLowerCase() ||
+                            iSponsorName === this.state.isUser.toLowerCase()) {
                                 // Get ETH Address based on Credential
                                 userEthAddress = ethAddress;
-                                if (item.sponsor !== "" || item.sponsor !== undefined) {
+                                if (item.SHR_SPONSOR !== "" || item.SHR_SPONSOR !== "0" || item.SHR_SPONSOR !== undefined) {
                                     // Set valid Sponsor Name
                                     this.setState({
                                         isSponsorName: this.state.isUser
@@ -552,7 +569,7 @@ class Home extends React.Component {
                         }
 
                         // Return
-                        return await this.getPlayerDetails(item, ethAddress, userEthAddress, dailySLPData);
+                        return await this.getPlayerDetails(item, ethAddress, userEthAddress, dataClaimed);
                     });
 
                     await Promise.all(dataResultPromise).then(async (results) => {
@@ -639,7 +656,7 @@ class Home extends React.Component {
 
                             // Run Daily SLP API x Save cookie
                             if (daialySLPData.length > 0) {
-                                this.dailySLPAPI(CONSTANTS.MESSAGE.POST, daialySLPData);
+                                this.dailySLPAPI(daialySLPData);
                             }
     
                             // Return data x Set state
@@ -733,7 +750,7 @@ class Home extends React.Component {
     }
 
     // Get Player details base on Sky Mavis API
-    getPlayerDetails = async (details, ethAddress, userEthAddress, dailySLPData) => {
+    getPlayerDetails = async (details, ethAddress, userEthAddress, dataClaimed) => {
         return new Promise((resolve, reject) => {
             $.ajax({
                 url: "https://game-api.skymavis.com/game-api/clients/" + ethAddress + "/items/1",
@@ -746,7 +763,7 @@ class Home extends React.Component {
                         // Get Player ranking base on Sky Mavis API
                         const ranking = await this.getPlayerRanking(ethAddress);
                         // Get Player battle log base on Game API Axie Technology
-                        const battleLogs = await this.getPlayerBattleLog(details.roninAddress, ethAddress, details.pvpEnergy);
+                        const battleLogs = await this.getPlayerBattleLog(details.ADDRESS, ethAddress, this.state.PVPENERGY_DEFAULT);
 
                         if (ranking.error) {
                             // Default object for ranking
@@ -786,7 +803,7 @@ class Home extends React.Component {
                         result.averageSLPDay = 0;
                         result.sharedManagerSLP = 0;
                         result.sharedSponsorSLP = 0;
-                        result.pvp_energy = details.pvp_energy !== undefined ? details.pvp_energy + "/" + details.pvp_energy : "20/20"; // 20 is Default energy
+                        result.pvp_energy = this.state.PVPENERGY_DEFAULT !== undefined ? this.state.PVPENERGY_DEFAULT + "/" + this.state.PVPENERGY_DEFAULT : "20/20"; // 20 is Default energy
                         result.managerRoninClaimed = false;
 
                         // Set new value for Claim On (Days) x last_claimed_item_at_add - current date
@@ -808,7 +825,7 @@ class Home extends React.Component {
                         result.scholarSLP = result.inGameSLP;
                         if (Object.keys(details).length > 0) {
                             // Update name if the orig name is empty
-                            result.name = result.name ? result.name : details.name ? details.name : ethAddress;
+                            result.name = result.name ? result.name : details.NAME ? details.NAME : ethAddress;
 
                             // Check if has balance in Ronin x Set new value for total in game slp
                             if (result.blockchain_related.balance !== null && result.blockchain_related.balance > 0) {
@@ -816,12 +833,12 @@ class Home extends React.Component {
                                 result.inGameSLP = result.total - roninBalance;
                             }
 
-                            if ((details.manager).toString() === "100" || details.manager > 0) { // Condition for Manager
+                            if ((details.SHR_MANAGER).toString() === "100" || details.SHR_MANAGER > 0) { // Condition for Manager
                                 // Set new Shared SLP
-                                const managerShare = (details.manager).toString() === "100" ? 1 : "0." + details.manager;
+                                const managerShare = (details.SHR_MANAGER).toString() === "100" ? 1 : "0." + details.SHR_MANAGER;
                                 result.sharedManagerSLP = Math.ceil(result.inGameSLP * managerShare);
 
-                                if ((details.manager).toString() === "100") {
+                                if ((details.SHR_MANAGER).toString() === "100") {
                                     // Set new Shared SLP
                                     result.scholarSLP = 0;
                                     if (roninBalance > result.total) {
@@ -836,7 +853,7 @@ class Home extends React.Component {
                                     })
                                 } else {
                                     // Set new Total Manager's Earning
-                                    if (details.managerDebtClaimed <= 0) {
+                                    if (details.managerDebtClaimed === undefined || details.managerDebtClaimed <= 0) {
                                         this.setState({
                                             totalManagerSLP: this.state.totalManagerSLP + result.sharedManagerSLP
                                         })
@@ -844,9 +861,9 @@ class Home extends React.Component {
                                 }
                             }
 
-                            if ((details.sponsor).toString() !== "0" || details.sponsor > 0) { // Condition for Sponsor
+                            if ((details.SHR_SPONSOR).toString() !== "0" || details.SHR_SPONSOR > 0) { // Condition for Sponsor
                                 // Set new Shared SLP
-                                const sponsorShare = "0." + details.sponsor;
+                                const sponsorShare = "0." + details.SHR_SPONSOR;
                                 result.sharedSponsorSLP = Math.floor(result.inGameSLP * sponsorShare);
 
                                 // Set new Total Sponsor's Earning
@@ -855,15 +872,15 @@ class Home extends React.Component {
                                 })
                             }
 
-                            if ((details.scholar).toString() !== "0" || details.scholar > 0) { // Condition for Scholar Players
+                            if ((details.SHR_SCHOLAR).toString() !== "0" || details.SHR_SCHOLAR > 0) { // Condition for Scholar Players
                                 // Set new Shared SLP
-                                const iskoShare = (details.scholar).toString() === "100" ? 1 : "0." + details.scholar;
+                                const iskoShare = (details.SHR_SCHOLAR).toString() === "100" ? 1 : "0." + details.SHR_SCHOLAR;
                                 result.sharedScholarSLP = Math.floor(result.inGameSLP * iskoShare);
                                 result.scholarSLP = Math.floor(result.inGameSLP * iskoShare);
                             }
 
                             // Set new value for Total Income and Set value for Total Earning per claimed
-                            if (details.claimedEarning.length > 0) {
+                            if (details.claimedEarning !== undefined && details.claimedEarning.length > 0) {
                                 details.claimedEarning.map((data, index) => {
                                     const earnedSLP = data.slp;
                                     const slpPrice = data.slpPrice;
@@ -963,7 +980,7 @@ class Home extends React.Component {
 
                                     // Update Manager Shared
                                     if (result.inGameSLP > details.managerDebtClaimed) {
-                                        const managerShare = (details.manager).toString() === "100" ? 1 : "0." + details.manager;
+                                        const managerShare = (details.SHR_MANAGER).toString() === "100" ? 1 : "0." + details.SHR_MANAGER;
                                         const currentInGameSLP = result.inGameSLP - details.managerDebtClaimed; // Minus again for computation of Manager Shared SLP
                                         result.sharedManagerSLP = Math.ceil(currentInGameSLP * managerShare);
                                         // Adding ronin balance in total Manage SLP x // Set new Total Manager's Earning
@@ -995,12 +1012,12 @@ class Home extends React.Component {
                             if (this.state.isUser === CONSTANTS.MESSAGE.MANAGER) {
                                 if (ranking.eloStatus === "danger") {
                                     // Send an Email due to Lower MMR
-                                    this.sendMMRMessage(result.name, details.email, ranking.elo, CONSTANTS.MESSAGE.EMAIL_LOWMMR_MESSAGE);
+                                    this.sendMMRMessage(result.name, details.EMAIL, ranking.elo, CONSTANTS.MESSAGE.EMAIL_LOWMMR_MESSAGE);
                                 }
 
                                 if (ranking.eloStatus === "warning") {
                                     // Send an Email due to Warning MMR
-                                    // this.sendMMRMessage(result.name, details.email, ranking.elo, CONSTANTS.MESSAGE.EMAIL_WARNINGMMR_MESSAGE);
+                                    // this.sendMMRMessage(result.name, details.EMAIL, ranking.elo, CONSTANTS.MESSAGE.EMAIL_WARNINGMMR_MESSAGE);
                                 }
                             }
 
@@ -1026,133 +1043,105 @@ class Home extends React.Component {
 
                         // Generate Daily SLP Data
                         let playerDataDailySLPwillSave = true // For checking if has data data to be save x true or false x true need to save / false no data to be save
-                        if (dailySLPData.length > 0) {
-                            try {
-                                const dailySLPFilter = dailySLPData.filter(item => item.ADDRESS === details.roninAddress); // Filter valid data
-                                if (dailySLPFilter.length > 0) {
-                                    // Get TODAY SLP x Subtraction of InGameSLP and YESTERDAY
-                                    let todaySLP = Number(result.inGameSLP) - Number(dailySLPFilter[0].YESTERDAY);
-                                    if (Number(dailySLPFilter[0].YESTERDAY) > Number(result.inGameSLP)) {
-                                        // 0 ingameslp, already claimed
-                                        todaySLP = result.inGameSLP; // retain old data for newly claimed, must be update on the next day
-                                    }
-                                    // Check if the data from fetch is same date as date today
-                                    const toDate = moment(dailySLPFilter[0].TODATE).format('YYYY-MM-DD HH:mm:ss');
-                                    const todayDate = moment().format('YYYY-MM-DD HH:mm:ss');
-                                    const isSameTODate = moment(toDate).isSame(todayDate, 'date');
-                                    if (!isSameTODate) {
-                                        // ToDate and date today is not equal x Check if the ToDate (time) is less than to 8AM (Reset of energy)
-                                        // const duration = (moment.duration(moment().diff(dailySLPFilter[0].TODATE))).asHours();
-                                        const todateTime = moment(toDate).format('HHmmss');
-                                        if (Number(todateTime) >= Number("080000")) {
-                                            // Update existing record for new data x another date x based in 8AM energy reset
-                                            if (Number(result.claim_on_days) === 1) {
-                                                // Update daily slp for newly claimed x pass 1 day after claimed
-                                                result.dailySLP = {
-                                                    ADDRESS: details.roninAddress,
-                                                    YESTERDAY: 0,
-                                                    YESTERDAYRES: 0,
-                                                    TODAY: 0,
-                                                    TODATE: todayDate,
-                                                    ACTION: CONSTANTS.MESSAGE.UPDATE,
-                                                    MESSAGE: "UPDATE from energy reset and was claimed",
-                                                    UPDATEDON: todayDate,
-                                                    ALLFIELDS: true // to be save, if all fields or not x if false, only TODAY
-                                                };
-                                            } else {
-                                                // Get YESTERDAY SLP base on YESTERDAY and TODAY SLP
-                                                const yesterdySLP = Number(dailySLPFilter[0].YESTERDAY) + Number(dailySLPFilter[0].TODAY);
-                                                // Get TODAY SLP base on InGameSLP and YESTERDAY SLP
-                                                const todaysSLP = Number(result.inGameSLP) - Number(yesterdySLP);
-                                                // Update daily slp with new date
-                                                result.dailySLP = {
-                                                    ADDRESS: details.roninAddress,
-                                                    YESTERDAY: yesterdySLP,
-                                                    YESTERDAYRES: dailySLPFilter[0].TODAY,
-                                                    TODAY: todaysSLP,
-                                                    TODATE: todayDate,
-                                                    ACTION: CONSTANTS.MESSAGE.UPDATE,
-                                                    MESSAGE: "UPDATE from energy reset",
-                                                    UPDATEDON: todayDate,
-                                                    ALLFIELDS: true // to be save, if all fields or not x if false, only TODAY
-                                                };
-                                            }
-                                        } else {
-                                            if (Number(todaySLP) > Number(dailySLPFilter[0].TODAY)) {
-                                                // Update Daily SLP with new TODAY SLP
-                                                result.dailySLP = {
-                                                    ADDRESS: details.roninAddress,
-                                                    YESTERDAY: dailySLPFilter[0].YESTERDAY,
-                                                    YESTERDAYRES: dailySLPFilter[0].YESTERDAYRES,
-                                                    TODAY: todaySLP,
-                                                    TODATE: moment(dailySLPFilter[0].TODATE).format("YYYY-MM-DD HH:mm:ss"),
-                                                    ACTION: CONSTANTS.MESSAGE.UPDATE,
-                                                    MESSAGE: "UPDATE from isSameTODate false",
-                                                    UPDATEDON: todayDate,
-                                                    ALLFIELDS: false // to be save, if all fields or not x if false, only TODAY
-                                                };
-                                            } else {
-                                                // Today SLP is same x no change required
-                                                playerDataDailySLPwillSave = false;
-                                                result.dailySLP = dailySLPFilter[0];
-                                                result.dailySLP.noChange = "isSameTODate - false";
-                                            }
-                                        }
-                                    } else {
-                                        if (Number(todaySLP) > Number(dailySLPFilter[0].TODAY)) {
-                                            // Update Daily SLP with new TODAY SLP
-                                            result.dailySLP = {
-                                                ADDRESS: details.roninAddress,
-                                                YESTERDAY: dailySLPFilter[0].YESTERDAY,
-                                                YESTERDAYRES: dailySLPFilter[0].YESTERDAYRES,
-                                                TODAY: todaySLP,
-                                                TODATE: moment(dailySLPFilter[0].TODATE).format("YYYY-MM-DD HH:mm:ss"),
-                                                ACTION: CONSTANTS.MESSAGE.UPDATE,
-                                                MESSAGE: "UPDATE from isSameTODate true",
-                                                UPDATEDON: todayDate,
-                                                ALLFIELDS: false // to be save, if all fields or not x if false, only TODAY
-                                            };
-                                        } else {
-                                            // Today SLP is same x no change required
-                                            playerDataDailySLPwillSave = false;
-                                            result.dailySLP = dailySLPFilter[0];
-                                            result.dailySLP.noChange = "isSameTODate - true";
-                                        }
-                                    }
-                                } else {
-                                    // No existing data in fetching of Daily SLP x Add new records
-                                    if (result.inGameSLP <= 0) {
+                        try {
+                            // Get TODAY SLP x Subtraction of InGameSLP and YESTERDAY
+                            let todaySLP = Number(result.inGameSLP) - Number(details.YESTERDAY);
+                            if (Number(details.YESTERDAY) > Number(result.inGameSLP)) {
+                                // 0 ingameslp, already claimed
+                                todaySLP = result.inGameSLP; // retain old data for newly claimed, must be update on the next day
+                            }
+                            // Check if the data from fetch is same date as date today
+                            const toDate = moment(details.TODATE).format('YYYY-MM-DD HH:mm:ss');
+                            const todayDate = moment().format('YYYY-MM-DD HH:mm:ss');
+                            const isSameTODate = moment(toDate).isSame(todayDate, 'date');
+                            if (!isSameTODate) {
+                                // ToDate and date today is not equal x Check if the ToDate (time) is less than to 8AM (Reset of energy)
+                                // const duration = (moment.duration(moment().diff(details.TODATE))).asHours();
+                                const todateTime = moment(toDate).format('HHmmss');
+                                if (Number(todateTime) >= Number("080000")) {
+                                    // Update existing record for new data x another date x based in 8AM energy reset
+                                    if (Number(result.claim_on_days) === 1) {
+                                        // Update daily slp for newly claimed x pass 1 day after claimed
                                         result.dailySLP = {
-                                            ADDRESS: details.roninAddress,
+                                            ADDRESS: details.ADDRESS,
                                             YESTERDAY: 0,
                                             YESTERDAYRES: 0,
                                             TODAY: 0,
-                                            TODATE: moment().format("YYYY-MM-DD HH:mm:ss"),
-                                            ACTION: CONSTANTS.MESSAGE.INSERT,
+                                            TODATE: todayDate,
+                                            ACTION: CONSTANTS.MESSAGE.UPDATE,
+                                            MESSAGE: "UPDATE from energy reset and was claimed",
+                                            UPDATEDON: todayDate,
+                                            ALLFIELDS: true // to be save, if all fields or not x if false, only TODAY
+                                        };
+                                    } else {
+                                        // Get YESTERDAY SLP base on YESTERDAY and TODAY SLP
+                                        const yesterdySLP = Number(details.YESTERDAY) + Number(details.TODAY);
+                                        // Get TODAY SLP base on InGameSLP and YESTERDAY SLP
+                                        const todaysSLP = Number(result.inGameSLP) - Number(yesterdySLP);
+                                        // Update daily slp with new date
+                                        result.dailySLP = {
+                                            ADDRESS: details.ADDRESS,
+                                            YESTERDAY: yesterdySLP,
+                                            YESTERDAYRES: details.TODAY,
+                                            TODAY: todaysSLP,
+                                            TODATE: todayDate,
+                                            ACTION: CONSTANTS.MESSAGE.UPDATE,
+                                            MESSAGE: "UPDATE from energy reset",
+                                            UPDATEDON: todayDate,
                                             ALLFIELDS: true // to be save, if all fields or not x if false, only TODAY
                                         };
                                     }
+                                } else {
+                                    if (Number(todaySLP) > Number(details.TODAY)) {
+                                        // Update Daily SLP with new TODAY SLP
+                                        result.dailySLP = {
+                                            ADDRESS: details.ADDRESS,
+                                            YESTERDAY: details.YESTERDAY,
+                                            YESTERDAYRES: details.YESTERDAYRES,
+                                            TODAY: todaySLP,
+                                            TODATE: moment(details.TODATE).format("YYYY-MM-DD HH:mm:ss"),
+                                            ACTION: CONSTANTS.MESSAGE.UPDATE,
+                                            MESSAGE: "UPDATE from isSameTODate false",
+                                            UPDATEDON: todayDate,
+                                            ALLFIELDS: false // to be save, if all fields or not x if false, only TODAY
+                                        };
+                                    } else {
+                                        // Today SLP is same x no change required
+                                        playerDataDailySLPwillSave = false;
+                                        result.dailySLP = details;
+                                        result.dailySLP.noChange = "isSameTODate - false";
+                                    }
                                 }
-                            } catch (err) {
-                                // Has error in generate daily slp x used default data for display in table
-                                playerDataDailySLPwillSave = false;
-                                result.dailySLP = {
-                                    ADDRESS: details.roninAddress,
-                                    YESTERDAY: 0,
-                                    YESTERDAYRES: 0,
-                                    TODAY: 0,
-                                    ERROR: err
+                            } else {
+                                if (Number(todaySLP) > Number(details.TODAY)) {
+                                    // Update Daily SLP with new TODAY SLP
+                                    result.dailySLP = {
+                                        ADDRESS: details.ADDRESS,
+                                        YESTERDAY: details.YESTERDAY,
+                                        YESTERDAYRES: details.YESTERDAYRES,
+                                        TODAY: todaySLP,
+                                        TODATE: moment(details.TODATE).format("YYYY-MM-DD HH:mm:ss"),
+                                        ACTION: CONSTANTS.MESSAGE.UPDATE,
+                                        MESSAGE: "UPDATE from isSameTODate true",
+                                        UPDATEDON: todayDate,
+                                        ALLFIELDS: false // to be save, if all fields or not x if false, only TODAY
+                                    };
+                                } else {
+                                    // Today SLP is same x no change required
+                                    playerDataDailySLPwillSave = false;
+                                    result.dailySLP = details;
+                                    result.dailySLP.noChange = "isSameTODate - true";
                                 }
                             }
-                        } else {
-                            // Has error in dailySLPData x used default data for display in table
+                        } catch (err) {
+                            // Has error in generate daily slp x used default data for display in table
                             playerDataDailySLPwillSave = false;
                             result.dailySLP = {
-                                ADDRESS: details.roninAddress,
+                                ADDRESS: details.ADDRESS,
                                 YESTERDAY: 0,
                                 YESTERDAYRES: 0,
                                 TODAY: 0,
-                                ERROR: CONSTANTS.MESSAGE.ERROR_FETCH_DAILYSLP
+                                ERROR: err
                             }
                         }
 
@@ -1169,7 +1158,7 @@ class Home extends React.Component {
                             averageSLP: <MDBBox data-th={CONSTANTS.MESSAGE.AVERAGE_SLP_PERDAY_V2} tag="span">{result.averageSLPDay}</MDBBox>,
                             dailySLP: <MDBBox data-th={CONSTANTS.MESSAGE.DAILYSLP} tag="span"><MDBBox tag="span" className={Number(result.dailySLP.YESTERDAYRES) > Number(result.dailySLP.TODAY) ? "green-text d-inline d-md-block d-lg-block" : "red-text d-inline d-md-block d-lg-block"}><strong>Y:</strong> {result.dailySLP.YESTERDAYRES}</MDBBox> <MDBBox tag="span" className={Number(result.dailySLP.YESTERDAYRES) > Number(result.dailySLP.TODAY) ? "red-text d-inline d-md-block d-lg-block" : "green-text d-inline d-md-block d-lg-block"}><strong>T:</strong> {result.dailySLP.TODAY}</MDBBox></MDBBox>,
                             ingameSLP: <MDBBox data-th={CONSTANTS.MESSAGE.INGAME_SLP} tag="span">{this.numberWithCommas(result.inGameSLP)}</MDBBox>,
-                            sharedScholarSLP: <MDBBox data-th={CONSTANTS.MESSAGE.SHARED_SLP} tag="span" className="d-inline d-md-block d-lg-block">{this.numberWithCommas(result.sharedScholarSLP)} <MDBBox tag="span" className="d-inline d-md-block d-lg-block">({(details.manager).toString() === "100" ? details.manager : details.scholar}%)</MDBBox></MDBBox>,
+                            sharedScholarSLP: <MDBBox data-th={CONSTANTS.MESSAGE.SHARED_SLP} tag="span" className="d-inline d-md-block d-lg-block">{this.numberWithCommas(result.sharedScholarSLP)} <MDBBox tag="span" className="d-inline d-md-block d-lg-block">({(details.SHR_MANAGER).toString() === "100" ? details.SHR_MANAGER : details.SHR_SCHOLAR}%)</MDBBox></MDBBox>,
                             roninSLP: <MDBBox data-th={CONSTANTS.MESSAGE.RONIN_SLP} tag="span">{this.numberWithCommas(roninBalance)} <MDBBox tag="span" className="d-inline d-md-block d-lg-block red-text">{result.managerRoninClaimed ? "(" + this.numberWithCommas(result.details.managerDebtClaimed) + ")" : ""}</MDBBox></MDBBox>,
                             totalScholarEarningSLP: <MDBBox data-th={CONSTANTS.MESSAGE.TOTAL_SLP} tag="span">{this.numberWithCommas(result.totalScholarEarningSLP)}</MDBBox>,
                             totalScholarEarningPHP: <MDBBox data-th={CONSTANTS.MESSAGE.EARNINGS_PHP} tag="span">{this.numberWithCommas((result.totalScholarEarningPHP).toFixed(2))}</MDBBox>,
@@ -1207,41 +1196,17 @@ class Home extends React.Component {
                 // instead of a catch() block so that we don't swallow
                 // exceptions from actual bugs in components.
                 (error) => {
-                    this.setState({
-                        isLoaded: true,
-                        isNotif: true,
-                        notifCat: "error",
-                        notifStr: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
-                        error: true
-                    })
-                        
                     console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, error)
                     return reject({error: true});
                 }
             )
             .catch(
                 (err) => {
-                    this.setState({
-                        isLoaded: true,
-                        isNotif: true,
-                        notifCat: "error",
-                        notifStr: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
-                        error: true
-                    })
-                        
                     console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
                     return reject({error: true});
                 }
             )
         }).catch(err => {
-            this.setState({
-                isLoaded: true,
-                isNotif: true,
-                notifCat: "error",
-                notifStr: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
-                error: true
-            })
-                
             console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
             return err;
         });
@@ -1712,18 +1677,18 @@ class Home extends React.Component {
                                                 {/* Started playing */}
                                                 <MDBCol size="12" md="6" lg="6">
                                                     <MDBBox tag="span" className="d-block">
-                                                        {CONSTANTS.MESSAGE.STARTED} <Moment format="MMM DD, YYYY">{items.details.started}</Moment>
+                                                        {CONSTANTS.MESSAGE.STARTED} <Moment format="MMM DD, YYYY">{items.details.STARTED_ON}</Moment>
                                                     </MDBBox>
                                                 </MDBCol>
                                                 {/* Market Place link */}
                                                 <MDBCol size="12" md="6" lg="6">
                                                     <MDBBox tag="u" className="d-block d-md-none d-lg-none">
-                                                        <a href={"https://marketplace.axieinfinity.com/profile/" + items.details.roninAddress + "/axie"} target="_blank" rel="noreferrer" className="black-text">
+                                                        <a href={"https://marketplace.axieinfinity.com/profile/" + items.details.ADDRESS + "/axie"} target="_blank" rel="noreferrer" className="black-text">
                                                             {CONSTANTS.MESSAGE.OPEN_MARKETPLACE_PROFILE}
                                                         </a>
                                                     </MDBBox>
                                                     <MDBBox tag="u" className="d-none d-md-block d-lg-block text-right">
-                                                        <a href={"https://marketplace.axieinfinity.com/profile/" + items.details.roninAddress + "/axie"} target="_blank" rel="noreferrer" className="black-text">
+                                                        <a href={"https://marketplace.axieinfinity.com/profile/" + items.details.ADDRESS + "/axie"} target="_blank" rel="noreferrer" className="black-text">
                                                             {CONSTANTS.MESSAGE.OPEN_MARKETPLACE_PROFILE}
                                                         </a>
                                                     </MDBBox>
@@ -1733,7 +1698,7 @@ class Home extends React.Component {
                                                     this.state.isUser === CONSTANTS.MESSAGE.MANAGER ? (
                                                         <MDBCol size="12">
                                                             <MDBBox tag="span" className="d-block selectable-text">
-                                                                {CONSTANTS.MESSAGE.EMAIL}: {items.details.email}
+                                                                {CONSTANTS.MESSAGE.EMAIL}: {items.details.EMAIL}
                                                             </MDBBox>
                                                         </MDBCol>
                                                     ) : ("")
@@ -1775,7 +1740,7 @@ class Home extends React.Component {
                                     <td colSpan="4" className="text-center font-weight-bold rgba-teal-strong white-text">
                                         <span>{CONSTANTS.MESSAGE.TOTALINCOME}: &#8369; </span>
                                         {
-                                            Object.keys(this.state.modalPlayerDetails).length > 0 ? (
+                                            Object.keys(this.state.modalPlayerDetails).length > 0 && this.state.modalPlayerDetails[0].details.totalIncome !== undefined ? (
                                                 <React.Fragment>
                                                     {(this.state.modalPlayerDetails[0].details.totalIncome).toLocaleString()}
                                                 </React.Fragment>
@@ -1791,6 +1756,7 @@ class Home extends React.Component {
                                 </tr>
                                 {
                                     Object.keys(this.state.modalPlayerDetails).length > 0 ? (
+                                        this.state.modalPlayerDetails[0].details.claimedEarning !== undefined && 
                                         Object.keys(this.state.modalPlayerDetails[0].details.claimedEarning).length > 0 ? (
                                             (this.state.modalPlayerDetails[0].details.claimedEarning).sort((a, b) =>  b.id - a.id ).map(items => (
                                                 <tr key={items.id} className="text-center">
@@ -1812,39 +1778,97 @@ class Home extends React.Component {
     }
 
     // Render Modal for adding new team
-    renderModalAddRecords() {
+    renderModalIskoInputs() {
         return (
             <React.Fragment>
-                <MDBModal isOpen={this.state.isModalAddRecordOpen} size="md">
-                    <MDBModalHeader toggle={this.modalAddRecordsToggle("")} className="blue-whale">{CONSTANTS.MESSAGE.ADDNEW_ISKO}</MDBModalHeader>
+                <MDBModal isOpen={this.state.isModalIskoInputsOpen} size="md">
+                    <MDBModalHeader toggle={this.modalIskoInputs("")} className="blue-whale">{CONSTANTS.MESSAGE.SCHOLAR_INPUTS}</MDBModalHeader>
                     <MDBModalBody>
-                        <form onSubmit={this.onAddRecordHandle.bind(this)}>
-                            <MDBBox tag="div" className="grey-text">
-                                <MDBInput label={CONSTANTS.MESSAGE.RONIN_ADDRESS} name="ADDRESS" type="text" icon="address-book" required />
-                                <MDBInput label={CONSTANTS.MESSAGE.NAME} name="NAME" type="text" icon="user" required />
-                                <MDBInput label={CONSTANTS.MESSAGE.EMAIL} name="EMAIL" type="email" icon="envelope" required />
-                                <MDBRow className="mt-1pt5rem-neg" between>
-                                    <MDBCol size="6">
-                                        <MDBInput label={CONSTANTS.MESSAGE.MANAGER} name="SHR_MANAGER" type="number" min="0" max="100" required />
-                                    </MDBCol>
-                                    <MDBCol size="6">
-                                        <MDBInput label={CONSTANTS.MESSAGE.SCHOLAR} name="SHR_SCHOLAR" type="number" min="0" max="100" required />
-                                    </MDBCol>
-                                </MDBRow>
-                                <MDBRow className="mt-1pt5rem-neg" between>
-                                    <MDBCol size="6">
-                                        <MDBInput label={CONSTANTS.MESSAGE.SPONSOR_NAME} name="SHR_SPONSOR" type="text" icon="user" />
-                                    </MDBCol>
-                                    <MDBCol size="6">
-                                        <MDBInput label={CONSTANTS.MESSAGE.SPONSOR_SHARE} name="SHR_SPONSOR" type="number" min="0" max="100" />
-                                    </MDBCol>
-                                </MDBRow>
-                                <MDBBox tag="div" className={this.state.isValidShare === 0 ? "d-none" : this.state.isValidShare ? "d-none" : "invalid-feedback mt-1pt5rem-neg mb-2 px-3 d-block"}>{CONSTANTS.MESSAGE.SHARELIMIT}</MDBBox>
-                            </MDBBox>
-                            <MDBBox tag="div" className="text-center">
-                                <button className="btn btn-default waves-effect waves-light">{CONSTANTS.MESSAGE.SUBMIT}</button>
-                            </MDBBox>
-                        </form>
+                        <MDBNav className="nav-tabs">
+                            <MDBNavItem>
+                                <span
+                                    className={this.state.tabIskoInputsActive === "1" ? "nav-link cursor-pointer active" : "nav-link cursor-pointer"}
+                                    onClick={this.tabsIskoInputs("1")}
+                                    role="tab" >
+                                    {CONSTANTS.MESSAGE.ADD}
+                                </span>
+                            </MDBNavItem>
+                            <MDBNavItem>
+                                <span
+                                    className={this.state.tabIskoInputsActive === "2" ? "nav-link active cursor-pointer" : "nav-link cursor-pointer"}
+                                    onClick={this.tabsIskoInputs("2")}
+                                    role="tab" >
+                                    {CONSTANTS.MESSAGE.EDIT}
+                                </span>
+                            </MDBNavItem>
+                            <MDBNavItem>
+                                <span
+                                    className={this.state.tabIskoInputsActive === "3" ? "nav-link active cursor-pointer" : "nav-link cursor-pointer"}
+                                    onClick={this.tabsIskoInputs("3")}
+                                    role="tab" >
+                                    {CONSTANTS.MESSAGE.CLAIM}
+                                </span>
+                            </MDBNavItem>
+                        </MDBNav>
+                        <MDBTabContent activeItem={this.state.tabIskoInputsActive} >
+                            <MDBTabPane tabId="1" role="tabpanel">
+                                <form onSubmit={this.onAddRecordHandle.bind(this)}>
+                                    <MDBBox tag="div" className="grey-text">
+                                        <MDBInput label={CONSTANTS.MESSAGE.RONIN_ADDRESS} name="ADDRESS" type="text" icon="address-book" required />
+                                        <MDBInput label={CONSTANTS.MESSAGE.NAME} name="NAME" type="text" icon="user" required />
+                                        <MDBInput label={CONSTANTS.MESSAGE.EMAIL} name="EMAIL" type="email" icon="envelope" required />
+                                        <MDBRow className="mt-1pt5rem-neg" between>
+                                            <MDBCol size="6">
+                                                <MDBInput label={CONSTANTS.MESSAGE.MANAGER} name="SHR_MANAGER" type="number" min="0" max="100" required />
+                                            </MDBCol>
+                                            <MDBCol size="6">
+                                                <MDBInput label={CONSTANTS.MESSAGE.SCHOLAR} name="SHR_SCHOLAR" type="number" min="0" max="100" required />
+                                            </MDBCol>
+                                        </MDBRow>
+                                        <MDBRow className="mt-1pt5rem-neg" between>
+                                            <MDBCol size="6">
+                                                <MDBInput label={CONSTANTS.MESSAGE.SPONSOR_NAME} name="SPONSOR_NAME" type="text" icon="user" />
+                                            </MDBCol>
+                                            <MDBCol size="6">
+                                                <MDBInput label={CONSTANTS.MESSAGE.SPONSOR_SHARE} name="SHR_SPONSOR" type="number" min="0" max="100" />
+                                            </MDBCol>
+                                        </MDBRow>
+                                        <MDBBox tag="div" className={this.state.isValidAddTeam === 0 ? "d-none" : this.state.isValidAddTeam ? "d-none" : "invalid-feedback mt-1pt5rem-neg mb-2 px-3 d-block"}>{this.state.errorMsg}</MDBBox>
+                                    </MDBBox>
+                                    <MDBBox tag="div" className="text-center">
+                                        <button className="btn btn-default waves-effect waves-light">
+                                            <MDBIcon icon="paper-plane" className="mr-1" />
+                                            {CONSTANTS.MESSAGE.SUBMIT}
+                                        </button>
+                                    </MDBBox>
+                                </form>
+                            </MDBTabPane>
+                            <MDBTabPane tabId="2" role="tabpanel">
+                                <p className="mt-2">
+                                Quisquam aperiam, pariatur. Tempora, placeat ratione porro
+                                voluptate odit minima. Lorem ipsum dolor sit amet,
+                                consectetur adipisicing elit. Nihil odit magnam minima,
+                                soluta doloribus reiciendis molestiae placeat unde eos
+                                molestias.
+                                </p>
+                                <p>
+                                Quisquam aperiam, pariatur. Tempora, placeat ratione porro
+                                voluptate odit minima. Lorem ipsum dolor sit amet,
+                                consectetur adipisicing elit. Nihil odit magnam minima,
+                                soluta doloribus reiciendis molestiae placeat unde eos
+                                molestias.
+                                </p>
+                            </MDBTabPane>
+                            <MDBTabPane tabId="3" role="tabpanel">
+                                <p className="mt-2">
+                                Quisquam aperiam, pariatur. Tempora, placeat ratione porro
+                                voluptate odit minima. Lorem ipsum dolor sit amet,
+                                consectetur adipisicing elit. Nihil odit magnam minima,
+                                soluta doloribus reiciendis molestiae placeat unde eos
+                                molestias.
+                                </p>
+                            </MDBTabPane>
+                        </MDBTabContent>
                     </MDBModalBody>
                 </MDBModal>
             </React.Fragment>
@@ -1871,18 +1895,23 @@ class Home extends React.Component {
             <MDBBox tag="div" className="home-wrapper">
                 <MDBAnimation type="bounce" className="z-index-1 position-fixed guides-btn">
                     {
-                        this.state.isPlayerLoaded && this.state.isLoaded && !this.state.error ? (
-                            this.state.isUser === CONSTANTS.MESSAGE.MANAGER && Object.keys(this.state.exportData).length > 0 ? (
-                                <React.Fragment>
-                                    {/* Add New Scholar */}
-                                    <button type="button" className="btn btn-default waves-effect waves-light"
-                                        onClick={this.modalAddRecordsToggle()}>
-                                        <MDBIcon icon="plus-circle" className="fa-3x" />
-                                    </button>
-                                    {/* Export Data */}
-                                    <ExportCSV csvData={this.state.exportData} fileName={CONSTANTS.MESSAGE.TEAMLOKI + "_" + moment().format("MMDDYYYY_HHmmss")}/>
-                                </React.Fragment>
-                            ) : ("")
+                        this.state.isUser === CONSTANTS.MESSAGE.MANAGER ? (
+                            <React.Fragment>
+                                {/* Scholar's input */}
+                                <button type="button" className="btn btn-default waves-effect waves-light d-block iskoInputs"
+                                    onClick={this.modalIskoInputs()}>
+                                    <MDBIcon icon="graduation-cap" className="fa-2x" />
+                                </button>
+
+                                {
+                                    //  Object.keys(this.state.exportData).length > 0 ? (
+                                    //     <React.Fragment>
+                                    //         {/* Export Data */}
+                                    //         <ExportCSV csvData={this.state.exportData} fileName={CONSTANTS.MESSAGE.TEAMLOKI + "_" + moment().format("MMDDYYYY_HHmmss")}/>
+                                    //     </React.Fragment>
+                                    // ) : ("")
+                                }
+                            </React.Fragment>
                         ) : ("")
                     }
 
@@ -1982,7 +2011,7 @@ class Home extends React.Component {
                 {this.renderModalEarnings()}
                 {this.renderModalMMRRank()}
                 {this.renderModalPlayerDetails()}
-                {this.renderModalAddRecords()}
+                {this.renderModalIskoInputs()}
             </MDBBox>
         )
     }

@@ -1,6 +1,6 @@
 const path = require('path');
 const express = require("express");
-const mysql = require("mysql");
+const { Client } = require('pg');
 const PORT = process.env.PORT || 3001;
 
 const app = express();
@@ -10,23 +10,23 @@ app.use(express.json());
 app.use(express.static(path.resolve(__dirname, '../client/build')));
 
 /*
-    https://www.freemysqlhosting.net/
     ReactJS Buildpack Heroku
     ** https://buildpack-registry.s3.amazonaws.com/buildpacks/mars/create-react-app.tgz
 */
-const conn = {
-    host: "sql6.freemysqlhosting.net", // Replace with your host name
-    user: "sql6445790",      // Replace with your database username
-    password: "bsgxsq6bAu",      // Replace with your database password
-    database: "sql6445790" // Replace with your database Name
+
+const pgConn = {
+    connectionString: "postgres://jxbcqarlcxuwwt:9328a074960dae0975c57dc4a88fd21af6be26c4ef0708316df54368c565da83@ec2-23-23-199-57.compute-1.amazonaws.com:5432/d2kdqt4muprt6i",
+    ssl: {
+      rejectUnauthorized: false
+    }
 }
 
 /*
     Tables
     ** TB_USERPROFILE
-    **** ID, ADDRESS, NAME, EMAIL, SHR_MANAGER, SHR_SCHOLAR, SHR_SPONSOR, SPONSOR_NAME, TIMESTAMP
+    **** ID, ADDRESS, NAME, EMAIL, SHR_MANAGER, SHR_SCHOLAR, SHR_SPONSOR, SPONSOR_NAME, STARTED_ON
     ** TB_CLAIMED
-    **** ID, ADDRESS, SHR_MANAGER, SHR_SCHOLAR, SHR_SPONSOR, SLPCURRENCY, TIMESTAMP
+    **** ID, ADDRESS, SHR_MANAGER, SHR_SCHOLAR, SHR_SPONSOR, SLPCURRENCY, SLPTOTAL, CLAIMED_ON
     ** TB_DAILYSLP
     **** ID, ADDRESS, YESTERDAY, YESTERDAYRES, TODAY, TODATE, TIMESTAMP
 */
@@ -44,19 +44,35 @@ const CONSTANTS = {
         STARTEDPOST: "POST Started!",
         ENDPOST: "POST QUERY END!",
         INSERT: "Insert",
-        UPDATE: "UPDATE"
+        UPDATE: "UPDATE",
+        DAILYSLP: "Daily SLP",
+        TEAMRECORD: "Team Record"
+    },
+    TABLE: {
+        USERPROFILE: `public."TB_USERPROFILE"`,
+        CLAIMED: `public."TB_CLAIMED"`,
+        DAILYSLP: `public."TB_DAILYSLP"`,
     },
     QUERY: {
         SELECT: {
-            DAILYSLP: `SELECT * FROM TB_DAILYSLP`
+            USERPROFILE: `SELECT * FROM public."TB_USERPROFILE`,
+            DAILYSLP: `SELECT * FROM public."DAILYSLP`,
+            CLAIMED: `SELECT * FROM public."TB_CLAIMED`
         },
         INSERT: {
-            DAILYSLP: `INSERT INTO TB_DAILYSLP`,
-            USERPROFILE: `INSERT INTO TB_USERPROFILE`
+            USERPROFILE: `INSERT INTO public."TB_USERPROFILE"`,
+            DAILYSLP: `INSERT INTO public."TB_DAILYSLP"`
         },
         UPDATE: {
-            DAILYSLP: `UPDATE TB_DAILYSLP`
+            DAILYSLP: `UPDATE public."TB_DAILYSLP"`
         }
+    }
+}
+
+// Global console log
+const logger = (message, isDevMode = true) => {
+    if (!isDevMode) {
+        return console.log(message);
     }
 }
 
@@ -70,38 +86,46 @@ app.get("/api", (req, res) => {
 //     res.sendFile(path.resolve(__dirname, '../client/build', 'index.html'));
 // });
 
-// POST Method x Saving process of adding new scholar
-app.post("/api/addScholar", async (req, res) => {
+// GET Method x Fetch records x TB_USERPROFILE + TB_CLAIMED + TB_DAILYSLP
+app.get("/api/records", async (req, res) => {
     try {
-        console.log(CONSTANTS.MESSAGE.STARTED_INSERTQUERY);
-        // Create DB Connection
-        const dbConn = mysql.createConnection({
-            host     : conn.host,
-            user     : conn.user,
-            password : conn.password,
-            database : conn.database
-        });
-        dbConn.connect();
-        
-        // Body payload
-        const payload = req.body;
-        console.log(payload)
+        logger(CONSTANTS.MESSAGE.STARTED_SELECTQUERY);
 
-        // Execute Query
-        const query = `${CONSTANTS.QUERY.INSERT.USERPROFILE} (ADDRESS, NAME, EMAIL, SHR_MANAGER, SHR_SCHOLAR, SHR_SPONSOR) VALUES ('${payload.ADDRESS}', '${payload.NAME}', '${payload.EMAIL}', '${payload.SHR_MANAGER}', '${payload.SHR_SCHOLAR}', '${payload.SHR_SPONSOR}')`;
-        dbConn.query(query, function (error, results) {
-            console.log(CONSTANTS.MESSAGE.STARTED_INSERTQUERY);
-            // End DB Connection
-            dbConn.end();
+        // Conect to postgres
+        const client = new Client(pgConn);
+        client.connect();
+
+        // Execute Query x JOIN table
+        const query = `SELECT "USER".*, "DAILY"."YESTERDAY", "DAILY"."YESTERDAYRES", "DAILY"."TODAY", "DAILY"."TODATE" FROM ${CONSTANTS.TABLE.USERPROFILE} AS "USER" JOIN ${CONSTANTS.TABLE.DAILYSLP} AS "DAILY" ON "USER"."ADDRESS" = "DAILY"."ADDRESS"`;
+        client.query(query, (error, result) => {
             if (error) {
+                logger(CONSTANTS.MESSAGE.END_SELECTQUERY);
+                // End Connection
+                client.end();
                 return res.type("application/json").status(500).send({
                     error: true,
                     data: error
                 });
             } else {
-                return res.type("application/json").status(200).send({
-                    error: false,
-                    data: results
+                // Execute Query x TB_CLAIMED
+                const query = `${CONSTANTS.QUERY.SELECT.CLAIMED}`;
+                client.query(query, (err, response) => {
+                    logger(CONSTANTS.MESSAGE.END_SELECTQUERY);
+                    // End Connection
+                    client.end();
+                    if (err) {
+                        return res.type("application/json").status(200).send({
+                            error: false,
+                            data: result.rows,
+                            claimed: []
+                        });
+                    } else {
+                        return res.type("application/json").status(200).send({
+                            error: false,
+                            data: result.rows,
+                            claimed: response.rows
+                        });
+                    }
                 });
             }
         });
@@ -111,36 +135,49 @@ app.post("/api/addScholar", async (req, res) => {
             data: err
         });
     }
-});
+})
 
-// GET Method x Daily SLP x Yesterday and Today
-app.get("/api/dailySLP", async (req, res) => {
+// POST Method x Saving process of adding new scholar
+app.post("/api/addScholar", async (req, res) => {
     try {
-        console.log(CONSTANTS.MESSAGE.STARTED_SELECTQUERY);
-        // Create DB Connection
-        const dbConn = mysql.createConnection({
-            host     : conn.host,
-            user     : conn.user,
-            password : conn.password,
-            database : conn.database
-        });
-        dbConn.connect();
+        logger(CONSTANTS.MESSAGE.STARTED_INSERTQUERY);
 
-        // Execute Query
-        const query = `${CONSTANTS.QUERY.SELECT.DAILYSLP}`;
-        dbConn.query(query, function (error, results) {
-            console.log(CONSTANTS.MESSAGE.END_SELECTQUERY);
-            // End DB Connection
-            dbConn.end();
+        // Conect to postgres
+        const client = new Client(pgConn);
+        client.connect();
+        
+        // Body payload
+        const payload = req.body;
+
+        // Execute Query x insert new team record
+        const query = `${CONSTANTS.QUERY.INSERT.USERPROFILE} ("ADDRESS", "NAME", "EMAIL", "SHR_MANAGER", "SHR_SCHOLAR", "SHR_SPONSOR", "SPONSOR_NAME", "STARTED_ON") VALUES ('${payload.ADDRESS}', '${payload.NAME}', '${payload.EMAIL}', '${payload.SHR_MANAGER}', '${payload.SHR_SCHOLAR}', '${payload.SHR_SPONSOR}', '${payload.SPONSOR_NAME}', '${payload.STARTED_ON}')`;
+        client.query(query, (error) => {
             if (error) {
+                logger(CONSTANTS.MESSAGE.TEAMRECORD, CONSTANTS.MESSAGE.STARTED_INSERTQUERY);
+                // End Connection
+                client.end();
                 return res.type("application/json").status(500).send({
                     error: true,
                     data: error
                 });
             } else {
-                return res.type("application/json").status(200).send({
-                    error: false,
-                    data: results
+                // Execute Query x insert new daily slp record
+                const query = `${CONSTANTS.QUERY.INSERT.DAILYSLP} ("ADDRESS", "YESTERDAY", "YESTERDAYRES", "TODAY", "TODATE") VALUES ('${payload.ADDRESS}', '0', '0', '0','${payload.STARTED_ON}')`;
+                client.query(query, (err, result) => {
+                    logger(CONSTANTS.MESSAGE.DAILYSLP, CONSTANTS.MESSAGE.STARTED_INSERTQUERY);
+                    // End Connection
+                    client.end();
+                    if (err) {
+                        return res.type("application/json").status(500).send({
+                            error: true,
+                            data: err
+                        });
+                    } else {
+                        return res.type("application/json").status(200).send({
+                            error: false,
+                            data: result
+                        });
+                    }
                 });
             }
         });
@@ -155,52 +192,38 @@ app.get("/api/dailySLP", async (req, res) => {
 // POST Method x Saving process of Daily SLP x Yesterday and Today
 app.post("/api/dailySLP", async (req, res) => {
     try {
+        logger(CONSTANTS.MESSAGE.STARTED_INSERTQUERY);
+
         // Body payload
         const payload = req.body;
-        // Create DB Connection
-        const dbConn = mysql.createConnection({
-            host     : conn.host,
-            user     : conn.user,
-            password : conn.password,
-            database : conn.database
-        });
-        dbConn.connect();
 
         if (payload.length > 0) {
             // Map the payload for multiple data
             const upsertProcedure = payload.map((items) => {
+                // Conect to postgres
+                const client = new Client(pgConn);
+                client.connect();
+
                 // Execute Query
-                console.log(CONSTANTS.MESSAGE.STARTEDPOST, items.ADDRESS);
-                if (items.ACTION === CONSTANTS.MESSAGE.INSERT) { // INSERT
-                    console.log(CONSTANTS.MESSAGE.STARTED_INSERTQUERY);
-                    const query = `${CONSTANTS.QUERY.INSERT.DAILYSLP} (ADDRESS, YESTERDAY, YESTERDAYRES, TODAY, TODATE) VALUES ('${items.ADDRESS}', '${items.YESTERDAY}', '${items.YESTERDAYRES}', '${items.TODAY}', '${items.TODATE}') ON DUPLICATE KEY UPDATE ADDRESS = VALUES(ADDRESS)`;
-                    dbConn.query(query, function (error) {
-                        if (error) {
-                            console.log(CONSTANTS.MESSAGE.ERROR_PROCEDURE, error);
-                        }
-                    });
-                } else { // UPDATE
-                    console.log(CONSTANTS.MESSAGE.STARTED_UPDATEQUERY);
-                    let query = `${CONSTANTS.QUERY.UPDATE.DAILYSLP} SET YESTERDAY = '${items.YESTERDAY}', YESTERDAYRES = '${items.YESTERDAYRES}', TODAY = '${items.TODAY}', TODATE = '${items.TODATE}' WHERE ADDRESS = '${items.ADDRESS}'`;
-                    if (!items.ALLFIELDS) { // False, only TODATE SLP will be updating
-                        query = `${CONSTANTS.QUERY.UPDATE.DAILYSLP} SET TODAY = '${items.TODAY}' WHERE ADDRESS = '${items.ADDRESS}'`;
-                    }
-                    // DBConn Query
-                    dbConn.query(query, function (error) {
-                        if (error) {
-                            console.log(CONSTANTS.MESSAGE.ERROR_PROCEDURE, error);
-                        }
-                    });
+                logger(`${CONSTANTS.MESSAGE.STARTED_UPDATEQUERY} - ${items.ADDRESS}`);
+                let query = `${CONSTANTS.QUERY.UPDATE.DAILYSLP} SET "YESTERDAY" = '${items.YESTERDAY}', "YESTERDAYRES" = '${items.YESTERDAYRES}', "TODAY" = '${items.TODAY}', "TODATE" = '${items.TODATE}' WHERE "ADDRESS" = '${items.ADDRESS}'`;
+                if (!items.ALLFIELDS) { // False, only TODATE SLP will be updating
+                    query = `${CONSTANTS.QUERY.UPDATE.DAILYSLP} SET "TODAY" = '${items.TODAY}' WHERE "ADDRESS" = '${items.ADDRESS}'`;
                 }
-    
-                return items;
+
+                client.query(query, (error) => {
+                    // End Connection
+                    client.end();
+                    logger(`${CONSTANTS.MESSAGE.END_UPDATEQUERY} - ${items.ADDRESS}`);
+                    if (error) {
+                        logger(`${CONSTANTS.MESSAGE.ERROR_PROCEDURE} ${error}`);
+                    }
+                });
             });
 
             // Return
-            return await Promise.all(upsertProcedure).then(function (results) {
-                console.log(CONSTANTS.MESSAGE.ENDPOST);
-                // End DB Connection
-                dbConn.end();
+            return await Promise.all(upsertProcedure).then(function () {
+                logger(CONSTANTS.MESSAGE.END_UPDATEQUERY);
                 return res.type("application/json").status(200).send({
                     error: false,
                     data: payload
@@ -221,5 +244,5 @@ app.post("/api/dailySLP", async (req, res) => {
 });
 
 app.listen(PORT, () => {
-    console.log(`Server listening on ${PORT}`);
+    logger(`Server listening on ${PORT}`);
 });

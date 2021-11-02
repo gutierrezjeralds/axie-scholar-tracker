@@ -117,10 +117,14 @@ const MESSAGE = {
     INSERT: "Insert",
     UPDATE: "UPDATE",
     ERROR_FETCH_DAILYSLP: 'Error in fetching data of Daily SLP',
+    ERROR_FILTER_DAILYSLP: 'Error in filter data of Daily SLP',
     UPDATE_ISKODATA: "Update Scholar Data",
-    ADDNEW_ISKO: "Add Scholar",
+    SHARELIMIT: "Sharing must be equal to 100",
+    SCHOLAR_INPUTS: "Scholar inputs",
     SUBMIT: "Submit",
-    SHARELIMIT: "Sharing must be equal to 100"
+    ADD: "Add",
+    EDIT: "Edit",
+    CLAIM: "Claim"
 }
 
 export const CONSTANTS = {

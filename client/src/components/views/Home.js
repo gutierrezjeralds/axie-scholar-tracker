@@ -84,7 +84,9 @@ class Home extends React.Component {
             errorMsg: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
             PVPENERGY_DEFAULT: 20,
             tabIskoInputsActive: "1",
-            slctClaimId: ""
+            slctClaimId: "",
+            slctAddEditId: "",
+            hasSponsor: false
         }
     }
 
@@ -166,6 +168,13 @@ class Home extends React.Component {
             });
         }
     };
+
+    // Onchange checkbox if has sponsor in add/edit modal
+    handleHasSponsorCheckChange(event) {
+        this.setState({
+            hasSponsor: event.target.checked
+        })
+    }
 
     // Page reload
     pageRefresh = (time) => {
@@ -427,8 +436,69 @@ class Home extends React.Component {
         });
     }
 
+    // Handle for onchange select of Add/Edit Scholar
+    handleAddEditIskoChange(event) {
+        this.setState({
+            slctAddEditId: event.target.value
+        })
+
+        if (event.target.value) {
+            // Update Select Option text
+            // $(".addEdit-inputHolder").find("select").text(`${CONSTANTS.MESSAGE.EDIT}: ${event.target.value}`);
+            const dataSet = this.state.playerRecords.filter(item => item.cliend_id === event.target.value || item.name === event.target.value); // Filter valid data
+            if (dataSet.length > 0) {
+                // Check if item has sponsor
+                if (Number(dataSet[0].details.SHR_SPONSOR) > 0) {
+                    this.setState({
+                        hasSponsor: true
+                    })
+                } else {
+                    this.setState({
+                        hasSponsor: false
+                    })
+                }
+                // Update input fields
+                $(".addEdit-inputHolder input[name=ADDRESS]").val(dataSet[0].details.ADDRESS).attr("value", dataSet[0].details.ADDRESS).trigger("change");
+                $(".addEdit-inputHolder input[name=NAME]").val(dataSet[0].details.NAME).attr("value", dataSet[0].details.NAME).trigger("change");
+                $(".addEdit-inputHolder input[name=EMAIL]").val(dataSet[0].details.EMAIL).attr("value", dataSet[0].details.EMAIL).trigger("change");
+                $(".addEdit-inputHolder input[name=SHR_MANAGER]").val(dataSet[0].details.SHR_MANAGER).attr("value", dataSet[0].details.SHR_MANAGER).trigger("change");
+                $(".addEdit-inputHolder input[name=SHR_SCHOLAR]").val(dataSet[0].details.SHR_SCHOLAR).attr("value", dataSet[0].details.SHR_SCHOLAR).trigger("change");
+
+                // Timeout the function for update the value from hidden previous
+                setTimeout( () => {
+                    $(".addEdit-inputHolder input[name=SHR_SPONSOR]").val(dataSet[0].details.SHR_SPONSOR).attr("value", dataSet[0].details.SHR_SPONSOR).trigger("change");
+                    $(".addEdit-inputHolder input[name=SPONSOR_NAME]").val(dataSet[0].details.SPONSOR_NAME).attr("value", dataSet[0].details.SPONSOR_NAME).trigger("change");
+                }, 500);
+            } else {
+                this.setState({
+                    hasSponsor: false
+                })
+                // Clear data in input fields
+                $(".addEdit-inputHolder input[name=ADDRESS]").val("").trigger("change");
+                $(".addEdit-inputHolder input[name=NAME]").val("").trigger("change");
+                $(".addEdit-inputHolder input[name=EMAIL]").val("").trigger("change");
+                $(".addEdit-inputHolder input[name=SHR_MANAGER]").val("").trigger("change");
+                $(".addEdit-inputHolder input[name=SHR_SCHOLAR]").val("").trigger("change");
+                $(".addEdit-inputHolder input[name=SHR_SPONSOR]").val("").trigger("change");
+                $(".addEdit-inputHolder input[name=SPONSOR_NAME]").val("").trigger("change");
+            }
+        } else {
+            this.setState({
+                hasSponsor: false
+            })
+            // Clear data in input fields
+            $(".addEdit-inputHolder input[name=ADDRESS]").val("").trigger("change");
+            $(".addEdit-inputHolder input[name=NAME]").val("").trigger("change");
+            $(".addEdit-inputHolder input[name=EMAIL]").val("").trigger("change");
+            $(".addEdit-inputHolder input[name=SHR_MANAGER]").val("").trigger("change");
+            $(".addEdit-inputHolder input[name=SHR_SCHOLAR]").val("").trigger("change");
+            $(".addEdit-inputHolder input[name=SHR_SPONSOR]").val("").trigger("change");
+            $(".addEdit-inputHolder input[name=SPONSOR_NAME]").val("").trigger("change");
+        }
+    }
+
     // Handle for saving record
-    onAddRecordHandle(event) {
+    onAddEditRecordHandle(event) {
         event.preventDefault();
         // Remove error message
         this.setState({
@@ -439,11 +509,11 @@ class Home extends React.Component {
 
         const shrManager = event.target.SHR_MANAGER.value ? event.target.SHR_MANAGER.value : "0";
         const shrScholar = event.target.SHR_SCHOLAR.value ? event.target.SHR_SCHOLAR.value : "0";
-        const shrSponsor = event.target.SHR_SPONSOR.value ? event.target.SHR_SPONSOR.value : "0";
+        const shrSponsor = event.target.SHR_SPONSOR ? event.target.SHR_SPONSOR.value ? event.target.SHR_SPONSOR.value : "0" : "0";
         const shareTotal = Number(shrManager) + Number(shrScholar) + Number(shrSponsor);
         const dateToday = moment().format("YYYY-MM-DD HH:mm:ss");
         if (shareTotal === 100) {
-            const sponsorName = Number(shrManager) + Number(shrScholar) === 100 ? "" : event.target.SPONSOR_NAME.value ? event.target.SPONSOR_NAME.value : "";
+            const sponsorName = Number(shrManager) + Number(shrScholar) === 100 ? "" : event.target.SPONSOR_NAME ? event.target.SPONSOR_NAME.value ? event.target.SPONSOR_NAME.value : "" : "";
             // Continue with the process
             const datas = {
                 ADDRESS: event.target.ADDRESS.value,
@@ -453,11 +523,13 @@ class Home extends React.Component {
                 SHR_SCHOLAR: shrScholar,
                 SHR_SPONSOR: shrSponsor,
                 SPONSOR_NAME: sponsorName,
-                STARTED_ON: dateToday
+                STARTED_ON: dateToday,
+                ACTION: this.state.slctAddEditId ? CONSTANTS.MESSAGE.UPDATE : CONSTANTS.MESSAGE.INSERT // Empty addEdit id from select will be insert
             }
+
             // Run Ajax
             $.ajax({
-                url: "/api/addScholar",
+                url: "/api/addEditScholar",
                 type: "POST",
                 data: JSON.stringify(datas),
                 contentType: 'application/json',
@@ -520,38 +592,36 @@ class Home extends React.Component {
         })
 
         // Update SLP Currency input value
-        $(".claim-inputHolder input[name=SLPCURRENCY]").val(this.state.slpCurrentValue).attr("value", this.state.slpCurrentValue).trigger("change").siblings('label').addClass('active');
+        $(".claim-inputHolder input[name=SLPCURRENCY]").val(this.state.slpCurrentValue).attr("value", this.state.slpCurrentValue).trigger("change");
         // Continue with the process
         if (event.target.value) {
             const dataSet = this.state.playerRecords.filter(item => item.cliend_id === event.target.value || item.name === event.target.value); // Filter valid data
             if (dataSet.length > 0) {
                 // Update input fields
                 $(".claim-inputHolder input[name=ADDRESS]").val(dataSet[0].details.ADDRESS).attr("value", dataSet[0].details.ADDRESS).trigger("change").siblings('label').addClass('active');
-                $(".claim-inputHolder input[name=SHR_MANAGER]").val(dataSet[0].sharedManagerSLP).attr("value", dataSet[0].sharedManagerSLP).trigger("change").siblings('label').addClass('active');
-                $(".claim-inputHolder input[name=SHR_SCHOLAR]").val(dataSet[0].scholarSLP).attr("value", dataSet[0].scholarSLP).trigger("change").siblings('label').addClass('active');
-                $(".claim-inputHolder input[name=SHR_SPONSOR]").val(dataSet[0].sharedSponsorSLP).attr("value", dataSet[0].sharedSponsorSLP).trigger("change").siblings('label').addClass('active');
+                $(".claim-inputHolder input[name=SHR_MANAGER]").val(dataSet[0].sharedManagerSLP).attr("value", dataSet[0].sharedManagerSLP).trigger("change");
+                $(".claim-inputHolder input[name=SHR_SCHOLAR]").val(dataSet[0].scholarSLP).attr("value", dataSet[0].scholarSLP).trigger("change");
+                $(".claim-inputHolder input[name=SHR_SPONSOR]").val(dataSet[0].sharedSponsorSLP).attr("value", dataSet[0].sharedSponsorSLP).trigger("change");
                 // Enable Button Submit
                 $(".claim-inputHolder button").removeAttr("disabled");
             } else {
                 // Clear data in input fields
                 $(".claim-inputHolder input[name=ADDRESS]").val("").trigger("change").siblings('label').removeClass('active');
-                $(".claim-inputHolder input[name=SHR_MANAGER]").val("").trigger("change").siblings('label').removeClass('active');
-                $(".claim-inputHolder input[name=SHR_SCHOLAR]").val("").trigger("change").siblings('label').removeClass('active');
-                $(".claim-inputHolder input[name=SHR_SPONSOR]").val("").trigger("change").siblings('label').removeClass('active');
+                $(".claim-inputHolder input[name=SHR_MANAGER]").val("").trigger("change");
+                $(".claim-inputHolder input[name=SHR_SCHOLAR]").val("").trigger("change");
+                $(".claim-inputHolder input[name=SHR_SPONSOR]").val("").trigger("change");
                 // Disabled Button Submit
                 $(".claim-inputHolder button").attr("disabled", "disabled");
             }
         } else {
             // Clear data in input fields
-            $(".claim-inputHolder input[name=ADDRESS]").val("").trigger("change").siblings('label').removeClass('active');
-            $(".claim-inputHolder input[name=SHR_MANAGER]").val("").trigger("change").siblings('label').removeClass('active');
-            $(".claim-inputHolder input[name=SHR_SCHOLAR]").val("").trigger("change").siblings('label').removeClass('active');
-            $(".claim-inputHolder input[name=SHR_SPONSOR]").val("").trigger("change").siblings('label').removeClass('active');
+            $(".claim-inputHolder input[name=ADDRESS]").val("").trigger("change");
+            $(".claim-inputHolder input[name=SHR_MANAGER]").val("").trigger("change");
+            $(".claim-inputHolder input[name=SHR_SCHOLAR]").val("").trigger("change");
+            $(".claim-inputHolder input[name=SHR_SPONSOR]").val("").trigger("change");
             // Disabled Button Submit
             $(".claim-inputHolder button").attr("disabled", "disabled");
         }
-        // 
-        // claim-inputHolder
     }
 
     // Handle for saving withdraw slp
@@ -2024,7 +2094,7 @@ class Home extends React.Component {
                                     className={this.state.tabIskoInputsActive === "1" ? "nav-link cursor-pointer active" : "nav-link cursor-pointer"}
                                     onClick={this.tabsIskoInputs("1")}
                                     role="tab" >
-                                    {CONSTANTS.MESSAGE.ADD}
+                                    {CONSTANTS.MESSAGE.ADD_EDIT}
                                 </span>
                             </MDBNavItem>
                             <MDBNavItem>
@@ -2032,7 +2102,7 @@ class Home extends React.Component {
                                     className={this.state.tabIskoInputsActive === "2" ? "nav-link active cursor-pointer" : "nav-link cursor-pointer"}
                                     onClick={this.tabsIskoInputs("2")}
                                     role="tab" >
-                                    {CONSTANTS.MESSAGE.EDIT}
+                                    {CONSTANTS.MESSAGE.WITHDRAW}
                                 </span>
                             </MDBNavItem>
                             <MDBNavItem>
@@ -2040,42 +2110,80 @@ class Home extends React.Component {
                                     className={this.state.tabIskoInputsActive === "3" ? "nav-link active cursor-pointer" : "nav-link cursor-pointer"}
                                     onClick={this.tabsIskoInputs("3")}
                                     role="tab" >
-                                    {CONSTANTS.MESSAGE.WITHDRAW}
-                                </span>
-                            </MDBNavItem>
-                            <MDBNavItem>
-                                <span
-                                    className={this.state.tabIskoInputsActive === "4" ? "nav-link active cursor-pointer" : "nav-link cursor-pointer"}
-                                    onClick={this.tabsIskoInputs("4")}
-                                    role="tab" >
                                     {CONSTANTS.MESSAGE.MANAGER_EARNING}
                                 </span>
                             </MDBNavItem>
                         </MDBNav>
                         <MDBTabContent activeItem={this.state.tabIskoInputsActive} >
                             <MDBTabPane tabId="1" role="tabpanel">
-                                <form onSubmit={this.onAddRecordHandle.bind(this)}>
+                                <form onSubmit={this.onAddEditRecordHandle.bind(this)} className="addEdit-inputHolder">
                                     <MDBBox tag="div" className="grey-text">
-                                        <MDBInput label={CONSTANTS.MESSAGE.RONIN_ADDRESS} name="ADDRESS" type="text" icon="address-book" required />
-                                        <MDBInput label={CONSTANTS.MESSAGE.NAME} name="NAME" type="text" icon="user" required />
-                                        <MDBInput label={CONSTANTS.MESSAGE.EMAIL} name="EMAIL" type="email" icon="envelope" required />
+                                        <MDBBox tag="div" className="select-mdb-custom mt-3">
+                                            <MDBBox tag="select" className="select-mdb-content" onChange={this.handleAddEditIskoChange.bind(this)} value={this.state.slctAddEditId}>
+                                                <MDBBox tag="option" value="">{CONSTANTS.MESSAGE.ADDNEW_ISKO}</MDBBox>
+                                                {
+                                                    Object.keys(this.state.playerRecords).length > 0 ? (
+                                                        this.state.playerRecords.sort((a, b) =>  b.inGameSLP - a.inGameSLP ).map((item) => (
+                                                            <MDBBox tag="option" key={item.client_id} value={item.cliend_id}>
+                                                                {item.name}
+                                                            </MDBBox>
+                                                        ))
+                                                    ) : ("")
+                                                }
+                                            </MDBBox>
+                                            <MDBBox tag="span" className="select-mdb-bar"></MDBBox>
+                                            <MDBBox tag="label" className="col select-mdb-label"></MDBBox>
+                                        </MDBBox>
+                                        <div className="md-form">
+                                            <i data-test="fa" className="fa fa-address-book prefix"></i>
+                                            <input data-test="input" type="text" className="form-control" name="ADDRESS" required />
+                                            <label className="active">{CONSTANTS.MESSAGE.RONIN_ADDRESS}</label>
+                                        </div>
+                                        <div className="md-form">
+                                            <i data-test="fa" className="fa fa-user prefix"></i>
+                                            <input data-test="input" type="text" className="form-control" name="NAME" required />
+                                            <label className="active">{CONSTANTS.MESSAGE.NAME}</label>
+                                        </div>
+                                        <div className="md-form">
+                                            <i data-test="fa" className="fa fa-envelope prefix"></i>
+                                            <input data-test="input" type="email" className="form-control" name="EMAIL" required />
+                                            <label className="active">{CONSTANTS.MESSAGE.EMAIL}</label>
+                                        </div>
                                         <MDBRow className="mt-1pt5rem-neg" between>
                                             <MDBCol size="6">
-                                                <MDBInput label={CONSTANTS.MESSAGE.MANAGER} name="SHR_MANAGER" type="number" min="0" max="100" required />
+                                                <div className="md-form">
+                                                    <input data-test="input" type="text" className="form-control" name="SHR_MANAGER" min="0" max="100" required />
+                                                    <label className="active">{CONSTANTS.MESSAGE.MANAGER}</label>
+                                                </div>
                                             </MDBCol>
                                             <MDBCol size="6">
-                                                <MDBInput label={CONSTANTS.MESSAGE.SCHOLAR} name="SHR_SCHOLAR" type="number" min="0" max="100" required />
+                                                <div className="md-form">
+                                                    <input data-test="input" type="number" className="form-control" name="SHR_SCHOLAR" min="0" max="100" required />
+                                                    <label className="active">{CONSTANTS.MESSAGE.SCHOLAR}</label>
+                                                </div>
                                             </MDBCol>
                                         </MDBRow>
-                                        <MDBRow className="mt-1pt5rem-neg" between>
-                                            <MDBCol size="6">
-                                                <MDBInput label={CONSTANTS.MESSAGE.SPONSOR_NAME} name="SPONSOR_NAME" type="text" icon="user" />
-                                            </MDBCol>
-                                            <MDBCol size="6">
-                                                <MDBInput label={CONSTANTS.MESSAGE.SPONSOR_SHARE} name="SHR_SPONSOR" type="number" min="0" max="100" />
-                                            </MDBCol>
-                                        </MDBRow>
-                                        <MDBBox tag="div" className={this.state.isValidAddTeam === 0 ? "d-none" : this.state.isValidAddTeam ? "d-none" : "invalid-feedback mt-1pt5rem-neg mb-2 px-3 d-block"}>{this.state.errorMsg}</MDBBox>
+                                        <MDBInput containerClass="md-form mt-2rem-neg checkbox-mdb-custom" label={CONSTANTS.MESSAGE.HASSPONSOR} type="checkbox" id="hasSponsor-checkbox" checked={this.state.hasSponsor} onChange={this.handleHasSponsorCheckChange.bind(this)} />
+                                        {
+                                            this.state.hasSponsor ? (
+                                                <MDBRow className="mt-1pt5rem-neg" between>
+                                                    <MDBCol size="6">
+                                                        <div className="md-form">
+                                                            <i data-test="fa" className="fa fa-user prefix"></i>
+                                                            <input data-test="input" type="text" className="form-control" name="SPONSOR_NAME" required />
+                                                            <label className="active">{CONSTANTS.MESSAGE.SPONSOR_NAME}</label>
+                                                        </div>
+                                                    </MDBCol>
+                                                    <MDBCol size="6">
+                                                        <div className="md-form">
+                                                            <input data-test="input" type="number" className="form-control" name="SHR_SPONSOR" min="0" max="100" required />
+                                                            <label className="active">{CONSTANTS.MESSAGE.SPONSOR_SHARE}</label>
+                                                        </div>
+                                                    </MDBCol>
+                                                </MDBRow>
+                                            ) : ("")
+                                        }
+                                        <MDBBox tag="div" className={this.state.isValidAddTeam === 0 ? "d-none" : this.state.isValidAddTeam ? "d-none" : "invalid-feedback mt-0pt3rem-neg mb-2 px-3 d-block"}>{this.state.errorMsg}</MDBBox>
                                     </MDBBox>
                                     <MDBBox tag="div" className="text-center">
                                         <button className="btn btn-default waves-effect waves-light">
@@ -2086,22 +2194,6 @@ class Home extends React.Component {
                                 </form>
                             </MDBTabPane>
                             <MDBTabPane tabId="2" role="tabpanel">
-                                <p className="mt-2">
-                                Quisquam aperiam, pariatur. Tempora, placeat ratione porro
-                                voluptate odit minima. Lorem ipsum dolor sit amet,
-                                consectetur adipisicing elit. Nihil odit magnam minima,
-                                soluta doloribus reiciendis molestiae placeat unde eos
-                                molestias.
-                                </p>
-                                <p>
-                                Quisquam aperiam, pariatur. Tempora, placeat ratione porro
-                                voluptate odit minima. Lorem ipsum dolor sit amet,
-                                consectetur adipisicing elit. Nihil odit magnam minima,
-                                soluta doloribus reiciendis molestiae placeat unde eos
-                                molestias.
-                                </p>
-                            </MDBTabPane>
-                            <MDBTabPane tabId="3" role="tabpanel">
                                 <MDBBox tag="div" className="select-mdb-custom mt-3">
                                     <MDBBox tag="select" className="select-mdb-content" onChange={this.handleClaimChange.bind(this)} value={this.state.slctClaimId}>
                                         <MDBBox tag="option" value="">{CONSTANTS.MESSAGE.SELECT_NAME}</MDBBox>
@@ -2123,19 +2215,19 @@ class Home extends React.Component {
                                         <MDBInput label={CONSTANTS.MESSAGE.RONIN_ADDRESS} name="ADDRESS" type="text" required disabled />
                                         <div className="md-form">
                                             <input data-test="input" type="number" min="0" className="form-control" name="SLPCURRENCY" step="0.01" required />
-                                            <label >{CONSTANTS.MESSAGE.SLP_CURRENCY}</label>
+                                            <label className="active">{CONSTANTS.MESSAGE.SLP_CURRENCY}</label>
                                         </div>
                                         <div className="md-form">
                                             <input data-test="input" type="number" min="0" className="form-control" name="SHR_MANAGER" required />
-                                            <label >{CONSTANTS.MESSAGE.MANAGER_SLP}</label>
+                                            <label className="active">{CONSTANTS.MESSAGE.MANAGER_SLP}</label>
                                         </div>
                                         <div className="md-form">
                                             <input data-test="input" type="number" min="0" className="form-control" name="SHR_SCHOLAR" required />
-                                            <label >{CONSTANTS.MESSAGE.SCHOLAR_SLP}</label>
+                                            <label className="active">{CONSTANTS.MESSAGE.SCHOLAR_SLP}</label>
                                         </div>
                                         <div className="md-form">
                                             <input data-test="input" type="number" min="0" className="form-control" name="SHR_SPONSOR" required />
-                                            <label >{CONSTANTS.MESSAGE.SPONSOR_SLP}</label>
+                                            <label className="active">{CONSTANTS.MESSAGE.SPONSOR_SLP}</label>
                                         </div>
                                         <div className="md-form">
                                             <input data-test="input" type="date" className="form-control" name="WITHDRAW_ON" required />
@@ -2151,7 +2243,7 @@ class Home extends React.Component {
                                     </MDBBox>
                                 </form>
                             </MDBTabPane>
-                            <MDBTabPane tabId="4" role="tabpanel">
+                            <MDBTabPane tabId="3" role="tabpanel">
                                 <form onSubmit={this.onManagerEarnedHandle.bind(this)} className="managerEarn-inputHolder">
                                     <MDBBox tag="div" className="grey-text">
                                         <MDBInput label={CONSTANTS.MESSAGE.TOTAL_SLP} name="SLPTOTAL" type="number" min="0" required />

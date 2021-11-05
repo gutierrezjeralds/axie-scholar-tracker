@@ -71,6 +71,7 @@ const CONSTANTS = {
             MANAGEREARNED: `INSERT INTO public."TB_MANAGEREARNED"`
         },
         UPDATE: {
+            USERPROFILE: `UPDATE public."TB_USERPROFILE"`,
             DAILYSLP: `UPDATE public."TB_DAILYSLP"`
         }
     }
@@ -163,7 +164,7 @@ app.get("/api/records", async (req, res) => {
 })
 
 // POST Method x Saving process of adding new scholar
-app.post("/api/addScholar", async (req, res) => {
+app.post("/api/addEditScholar", async (req, res) => {
     try {
         logger(CONSTANTS.MESSAGE.STARTED_INSERTQUERY);
 
@@ -174,41 +175,69 @@ app.post("/api/addScholar", async (req, res) => {
         // Body payload
         const payload = req.body;
 
-        // Execute Query x insert new team record
-        const query = `${CONSTANTS.QUERY.INSERT.USERPROFILE} ("ADDRESS", "NAME", "EMAIL", "SHR_MANAGER", "SHR_SCHOLAR", "SHR_SPONSOR", "SPONSOR_NAME", "STARTED_ON") VALUES ('${payload.ADDRESS}', '${payload.NAME}', '${payload.EMAIL}', '${payload.SHR_MANAGER}', '${payload.SHR_SCHOLAR}', '${payload.SHR_SPONSOR}', '${payload.SPONSOR_NAME}', '${payload.STARTED_ON}')`;
-        client.query(query, (error) => {
-            logger(CONSTANTS.MESSAGE.TEAMRECORD, CONSTANTS.MESSAGE.STARTED_INSERTQUERY);
-            if (error) {
-                logger(CONSTANTS.MESSAGE.TEAMRECORD, CONSTANTS.MESSAGE.END_INSERTQUERY, error);
-                // End Connection
-                client.end();
-                return res.type("application/json").status(500).send({
-                    error: true,
-                    data: error
-                });
-            } else {
-                // Execute Query x insert new daily slp record
-                const query = `${CONSTANTS.QUERY.INSERT.DAILYSLP} ("ADDRESS", "YESTERDAY", "YESTERDAYRES", "TODAY", "TODATE") VALUES ('${payload.ADDRESS}', '0', '0', '0','${payload.STARTED_ON}')`;
-                client.query(query, (err, result) => {
-                    logger(CONSTANTS.MESSAGE.DAILYSLP, CONSTANTS.MESSAGE.STARTED_INSERTQUERY);
+        if (payload.ACTION === CONSTANTS.MESSAGE.INSERT) {
+            // Execute Query x insert new team record
+            const query = `${CONSTANTS.QUERY.INSERT.USERPROFILE} ("ADDRESS", "NAME", "EMAIL", "SHR_MANAGER", "SHR_SCHOLAR", "SHR_SPONSOR", "SPONSOR_NAME", "STARTED_ON") VALUES ('${payload.ADDRESS}', '${payload.NAME}', '${payload.EMAIL}', '${payload.SHR_MANAGER}', '${payload.SHR_SCHOLAR}', '${payload.SHR_SPONSOR}', '${payload.SPONSOR_NAME}', '${payload.STARTED_ON}')`;
+            client.query(query, (error) => {
+                logger(CONSTANTS.MESSAGE.TEAMRECORD, CONSTANTS.MESSAGE.STARTED_INSERTQUERY);
+                if (error) {
+                    logger(CONSTANTS.MESSAGE.TEAMRECORD, CONSTANTS.MESSAGE.END_INSERTQUERY, error);
                     // End Connection
                     client.end();
-                    if (err) {
-                        logger(CONSTANTS.MESSAGE.DAILYSLP, CONSTANTS.MESSAGE.END_INSERTQUERY, error);
-                        return res.type("application/json").status(500).send({
-                            error: true,
-                            data: err
-                        });
-                    } else {
-                        logger(CONSTANTS.MESSAGE.DAILYSLP, CONSTANTS.MESSAGE.END_INSERTQUERY);
-                        return res.type("application/json").status(200).send({
-                            error: false,
-                            data: result
-                        });
-                    }
-                });
-            }
-        });
+                    return res.type("application/json").status(500).send({
+                        error: true,
+                        data: error
+                    });
+                } else {
+                    // Execute Query x insert new daily slp record
+                    const query = `${CONSTANTS.QUERY.INSERT.DAILYSLP} ("ADDRESS", "YESTERDAY", "YESTERDAYRES", "TODAY", "TODATE") VALUES ('${payload.ADDRESS}', '0', '0', '0','${payload.STARTED_ON}')`;
+                    client.query(query, (err, result) => {
+                        logger(CONSTANTS.MESSAGE.DAILYSLP, CONSTANTS.MESSAGE.STARTED_INSERTQUERY);
+                        // End Connection
+                        client.end();
+                        if (err) {
+                            logger(CONSTANTS.MESSAGE.DAILYSLP, CONSTANTS.MESSAGE.END_INSERTQUERY, error);
+                            return res.type("application/json").status(500).send({
+                                error: true,
+                                data: err
+                            });
+                        } else {
+                            logger(CONSTANTS.MESSAGE.DAILYSLP, CONSTANTS.MESSAGE.END_INSERTQUERY);
+                            return res.type("application/json").status(200).send({
+                                error: false,
+                                data: result
+                            });
+                        }
+                    });
+                }
+            });
+        } else if (payload.ACTION === CONSTANTS.MESSAGE.UPDATE) {
+            // Execute Query x update team record
+            const query = `${CONSTANTS.QUERY.UPDATE.USERPROFILE} SET "ADDRESS" = '${payload.ADDRESS}', "NAME" = '${payload.NAME}', "EMAIL" = '${payload.EMAIL}', "SHR_MANAGER" = '${payload.SHR_MANAGER}', "SHR_SCHOLAR" = '${payload.SHR_SCHOLAR}', "SHR_SPONSOR" = '${payload.SHR_SPONSOR}', "SPONSOR_NAME" = '${payload.SPONSOR_NAME}' WHERE "ADDRESS" = '${payload.ADDRESS}'`;
+            client.query(query, (error, result) => {
+                logger(CONSTANTS.MESSAGE.STARTED_UPDATEQUERY, payload.ADDRESS);
+                // End Connection
+                client.end();
+                if (error) {
+                    logger(CONSTANTS.MESSAGE.USERPROFILE, CONSTANTS.MESSAGE.END_UPDATEQUERY, error);
+                    return res.type("application/json").status(500).send({
+                        error: true,
+                        data: error
+                    });
+                } else {
+                    logger(CONSTANTS.MESSAGE.USERPROFILE, CONSTANTS.MESSAGE.END_UPDATEQUERY);
+                    return res.type("application/json").status(200).send({
+                        error: false,
+                        data: result
+                    });
+                }
+            });
+        } else {
+            return res.type("application/json").status(500).send({
+                error: true,
+                data: CONSTANTS.MESSAGE.ERROR_PROCEDURE
+            });
+        }
     } catch (err) {
         return res.type("application/json").status(500).send({
             error: true,

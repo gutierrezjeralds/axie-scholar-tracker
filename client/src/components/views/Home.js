@@ -1934,7 +1934,7 @@ class Home extends React.Component {
                                             </tr>
                                             {
                                                 Object.keys(this.state.modalManagerAllEarning).length > 0 ? (
-                                                    this.state.modalManagerAllEarning.sort((a, b) =>  b.id - a.id ).map(items => (
+                                                    this.state.modalManagerAllEarning.sort((a, b) =>  moment(b.date).unix() - moment(a.date).unix() ).map(items => (
                                                         <tr key={items.id} className="text-center">
                                                             <td>{<Moment format="MMM DD, YYYY">{items.date}</Moment>}</td>
                                                             <td>{items.slp}</td>

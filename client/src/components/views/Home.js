@@ -79,9 +79,12 @@ class Home extends React.Component {
             isLightBoxOpen: false,
             exportData: [],
             isValidAddTeam: 0,
+            isValidWithdraw: 0,
+            isValidManagerEarn: 0,
             errorMsg: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
             PVPENERGY_DEFAULT: 20,
-            tabIskoInputsActive: "1"
+            tabIskoInputsActive: "1",
+            slctClaimId: ""
         }
     }
 
@@ -102,11 +105,12 @@ class Home extends React.Component {
 
     // Modal Toggle for view of Manager and Sponsor's Earning
     modalEarningToggle = (title, filters, managerEarnings) => () => {
+        const data = managerEarnings ? managerEarnings : [];
         this.setState({
             isModalEarningOpen: !this.state.isModalEarningOpen,
             modalEarningTitle: title,
             modalEarningFilter: filters,
-            modalEarningDetails: managerEarnings
+            modalEarningDetails: data
         });
     }
 
@@ -167,7 +171,7 @@ class Home extends React.Component {
     pageRefresh = (time) => {
         setTimeout( () => {
             if (!this.state.isModalIskoInputsOpen) { // Dont reload when other modal is open
-                 return window.location.reload();
+                //  return window.location.reload();
             }
             // Return
             return true;
@@ -428,7 +432,7 @@ class Home extends React.Component {
         event.preventDefault();
         // Remove error message
         this.setState({
-            isValidShare: 0,
+            isValidAddTeam: 0,
             isLoaded: false,
             isModalIskoInputsOpen: false // Close modal while processing
         })
@@ -461,7 +465,6 @@ class Home extends React.Component {
             }).then(
                 async (result) => {
                     // Return
-                    console.log(result);
                     if (!result.error) {
                         // Sucess response x reload the page
                         window.location.reload();
@@ -469,7 +472,9 @@ class Home extends React.Component {
                         // Has error
                         this.setState({
                             isValidAddTeam: false,
-                            errorMsg: CONSTANTS.MESSAGE.UNEXPECTED_ERROR
+                            errorMsg: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
+                            isLoaded: true,
+                            isModalIskoInputsOpen: true // Open modal after processing with error
                         })
                     }
                 },
@@ -502,6 +507,217 @@ class Home extends React.Component {
             this.setState({
                 isValidAddTeam: false,
                 errorMsg: CONSTANTS.MESSAGE.SHARELIMIT,
+                isLoaded: true,
+                isModalIskoInputsOpen: true // Open modal after processing with error
+            })
+        }
+    }
+
+    // Handle for Select Change in Claim Tab
+    handleClaimChange(event) {
+        this.setState({
+            slctClaimId: event.target.value
+        })
+
+        // Update SLP Currency input value
+        $(".claim-inputHolder input[name=SLPCURRENCY]").val(this.state.slpCurrentValue).attr("value", this.state.slpCurrentValue).trigger("change").siblings('label').addClass('active');
+        // Continue with the process
+        if (event.target.value) {
+            const dataSet = this.state.playerRecords.filter(item => item.cliend_id === event.target.value || item.name === event.target.value); // Filter valid data
+            if (dataSet.length > 0) {
+                // Update input fields
+                $(".claim-inputHolder input[name=ADDRESS]").val(dataSet[0].details.ADDRESS).attr("value", dataSet[0].details.ADDRESS).trigger("change").siblings('label').addClass('active');
+                $(".claim-inputHolder input[name=SHR_MANAGER]").val(dataSet[0].sharedManagerSLP).attr("value", dataSet[0].sharedManagerSLP).trigger("change").siblings('label').addClass('active');
+                $(".claim-inputHolder input[name=SHR_SCHOLAR]").val(dataSet[0].scholarSLP).attr("value", dataSet[0].scholarSLP).trigger("change").siblings('label').addClass('active');
+                $(".claim-inputHolder input[name=SHR_SPONSOR]").val(dataSet[0].sharedSponsorSLP).attr("value", dataSet[0].sharedSponsorSLP).trigger("change").siblings('label').addClass('active');
+                // Enable Button Submit
+                $(".claim-inputHolder button").removeAttr("disabled");
+            } else {
+                // Clear data in input fields
+                $(".claim-inputHolder input[name=ADDRESS]").val("").trigger("change").siblings('label').removeClass('active');
+                $(".claim-inputHolder input[name=SHR_MANAGER]").val("").trigger("change").siblings('label').removeClass('active');
+                $(".claim-inputHolder input[name=SHR_SCHOLAR]").val("").trigger("change").siblings('label').removeClass('active');
+                $(".claim-inputHolder input[name=SHR_SPONSOR]").val("").trigger("change").siblings('label').removeClass('active');
+                // Disabled Button Submit
+                $(".claim-inputHolder button").attr("disabled", "disabled");
+            }
+        } else {
+            // Clear data in input fields
+            $(".claim-inputHolder input[name=ADDRESS]").val("").trigger("change").siblings('label').removeClass('active');
+            $(".claim-inputHolder input[name=SHR_MANAGER]").val("").trigger("change").siblings('label').removeClass('active');
+            $(".claim-inputHolder input[name=SHR_SCHOLAR]").val("").trigger("change").siblings('label').removeClass('active');
+            $(".claim-inputHolder input[name=SHR_SPONSOR]").val("").trigger("change").siblings('label').removeClass('active');
+            // Disabled Button Submit
+            $(".claim-inputHolder button").attr("disabled", "disabled");
+        }
+        // 
+        // claim-inputHolder
+    }
+
+    // Handle for saving withdraw slp
+    onWithdrawHandle(event) {
+        event.preventDefault();
+        // Remove error message
+        this.setState({
+            isValidWithdraw: 0,
+            isLoaded: false,
+            isModalIskoInputsOpen: false // Close modal while processing
+        })
+
+        const roninAddress = event.target.ADDRESS.value ? event.target.ADDRESS.value : "";
+        const shrManager = event.target.SHR_MANAGER.value ? event.target.SHR_MANAGER.value : "0";
+        const shrScholar = event.target.SHR_SCHOLAR.value ? event.target.SHR_SCHOLAR.value : "0";
+        const shrSponsor = event.target.SHR_SPONSOR.value ? event.target.SHR_SPONSOR.value : "0";
+        const slpCurrency = Number(event.target.SLPCURRENCY.value) && Number(event.target.SLPCURRENCY.value) !== 0 ? event.target.SLPCURRENCY.value : this.state.slpCurrentValue;
+        const withdrawOn = event.target.WITHDRAW_ON.value ? moment(event.target.WITHDRAW_ON.value).format("YYYY-MM-DD HH:mm:ss") : moment().format("YYYY-MM-DD HH:mm:ss");
+        if ((Number(shrManager) > 0 || Number(shrScholar) > 0 || Number(shrSponsor) > 0) && roninAddress) {
+            // Continue with the process
+            const datas = {
+                ADDRESS: roninAddress,
+                SHR_MANAGER: shrManager,
+                SHR_SCHOLAR: shrScholar,
+                SHR_SPONSOR: shrSponsor,
+                SLPCURRENCY: slpCurrency,
+                WITHDRAW_ON: withdrawOn
+            }
+
+            // Run api
+            $.ajax({
+                url: "/api/withdraw",
+                type: "POST",
+                data: JSON.stringify(datas),
+                contentType: 'application/json',
+                cache: false,
+            }).then(
+                async (result) => {
+                    // Return
+                    if (!result.error) {
+                        // Sucess response x reload the page
+                        window.location.reload();
+                    } else {
+                        // Has error
+                        this.setState({
+                            isValidWithdraw: false,
+                            errorMsg: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
+                            isLoaded: true,
+                            isModalIskoInputsOpen: true // Open modal after processing with error
+                        })
+                    }
+                },
+                // Note: it's important to handle errors here
+                // instead of a catch() block so that we don't swallow
+                // exceptions from actual bugs in components.
+                (error) => {
+                    console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, error)
+                    // Has error
+                    this.setState({
+                        isValidWithdraw: false,
+                        errorMsg: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
+                        isLoaded: true,
+                        isModalIskoInputsOpen: true // Open modal after processing with error
+                    })
+                }
+            )
+            .catch(
+                (err) => {
+                    console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
+                    // Has error
+                    this.setState({
+                        isValidWithdraw: false,
+                        errorMsg: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
+                        isLoaded: true,
+                        isModalIskoInputsOpen: true // Open modal after processing with error
+                    })
+                }
+            )
+        } else {
+            // Invalid data
+            this.setState({
+                isValidAddTeam: false,
+                errorMsg: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
+                isLoaded: true,
+                isModalIskoInputsOpen: true // Open modal after processing with error
+            })
+        }
+    }
+
+    // Handle for saving manager earnings
+    onManagerEarnedHandle(event) {
+        event.preventDefault();
+        // Remove error message
+        this.setState({
+            isValidManagerEarn: 0,
+            isLoaded: false,
+            isModalIskoInputsOpen: false // Close modal while processing
+        })
+
+        const slpTotal = event.target.SLPTOTAL.value ? event.target.SLPTOTAL.value : "0";
+        const slpCurrency = Number(event.target.SLPCURRENCY.value) && Number(event.target.SLPCURRENCY.value) !== 0 ? event.target.SLPCURRENCY.value : this.state.slpCurrentValue;
+        const category = $(".managerEarn-inputHolder").find("select option:selected").text();
+        const earnedOn = event.target.EARNED_ON.value ? moment(event.target.EARNED_ON.value).format("YYYY-MM-DD HH:mm:ss") : moment().format("YYYY-MM-DD HH:mm:ss");
+        if (Number(slpTotal) > 0 && Number(slpCurrency) > 0 && category) {
+            // Continue with the process
+            const datas = {
+                SLPTOTAL: slpTotal,
+                SLPCURRENCY: slpCurrency,
+                CATEGORY: category,
+                EARNED_ON: earnedOn
+            }
+                
+            // Run api
+            $.ajax({
+                url: "/api/managerEarned",
+                type: "POST",
+                data: JSON.stringify(datas),
+                contentType: 'application/json',
+                cache: false,
+            }).then(
+                async (result) => {
+                    // Return
+                    if (!result.error) {
+                        // Sucess response x reload the page
+                        window.location.reload();
+                    } else {
+                        // Has error
+                        this.setState({
+                            isValidManagerEarn: false,
+                            errorMsg: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
+                            isLoaded: true,
+                            isModalIskoInputsOpen: true // Open modal after processing with error
+                        })
+                    }
+                },
+                // Note: it's important to handle errors here
+                // instead of a catch() block so that we don't swallow
+                // exceptions from actual bugs in components.
+                (error) => {
+                    console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, error)
+                    // Has error
+                    this.setState({
+                        isValidManagerEarn: false,
+                        errorMsg: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
+                        isLoaded: true,
+                        isModalIskoInputsOpen: true // Open modal after processing with error
+                    })
+                }
+            )
+            .catch(
+                (err) => {
+                    console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
+                    // Has error
+                    this.setState({
+                        isValidManagerEarn: false,
+                        errorMsg: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
+                        isLoaded: true,
+                        isModalIskoInputsOpen: true // Open modal after processing with error
+                    })
+                }
+            )
+        } else {
+            // Invalid data
+            this.setState({
+                isValidAddTeam: false,
+                errorMsg: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
                 isLoaded: true,
                 isModalIskoInputsOpen: true // Open modal after processing with error
             })
@@ -546,7 +762,8 @@ class Home extends React.Component {
         .then(
             async (response) => {
                 const dataRecords = response.data;
-                const dataClaimed = response.claimed;
+                const dataWithdraw = response.withdraw;
+                const dataManagerEarned = response.managerEarned;
                 console.log("result", response)
                 if (dataRecords.length > 0) {
                     // Fetch player details in api of sky mavis
@@ -569,7 +786,7 @@ class Home extends React.Component {
                         }
 
                         // Return
-                        return await this.getPlayerDetails(item, ethAddress, userEthAddress, dataClaimed);
+                        return await this.getPlayerDetails(item, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned);
                     });
 
                     await Promise.all(dataResultPromise).then(async (results) => {
@@ -582,7 +799,17 @@ class Home extends React.Component {
                         const dataResult = results.filter(item => !item.error && item.data !== undefined && item.eth !== undefined); // Filter valid data
                         if (dataResult && dataResult.length > 0) {
                             // Sort as Top MMR Ranking
-                            dataResult.sort((a, b) =>  a.rank - b.rank ).map((dataItem, index) => {
+                            dataResult.sort(function (a, b) {
+                                if (a.rank === b.rank) { // equal items sort equally
+                                    return 0;
+                                } else if (a.rank === 0) { // 0 sort after anything else
+                                    return 1;
+                                } else if (b.rank === 0) { // 0 sort after anything else
+                                    return -1;
+                                } else {  // otherwise, if we're ascending, lowest sorts first
+                                    return a.rank < b.rank ? -1 : 1;
+                                }
+                              }).map((dataItem, index) => {
                                 dataItem.data.order = index + 1; // Adding ordered number
 
                                 // Get Top MMR Player
@@ -750,7 +977,7 @@ class Home extends React.Component {
     }
 
     // Get Player details base on Sky Mavis API
-    getPlayerDetails = async (details, ethAddress, userEthAddress, dataClaimed) => {
+    getPlayerDetails = async (details, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned) => {
         return new Promise((resolve, reject) => {
             $.ajax({
                 url: "https://game-api.skymavis.com/game-api/clients/" + ethAddress + "/items/1",
@@ -879,51 +1106,54 @@ class Home extends React.Component {
                                 result.scholarSLP = Math.floor(result.inGameSLP * iskoShare);
                             }
 
-                            // Set new value for Total Income and Set value for Total Earning per claimed
-                            if (details.claimedEarning !== undefined && details.claimedEarning.length > 0) {
-                                details.claimedEarning.map((data, index) => {
-                                    const earnedSLP = data.slp;
-                                    const slpPrice = data.slpPrice;
-                                    const totalIncome = details.totalIncome;
-
-                                    details.claimedEarning[index].earning = 0;
-                                    if (slpPrice.toString() !== "hold") {
-                                        // Adding Total Earning
-                                        details.claimedEarning[index].earning = earnedSLP * slpPrice;
-                                        // Update Total Income
-                                        details.totalIncome = totalIncome + details.claimedEarning[index].earning;
-                                    }
+                            // Set new value for Team Total Income and Total Earning per withdraw
+                            details.withdrawEarning = []; // Default value of withdraw earning
+                            details.totalIncome = 0; // Default value of Total Income
+                            if (dataWithdraw !== undefined && dataWithdraw.length > 0) {
+                                // Get specific data based on ronin address in dataWithdraw
+                                dataWithdraw.filter(item => item.ADDRESS === details.ADDRESS).map(data => {
+                                    const createObj = {}; // Create Temp Obeject
+                                    createObj.slp = (details.SHR_MANAGER).toString() === "100" ? data.SHR_MANAGER : data.SHR_SCHOLAR;
+                                    createObj.slpPrice = data.SLPCURRENCY;
+                                    createObj.date = data.WITHDRAW_ON;
+                                    createObj.earning = Number(createObj.slp) * Number(createObj.slpPrice);
+                                    // Update Total Income
+                                    details.totalIncome = details.totalIncome + createObj.earning;
+                                    // Push data
+                                    let tempObject = Object.assign({}, createObj);
+                                    details.withdrawEarning.push(tempObject);
 
                                     // Return
                                     return true;
-                                })
+
+                                });
                             }
 
                             // Set new value for Manager All Income and Set value for Total Earning per claimed
-                            if (details.managerEarning !== undefined && details.managerEarning.length > 0) {
+                            details.managerEarning = []; // Default value of marnegr earning
+                            if ((details.SHR_MANAGER).toString() === "100" && (dataManagerEarned !== undefined && dataManagerEarned.length > 0)) {
                                 details.roi = 0;
                                 details.income = 0;
                                 details.breed = 0;
                                 details.buy = 0;
                                 details.reachedRoi = false; // For validation if ROI is completed
-                                details.managerEarning.map((data, index) => {
-                                    const earnedSLP = data.slp;
-                                    const slpPrice = data.slpPrice;
-
-                                    details.managerEarning[index].earning = 0;
-                                    // Adding Total Earning
-                                    details.managerEarning[index].earning = earnedSLP * slpPrice;
+                                dataManagerEarned.map(data => {
+                                    const createObj = {}; // Create Temp Obeject
+                                    createObj.slp = data.SLPTOTAL;
+                                    createObj.slpPrice = data.SLPCURRENCY;
+                                    createObj.date = data.EARNED_ON;
+                                    createObj.earning = Number(createObj.slp) * Number(createObj.slpPrice);
                                     // Update Total Income and SLP
                                     this.setState({
-                                        totalManagerAllSLP: this.state.totalManagerAllSLP + earnedSLP,
-                                        totalManagerAllPHP: this.state.totalManagerAllPHP + details.managerEarning[index].earning
+                                        totalManagerAllSLP: this.state.totalManagerAllSLP + Number(createObj.slp),
+                                        totalManagerAllPHP: this.state.totalManagerAllPHP + createObj.earning
                                     })
 
-                                    if (data.category && (data.category.toLowerCase()) === "withdraw") {
+                                    if (data.CATEGORY && (data.CATEGORY.toLowerCase()) === "withdraw") {
                                         if (!this.state.managerPHPReachedROI) {
                                             // Adding Return of Investment
                                             this.setState({
-                                                managerPHPROI: this.state.managerPHPROI + details.managerEarning[index].earning
+                                                managerPHPROI: this.state.managerPHPROI + createObj.earning
                                             })
 
                                             // Reached the ROI
@@ -935,25 +1165,29 @@ class Home extends React.Component {
                                         } else {
                                             // Adding total of Income
                                             this.setState({
-                                                managerPHPIncome: this.state.managerPHPIncome + details.managerEarning[index].earning
+                                                managerPHPIncome: this.state.managerPHPIncome + createObj.earning
                                             })
                                         }
                                     }
 
-                                    if (data.category && (data.category.toLowerCase()) === "breed") {
+                                    if (data.CATEGORY && (data.CATEGORY.toLowerCase()) === "breed") {
                                         // Adding total cost for breeding
                                         this.setState({
-                                            managerPHPBreed: this.state.managerPHPBreed + details.managerEarning[index].earning
+                                            managerPHPBreed: this.state.managerPHPBreed + createObj.earning
                                         })
-                                        details.breed = details.breed + details.managerEarning[index].earning;
+                                        details.breed = details.breed + createObj.earning;
                                     }
 
-                                    if (data.category && (data.category.toLowerCase()) === "buy") {
+                                    if (data.CATEGORY && (data.CATEGORY.toLowerCase()) === "buy") {
                                         // Adding total cost for buying axie
                                         this.setState({
-                                            managerPHPBuy: this.state.managerPHPBuy + details.managerEarning[index].earning
+                                            managerPHPBuy: this.state.managerPHPBuy + createObj.earning
                                         })
                                     }
+
+                                    // Push data
+                                    let tempObject = Object.assign({}, createObj);
+                                    details.managerEarning.push(tempObject);
 
                                     // Return
                                     return true;
@@ -1060,7 +1294,7 @@ class Home extends React.Component {
                                 const todateTime = moment(toDate).format('HHmmss');
                                 if (Number(todateTime) >= Number("080000")) {
                                     // Update existing record for new data x another date x based in 8AM energy reset
-                                    if (Number(result.claim_on_days) === 1) {
+                                    if (Number(result.claim_on_days) <= 1) {
                                         // Update daily slp for newly claimed x pass 1 day after claimed
                                         result.dailySLP = {
                                             ADDRESS: details.ADDRESS,
@@ -1756,10 +1990,10 @@ class Home extends React.Component {
                                 </tr>
                                 {
                                     Object.keys(this.state.modalPlayerDetails).length > 0 ? (
-                                        this.state.modalPlayerDetails[0].details.claimedEarning !== undefined && 
-                                        Object.keys(this.state.modalPlayerDetails[0].details.claimedEarning).length > 0 ? (
-                                            (this.state.modalPlayerDetails[0].details.claimedEarning).sort((a, b) =>  b.id - a.id ).map(items => (
-                                                <tr key={items.id} className="text-center">
+                                        this.state.modalPlayerDetails[0].details.withdrawEarning !== undefined && 
+                                        Object.keys(this.state.modalPlayerDetails[0].details.withdrawEarning).length > 0 ? (
+                                            (this.state.modalPlayerDetails[0].details.withdrawEarning).sort((a, b) => moment(b.date).unix() - moment(a.date).unix()).map(items => (
+                                                <tr key={items.date} className="text-center">
                                                     <td>{<Moment format="MMM DD, YYYY">{items.date}</Moment>}</td>
                                                     <td>{items.slp}</td>
                                                     <td className="text-uppercase">{items.slpPrice}</td>
@@ -1782,7 +2016,7 @@ class Home extends React.Component {
         return (
             <React.Fragment>
                 <MDBModal isOpen={this.state.isModalIskoInputsOpen} size="md">
-                    <MDBModalHeader toggle={this.modalIskoInputs("")} className="blue-whale">{CONSTANTS.MESSAGE.SCHOLAR_INPUTS}</MDBModalHeader>
+                    <MDBModalHeader toggle={this.modalIskoInputs("")} className="blue-whale">{CONSTANTS.MESSAGE.LOKI_INPUTS}</MDBModalHeader>
                     <MDBModalBody>
                         <MDBNav className="nav-tabs">
                             <MDBNavItem>
@@ -1806,7 +2040,15 @@ class Home extends React.Component {
                                     className={this.state.tabIskoInputsActive === "3" ? "nav-link active cursor-pointer" : "nav-link cursor-pointer"}
                                     onClick={this.tabsIskoInputs("3")}
                                     role="tab" >
-                                    {CONSTANTS.MESSAGE.CLAIM}
+                                    {CONSTANTS.MESSAGE.WITHDRAW}
+                                </span>
+                            </MDBNavItem>
+                            <MDBNavItem>
+                                <span
+                                    className={this.state.tabIskoInputsActive === "4" ? "nav-link active cursor-pointer" : "nav-link cursor-pointer"}
+                                    onClick={this.tabsIskoInputs("4")}
+                                    role="tab" >
+                                    {CONSTANTS.MESSAGE.MANAGER_EARNING}
                                 </span>
                             </MDBNavItem>
                         </MDBNav>
@@ -1860,13 +2102,82 @@ class Home extends React.Component {
                                 </p>
                             </MDBTabPane>
                             <MDBTabPane tabId="3" role="tabpanel">
-                                <p className="mt-2">
-                                Quisquam aperiam, pariatur. Tempora, placeat ratione porro
-                                voluptate odit minima. Lorem ipsum dolor sit amet,
-                                consectetur adipisicing elit. Nihil odit magnam minima,
-                                soluta doloribus reiciendis molestiae placeat unde eos
-                                molestias.
-                                </p>
+                                <MDBBox tag="div" className="select-mdb-custom mt-3">
+                                    <MDBBox tag="select" className="select-mdb-content" onChange={this.handleClaimChange.bind(this)} value={this.state.slctClaimId}>
+                                        <MDBBox tag="option" value="">{CONSTANTS.MESSAGE.SELECT_NAME}</MDBBox>
+                                        {
+                                            Object.keys(this.state.playerRecords).length > 0 ? (
+                                                this.state.playerRecords.sort((a, b) =>  b.inGameSLP - a.inGameSLP ).map((item) => (
+                                                    <MDBBox tag="option" key={item.client_id} value={item.cliend_id}>
+                                                        {item.name}
+                                                    </MDBBox>
+                                                ))
+                                            ) : ("")
+                                        }
+                                    </MDBBox>
+                                    <MDBBox tag="span" className="select-mdb-bar"></MDBBox>
+                                    <MDBBox tag="label" className="col select-mdb-label"></MDBBox>
+                                </MDBBox>
+                                <form onSubmit={this.onWithdrawHandle.bind(this)} className="claim-inputHolder">
+                                    <MDBBox tag="div" className="grey-text">
+                                        <MDBInput label={CONSTANTS.MESSAGE.RONIN_ADDRESS} name="ADDRESS" type="text" required disabled />
+                                        <div className="md-form">
+                                            <input data-test="input" type="number" min="0" className="form-control" name="SLPCURRENCY" step="0.01" required />
+                                            <label >{CONSTANTS.MESSAGE.SLP_CURRENCY}</label>
+                                        </div>
+                                        <div className="md-form">
+                                            <input data-test="input" type="number" min="0" className="form-control" name="SHR_MANAGER" required />
+                                            <label >{CONSTANTS.MESSAGE.MANAGER_SLP}</label>
+                                        </div>
+                                        <div className="md-form">
+                                            <input data-test="input" type="number" min="0" className="form-control" name="SHR_SCHOLAR" required />
+                                            <label >{CONSTANTS.MESSAGE.SCHOLAR_SLP}</label>
+                                        </div>
+                                        <div className="md-form">
+                                            <input data-test="input" type="number" min="0" className="form-control" name="SHR_SPONSOR" required />
+                                            <label >{CONSTANTS.MESSAGE.SPONSOR_SLP}</label>
+                                        </div>
+                                        <div className="md-form">
+                                            <input data-test="input" type="date" className="form-control" name="WITHDRAW_ON" required />
+                                            <label className="active">{CONSTANTS.MESSAGE.WITHDRAWON}</label>
+                                        </div>
+                                    </MDBBox>
+                                    <MDBBox tag="div" className={this.state.isValidWithdraw === 0 ? "d-none" : this.state.isValidWithdraw ? "d-none" : "invalid-feedback mt-1pt5rem-neg mb-2 px-3 d-block"}>{this.state.errorMsg}</MDBBox>
+                                    <MDBBox tag="div" className="text-center">
+                                        <button className="btn btn-default waves-effect waves-light" disabled>
+                                            <MDBIcon icon="paper-plane" className="mr-1" />
+                                            {CONSTANTS.MESSAGE.SUBMIT}
+                                        </button>
+                                    </MDBBox>
+                                </form>
+                            </MDBTabPane>
+                            <MDBTabPane tabId="4" role="tabpanel">
+                                <form onSubmit={this.onManagerEarnedHandle.bind(this)} className="managerEarn-inputHolder">
+                                    <MDBBox tag="div" className="grey-text">
+                                        <MDBInput label={CONSTANTS.MESSAGE.TOTAL_SLP} name="SLPTOTAL" type="number" min="0" required />
+                                        <MDBInput label={CONSTANTS.MESSAGE.SLP_CURRENCY} name="SLPCURRENCY" type="number" step="0.01" min="0" required />
+                                        <MDBBox tag="div" className="select-mdb-custom mt-2">
+                                            <MDBBox tag="select" className="select-mdb-content">
+                                                <MDBBox tag="option" value={CONSTANTS.MESSAGE.BUY}>{CONSTANTS.MESSAGE.BUY}</MDBBox>
+                                                <MDBBox tag="option" value={CONSTANTS.MESSAGE.BREED}>{CONSTANTS.MESSAGE.BREED}</MDBBox>
+                                                <MDBBox tag="option" value={CONSTANTS.MESSAGE.WITHDRAW}>{CONSTANTS.MESSAGE.WITHDRAW}</MDBBox>
+                                            </MDBBox>
+                                            <MDBBox tag="span" className="select-mdb-bar"></MDBBox>
+                                            <MDBBox tag="label" className="col select-mdb-label"></MDBBox>
+                                        </MDBBox>
+                                        <div className="md-form">
+                                            <input data-test="input" type="date" className="form-control" name="EARNED_ON" required />
+                                            <label className="active">{CONSTANTS.MESSAGE.EARNEDON}</label>
+                                        </div>
+                                    </MDBBox>
+                                    <MDBBox tag="div" className={this.state.isValidManagerEarn === 0 ? "d-none" : this.state.isValidManagerEarn ? "d-none" : "invalid-feedback mt-1pt5rem-neg mb-2 px-3 d-block"}>{this.state.errorMsg}</MDBBox>
+                                    <MDBBox tag="div" className="text-center">
+                                        <button className="btn btn-default waves-effect waves-light">
+                                            <MDBIcon icon="paper-plane" className="mr-1" />
+                                            {CONSTANTS.MESSAGE.SUBMIT}
+                                        </button>
+                                    </MDBBox>
+                                </form>
                             </MDBTabPane>
                         </MDBTabContent>
                     </MDBModalBody>

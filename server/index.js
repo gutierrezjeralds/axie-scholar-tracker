@@ -26,9 +26,11 @@ const pgConn = {
     ** TB_USERPROFILE
     **** ID, ADDRESS, NAME, EMAIL, SHR_MANAGER, SHR_SCHOLAR, SHR_SPONSOR, SPONSOR_NAME, STARTED_ON
     ** TB_CLAIMED
-    **** ID, ADDRESS, SHR_MANAGER, SHR_SCHOLAR, SHR_SPONSOR, SLPCURRENCY, SLPTOTAL, CLAIMED_ON
+    **** ID, ADDRESS, SHR_MANAGER, SHR_SCHOLAR, SHR_SPONSOR, SLPCURRENCY, WITHDRAW_ON
     ** TB_DAILYSLP
     **** ID, ADDRESS, YESTERDAY, YESTERDAYRES, TODAY, TODATE, TIMESTAMP
+    ** TB_MANAGEREARNED
+    **** ID, SLPTOTAL, SLPCURRENCY, CATEGORY, EARNED_ON
 */
 
 const CONSTANTS = {
@@ -46,22 +48,27 @@ const CONSTANTS = {
         INSERT: "Insert",
         UPDATE: "UPDATE",
         DAILYSLP: "Daily SLP",
-        TEAMRECORD: "Team Record"
+        TEAMRECORD: "Team Record",
+        WITHDRAW: "Withdraw",
+        MANAGER_EARNED: "Manager Earned"
     },
     TABLE: {
         USERPROFILE: `public."TB_USERPROFILE"`,
-        CLAIMED: `public."TB_CLAIMED"`,
+        WITHDRAW: `public."TB_WITHDRAW"`,
         DAILYSLP: `public."TB_DAILYSLP"`,
     },
     QUERY: {
         SELECT: {
-            USERPROFILE: `SELECT * FROM public."TB_USERPROFILE`,
-            DAILYSLP: `SELECT * FROM public."DAILYSLP`,
-            CLAIMED: `SELECT * FROM public."TB_CLAIMED`
+            USERPROFILE: `SELECT * FROM public."TB_USERPROFILE"`,
+            DAILYSLP: `SELECT * FROM public."DAILYSLP"`,
+            WITHDRAW: `SELECT * FROM public."TB_WITHDRAW"`,
+            MANAGEREARNED: `SELECT * FROM public."TB_MANAGEREARNED"`
         },
         INSERT: {
             USERPROFILE: `INSERT INTO public."TB_USERPROFILE"`,
-            DAILYSLP: `INSERT INTO public."TB_DAILYSLP"`
+            DAILYSLP: `INSERT INTO public."TB_DAILYSLP"`,
+            WITHDRAW: `INSERT INTO public."TB_WITHDRAW"`,
+            MANAGEREARNED: `INSERT INTO public."TB_MANAGEREARNED"`
         },
         UPDATE: {
             DAILYSLP: `UPDATE public."TB_DAILYSLP"`
@@ -70,9 +77,9 @@ const CONSTANTS = {
 }
 
 // Global console log
-const logger = (message, isDevMode = true) => {
+const logger = (message, subMessage = "", addedMessage = "", isDevMode = true) => {
     if (!isDevMode) {
-        return console.log(message);
+        return console.log(message, subMessage, addedMessage);
     }
 }
 
@@ -86,7 +93,7 @@ app.get("/api", (req, res) => {
 //     res.sendFile(path.resolve(__dirname, '../client/build', 'index.html'));
 // });
 
-// GET Method x Fetch records x TB_USERPROFILE + TB_CLAIMED + TB_DAILYSLP
+// GET Method x Fetch records x TB_USERPROFILE + TB_WITHDRAW + TB_DAILYSLP
 app.get("/api/records", async (req, res) => {
     try {
         logger(CONSTANTS.MESSAGE.STARTED_SELECTQUERY);
@@ -107,23 +114,41 @@ app.get("/api/records", async (req, res) => {
                     data: error
                 });
             } else {
-                // Execute Query x TB_CLAIMED
-                const query = `${CONSTANTS.QUERY.SELECT.CLAIMED}`;
-                client.query(query, (err, response) => {
+                // Execute Query x TB_WITHDRAW
+                const query = `${CONSTANTS.QUERY.SELECT.WITHDRAW}`;
+                client.query(query, (err, dataWithdraw) => {
                     logger(CONSTANTS.MESSAGE.END_SELECTQUERY);
-                    // End Connection
-                    client.end();
                     if (err) {
+                        // End Connection
+                        client.end();
                         return res.type("application/json").status(200).send({
                             error: false,
                             data: result.rows,
-                            claimed: []
+                            withdraw: [],
+                            managerEarned: []
                         });
                     } else {
-                        return res.type("application/json").status(200).send({
-                            error: false,
-                            data: result.rows,
-                            claimed: response.rows
+                        // Execute Query x TB_MANAGEREARNED
+                        const query = `${CONSTANTS.QUERY.SELECT.MANAGEREARNED}`;
+                        client.query(query, (err, dataManager) => {
+                            logger(CONSTANTS.MESSAGE.END_SELECTQUERY);
+                            // End Connection
+                            client.end();
+                            if (err) {
+                                return res.type("application/json").status(200).send({
+                                    error: false,
+                                    data: result.rows,
+                                    withdraw: dataWithdraw.rows,
+                                    managerEarned: []
+                                });
+                            } else {
+                                return res.type("application/json").status(200).send({
+                                    error: false,
+                                    data: result.rows,
+                                    withdraw: dataWithdraw.rows,
+                                    managerEarned: dataManager.rows
+                                });
+                            }
                         });
                     }
                 });
@@ -152,8 +177,9 @@ app.post("/api/addScholar", async (req, res) => {
         // Execute Query x insert new team record
         const query = `${CONSTANTS.QUERY.INSERT.USERPROFILE} ("ADDRESS", "NAME", "EMAIL", "SHR_MANAGER", "SHR_SCHOLAR", "SHR_SPONSOR", "SPONSOR_NAME", "STARTED_ON") VALUES ('${payload.ADDRESS}', '${payload.NAME}', '${payload.EMAIL}', '${payload.SHR_MANAGER}', '${payload.SHR_SCHOLAR}', '${payload.SHR_SPONSOR}', '${payload.SPONSOR_NAME}', '${payload.STARTED_ON}')`;
         client.query(query, (error) => {
+            logger(CONSTANTS.MESSAGE.TEAMRECORD, CONSTANTS.MESSAGE.STARTED_INSERTQUERY);
             if (error) {
-                logger(CONSTANTS.MESSAGE.TEAMRECORD, CONSTANTS.MESSAGE.STARTED_INSERTQUERY);
+                logger(CONSTANTS.MESSAGE.TEAMRECORD, CONSTANTS.MESSAGE.END_INSERTQUERY, error);
                 // End Connection
                 client.end();
                 return res.type("application/json").status(500).send({
@@ -168,11 +194,13 @@ app.post("/api/addScholar", async (req, res) => {
                     // End Connection
                     client.end();
                     if (err) {
+                        logger(CONSTANTS.MESSAGE.DAILYSLP, CONSTANTS.MESSAGE.END_INSERTQUERY, error);
                         return res.type("application/json").status(500).send({
                             error: true,
                             data: err
                         });
                     } else {
+                        logger(CONSTANTS.MESSAGE.DAILYSLP, CONSTANTS.MESSAGE.END_INSERTQUERY);
                         return res.type("application/json").status(200).send({
                             error: false,
                             data: result
@@ -205,7 +233,7 @@ app.post("/api/dailySLP", async (req, res) => {
                 client.connect();
 
                 // Execute Query
-                logger(`${CONSTANTS.MESSAGE.STARTED_UPDATEQUERY} - ${items.ADDRESS}`);
+                logger(CONSTANTS.MESSAGE.STARTED_UPDATEQUERY, items.ADDRESS);
                 let query = `${CONSTANTS.QUERY.UPDATE.DAILYSLP} SET "YESTERDAY" = '${items.YESTERDAY}', "YESTERDAYRES" = '${items.YESTERDAYRES}', "TODAY" = '${items.TODAY}', "TODATE" = '${items.TODATE}' WHERE "ADDRESS" = '${items.ADDRESS}'`;
                 if (!items.ALLFIELDS) { // False, only TODATE SLP will be updating
                     query = `${CONSTANTS.QUERY.UPDATE.DAILYSLP} SET "TODAY" = '${items.TODAY}' WHERE "ADDRESS" = '${items.ADDRESS}'`;
@@ -214,9 +242,9 @@ app.post("/api/dailySLP", async (req, res) => {
                 client.query(query, (error) => {
                     // End Connection
                     client.end();
-                    logger(`${CONSTANTS.MESSAGE.END_UPDATEQUERY} - ${items.ADDRESS}`);
+                    logger(CONSTANTS.MESSAGE.END_UPDATEQUERY, items.ADDRESS);
                     if (error) {
-                        logger(`${CONSTANTS.MESSAGE.ERROR_PROCEDURE} ${error}`);
+                        logger(CONSTANTS.MESSAGE.ERROR_PROCEDURE, error);
                     }
                 });
             });
@@ -235,6 +263,86 @@ app.post("/api/dailySLP", async (req, res) => {
                 data: CONSTANTS.MESSAGE.EMPTYPAYLOAD
             });
         }
+    } catch (err) {
+        return res.type("application/json").status(500).send({
+            error: true,
+            data: err
+        });
+    }
+});
+
+// POST Method x Saving process of team withdraw
+app.post("/api/withdraw", async (req, res) => {
+    try {
+        logger(CONSTANTS.MESSAGE.STARTED_INSERTQUERY);
+
+        // Conect to postgres
+        const client = new Client(pgConn);
+        client.connect();
+        
+        // Body payload
+        const payload = req.body;
+
+        // Execute Query x insert new team record
+        const query = `${CONSTANTS.QUERY.INSERT.WITHDRAW} ("ADDRESS", "SHR_MANAGER", "SHR_SCHOLAR", "SHR_SPONSOR", "SLPCURRENCY", "WITHDRAW_ON") VALUES ('${payload.ADDRESS}', '${payload.SHR_MANAGER}', '${payload.SHR_SCHOLAR}', '${payload.SHR_SPONSOR}', '${payload.SLPCURRENCY}', '${payload.WITHDRAW_ON}')`;
+        client.query(query, (error, result) => {
+            logger(CONSTANTS.MESSAGE.WITHDRAW, CONSTANTS.MESSAGE.STARTED_INSERTQUERY);
+            // End Connection
+            client.end();
+            if (error) {
+                logger(CONSTANTS.MESSAGE.WITHDRAW, CONSTANTS.MESSAGE.END_INSERTQUERY, error);
+                return res.type("application/json").status(500).send({
+                    error: true,
+                    data: error
+                });
+            } else {
+                logger(CONSTANTS.MESSAGE.WITHDRAW, CONSTANTS.MESSAGE.END_INSERTQUERY);
+                return res.type("application/json").status(200).send({
+                    error: false,
+                    data: result
+                });
+            }
+        });
+    } catch (err) {
+        return res.type("application/json").status(500).send({
+            error: true,
+            data: err
+        });
+    }
+});
+
+// POST Method x Saving process of manager earned
+app.post("/api/managerEarned", async (req, res) => {
+    try {
+        logger(CONSTANTS.MESSAGE.STARTED_INSERTQUERY);
+
+        // Conect to postgres
+        const client = new Client(pgConn);
+        client.connect();
+        
+        // Body payload
+        const payload = req.body;
+
+        // Execute Query x insert new team record
+        const query = `${CONSTANTS.QUERY.INSERT.MANAGEREARNED} ("SLPTOTAL", "SLPCURRENCY", "CATEGORY", "EARNED_ON") VALUES ('${payload.SLPTOTAL}', '${payload.SLPCURRENCY}', '${payload.CATEGORY}', '${payload.EARNED_ON}')`;
+        client.query(query, (error, result) => {
+            logger(CONSTANTS.MESSAGE.MANAGER_EARNED, CONSTANTS.MESSAGE.STARTED_INSERTQUERY);
+            // End Connection
+            client.end();
+            if (error) {
+                logger(CONSTANTS.MESSAGE.MANAGER_EARNED, CONSTANTS.MESSAGE.END_INSERTQUERY, error);
+                return res.type("application/json").status(500).send({
+                    error: true,
+                    data: error
+                });
+            } else {
+                logger(CONSTANTS.MESSAGE.MANAGER_EARNED, CONSTANTS.MESSAGE.END_INSERTQUERY);
+                return res.type("application/json").status(200).send({
+                    error: false,
+                    data: result
+                });
+            }
+        });
     } catch (err) {
         return res.type("application/json").status(500).send({
             error: true,

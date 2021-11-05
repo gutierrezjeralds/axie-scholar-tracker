@@ -120,11 +120,17 @@ const MESSAGE = {
     ERROR_FILTER_DAILYSLP: 'Error in filter data of Daily SLP',
     UPDATE_ISKODATA: "Update Scholar Data",
     SHARELIMIT: "Sharing must be equal to 100",
-    SCHOLAR_INPUTS: "Scholar inputs",
+    LOKI_INPUTS: "Loki inputs",
     SUBMIT: "Submit",
     ADD: "Add",
     EDIT: "Edit",
-    CLAIM: "Claim"
+    CLAIM: "Claim",
+    WITHDRAW_EXCHANGE: "Withdraw / Exchange",
+    WITHDRAW: "Withdraw",
+    WITHDRAWON: "Withdraw On",
+    SELECT_NAME: "Select Name",
+    SLP_CURRENCY: "SLP Currency",
+    EARNEDON: "Earned On"
 }
 
 export const CONSTANTS = {

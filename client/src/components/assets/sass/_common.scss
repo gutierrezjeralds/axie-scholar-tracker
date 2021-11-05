@@ -682,6 +682,149 @@ body, #root{
 	user-select: text !important;
 }
 
+//Select MDBootstrap
+.select-mdb-custom{
+    position: relative;
+    /* Use custom arrow */
+    &:after {
+        position: absolute;
+        top: 18px;
+        right: 10px;
+        /* Styling the down arrow */
+        width: 0;
+        height: 0;
+        padding: 0;
+        content: '';
+        border-left: 6px solid transparent;
+        border-right: 6px solid transparent;
+        border-top: 6px solid rgba(0, 0, 0, 0.7);
+        pointer-events: none;
+    }
+    .select-mdb-content{
+        color: $very-dark-grayish-blue;
+        position: relative;
+        background-color: transparent;
+        width: 100%;
+        padding: 10px 10px 5px 0;
+        font-size: 1rem;
+        border-radius: 0;
+        border: none;
+        border-bottom: 1px solid rgba(0,0,0, 0.12);
+        appearance: none;
+        -webkit-appearance: none;
+
+        /* Remove focus */
+        &:focus {
+            outline: none;
+            border-bottom: 1px solid rgba(0,0,0, 0);
+        }
+    }
+
+    /* BOTTOM BARS */
+    .select-mdb-bar {
+    	position: relative;
+    	display: block;
+    	width: 100%;
+    	&:before, &:after{
+    	    content: '';
+            height: 2px;
+            width: 0;
+            bottom: 1px;
+            position: absolute;
+            background: #2F80ED;
+            transition: 0.2s ease all;
+    	}
+
+    	&:before {
+            left: 0;
+        }
+
+        &:after {
+            right: 0;
+        }
+    }
+
+    /* active state */
+    .select-mdb-content:focus ~ .select-bar:before, .select-mdb-content:focus ~ .select-mdb-bar:after {
+    	width: 100%;
+    }
+
+    /* LABEL */
+    .select-mdb-label {
+    	font-size: 18px;
+    	font-weight: lighter;
+    	position: absolute;
+    	pointer-events: none;
+    	left: -15px;
+    	top: 10px;
+    	transition: 0.2s ease all;
+    }
+
+    /* active state */
+    .select-mdb-content:focus ~ .select-label, .select-mdb-content:valid ~ .select-mdb-label {
+        color: #757575;
+    	top: -10px;
+    	transition: 0.2s ease all;
+    	font-size: 0.8rem;
+    }
+    .select-mdb-content:focus ~ .select-label, .select-mdb-content:disabled ~ .select-mdb-label {
+        color: #757575;
+    	top: -10px;
+    	transition: 0.2s ease all;
+    	font-size: 0.8rem;
+    }
+}
+
+// Input Checkbox MDB Style
+.checkbox-mdb-custom{
+    display: inline-block;
+    padding-left: 0px;
+    input[type="checkbox"] {
+        display: none;
+    }
+    input[type="checkbox"]+label{
+        display: inline-block;
+        position: relative;
+        cursor: pointer;
+        width: 100%;
+        max-width: 100%;
+        min-width: 200px;
+        padding-left: 35px;
+        &:before{
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 0;
+            width: 18px;
+            height: 18px;
+            margin-top: 3px;
+            border: 2px solid $blue-whale;
+            border-radius: 1px;
+            -webkit-transition: .2s;
+            transition: .2s;
+        }
+    }
+    input[type="checkbox"]:checked+label{
+        &:before{
+            top: -5px;
+            left: -5px;
+            width: 12px;
+            height: 1.375rem;
+            border-top: 2px solid transparent;
+            border-right: 2px solid $blue-whale;
+            border-bottom: 2px solid $blue-whale;
+            border-left: 2px solid transparent;
+            -webkit-transform: rotate(40deg);
+            transform: rotate(40deg);
+            -webkit-transform-origin: 100% 100%;
+            transform-origin: 100% 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+        }
+    }
+}
+
 // Loader
 .loader-section {
     .loader-spin-dual-ring {

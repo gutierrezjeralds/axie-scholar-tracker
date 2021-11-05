@@ -171,7 +171,7 @@ class Home extends React.Component {
     pageRefresh = (time) => {
         setTimeout( () => {
             if (!this.state.isModalIskoInputsOpen) { // Dont reload when other modal is open
-                //  return window.location.reload();
+                 return window.location.reload();
             }
             // Return
             return true;

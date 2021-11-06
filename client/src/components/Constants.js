@@ -80,6 +80,7 @@ const MESSAGE = {
     TOTAL_INGAME_SLP: "Total InGame SLP",
     TOTAL_AVERAGE_SLP: "Total Average SLP",
     TOTAL_MANAGER_SLP: "Total Manager SLP",
+    TOTAL_MANAGERCLAIMABLE_SLP: "Total Manager Claimable SLP",
     TOTAL_SPONSOR_SLP: "Total Sponsor SLP",
     TOTAL_SCHOLAR_SLP: "Total Scholar SLP",
     ADVENTURE_SLP: "Adventure SLP",

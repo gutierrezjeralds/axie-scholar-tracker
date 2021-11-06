@@ -53,6 +53,7 @@ class Home extends React.Component {
             playerDataTable: {},
             mmrDatatable: {},
             managerEarningDatatable: {},
+            totalManagerClaimableSLP: 0,
             totalManagerSLP: 0,
             totalSponsorSLP: 0,
             totalScholarSLP: 0,
@@ -180,7 +181,7 @@ class Home extends React.Component {
     pageRefresh = (time) => {
         setTimeout( () => {
             if (!this.state.isModalIskoInputsOpen) { // Dont reload when other modal is open
-                 return window.location.reload();
+                //  return window.location.reload();
             }
             // Return
             return true;
@@ -1130,7 +1131,7 @@ class Home extends React.Component {
                                 result.inGameSLP = result.total - roninBalance;
                             }
 
-                            if ((details.SHR_MANAGER).toString() === "100" || details.SHR_MANAGER > 0) { // Condition for Manager
+                            if ((details.SHR_MANAGER).toString() === "100" || details.SHR_MANAGER > 0) { // Condition for Manager Share
                                 // Set new Shared SLP
                                 const managerShare = (details.SHR_MANAGER).toString() === "100" ? 1 : "0." + details.SHR_MANAGER;
                                 result.sharedManagerSLP = Math.ceil(result.inGameSLP * managerShare);
@@ -1146,13 +1147,31 @@ class Home extends React.Component {
 
                                     // Adding ronin balance in total Manage SLP x // Set new Total Manager's Earning
                                     this.setState({
-                                        totalManagerSLP: this.state.totalManagerSLP + result.sharedManagerSLP + roninBalance
+                                        totalManagerSLP: this.state.totalManagerSLP + result.sharedManagerSLP
                                     })
+
+                                    // Set new Total Manager Claimable SLP
+                                    if (Number(result.claim_on_days) >= 14) {
+                                        this.setState({
+                                            totalManagerClaimableSLP: this.state.totalManagerClaimableSLP + result.sharedManagerSLP + roninBalance
+                                        })
+                                    } else {
+                                        this.setState({
+                                            totalManagerClaimableSLP: this.state.totalManagerClaimableSLP + roninBalance
+                                        })
+                                    }
                                 } else {
                                     // Set new Total Manager's Earning
                                     if (details.managerDebtClaimed === undefined || details.managerDebtClaimed <= 0) {
                                         this.setState({
                                             totalManagerSLP: this.state.totalManagerSLP + result.sharedManagerSLP
+                                        })
+                                    }
+                                    
+                                    // Set new Total Manager Claimable SLP
+                                    if (Number(result.claim_on_days) >= 14) {
+                                        this.setState({
+                                            totalManagerClaimableSLP: this.state.totalManagerClaimableSLP + result.sharedManagerSLP
                                         })
                                     }
                                 }
@@ -1776,12 +1795,12 @@ class Home extends React.Component {
                             <MDBCard className="z-depth-2 player-details h-180px">
                                 <MDBCardBody className="black-text cursor-pointer d-flex-center" onClick={this.modalEarningToggle(CONSTANTS.MESSAGE.MANAGER_EARNING, CONSTANTS.MESSAGE.MANAGER, this.state.managerEarningDatatable)}>
                                     <MDBBox tag="div" className="text-center">
-                                        <MDBBox tag="span" className="d-block">{CONSTANTS.MESSAGE.TOTAL_MANAGER_SLP}</MDBBox>
+                                        <MDBBox tag="span" className="d-block">{CONSTANTS.MESSAGE.TOTAL_MANAGERCLAIMABLE_SLP}</MDBBox>
                                         <MDBBox tag="span" className="d-block font-size-1pt3rem font-weight-bold">
                                             <img src="/assets/images/smooth-love-potion.png" className="w-24px mr-1 mt-0pt3rem-neg" alt="SLP" />
-                                            {this.numberWithCommas(this.state.totalManagerSLP)}
+                                            {this.numberWithCommas(this.state.totalManagerClaimableSLP)}
                                         </MDBBox>
-                                        <MDBBox tag="span" className="d-block font-size-1pt3rem font-weight-bold">&#8369; {this.numberWithCommas((this.state.totalManagerSLP * this.state.slpCurrentValue).toFixed(2))}</MDBBox>
+                                        <MDBBox tag="span" className="d-block font-size-1pt3rem font-weight-bold">&#8369; {this.numberWithCommas((this.state.totalManagerClaimableSLP * this.state.slpCurrentValue).toFixed(2))}</MDBBox>
                                     </MDBBox>
                                 </MDBCardBody>
                             </MDBCard>

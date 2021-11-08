@@ -181,7 +181,7 @@ class Home extends React.Component {
     pageRefresh = (time) => {
         setTimeout( () => {
             if (!this.state.isModalIskoInputsOpen) { // Dont reload when other modal is open
-                //  return window.location.reload();
+                 return window.location.reload();
             }
             // Return
             return true;
@@ -1389,7 +1389,7 @@ class Home extends React.Component {
                                             ADDRESS: details.ADDRESS,
                                             YESTERDAY: 0,
                                             YESTERDAYRES: 0,
-                                            TODAY: 0,
+                                            TODAY: result.inGameSLP,
                                             TODATE: todayDate,
                                             ACTION: CONSTANTS.MESSAGE.UPDATE,
                                             MESSAGE: "UPDATE from energy reset and was claimed",
@@ -1422,7 +1422,7 @@ class Home extends React.Component {
                                             YESTERDAY: details.YESTERDAY,
                                             YESTERDAYRES: details.YESTERDAYRES,
                                             TODAY: todaySLP,
-                                            TODATE: moment(details.TODATE).format("YYYY-MM-DD HH:mm:ss"),
+                                            TODATE: toDate,
                                             ACTION: CONSTANTS.MESSAGE.UPDATE,
                                             MESSAGE: "UPDATE from isSameTODate false",
                                             UPDATEDON: todayDate,
@@ -1443,7 +1443,7 @@ class Home extends React.Component {
                                         YESTERDAY: details.YESTERDAY,
                                         YESTERDAYRES: details.YESTERDAYRES,
                                         TODAY: todaySLP,
-                                        TODATE: moment(details.TODATE).format("YYYY-MM-DD HH:mm:ss"),
+                                        TODATE: toDate,
                                         ACTION: CONSTANTS.MESSAGE.UPDATE,
                                         MESSAGE: "UPDATE from isSameTODate true",
                                         UPDATEDON: todayDate,

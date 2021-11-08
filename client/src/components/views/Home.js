@@ -2171,7 +2171,7 @@ class Home extends React.Component {
                                         <MDBRow className="mt-1pt5rem-neg" between>
                                             <MDBCol size="6">
                                                 <div className="md-form">
-                                                    <input data-test="input" type="text" className="form-control" name="SHR_MANAGER" min="0" max="100" required />
+                                                    <input data-test="input" type="number" className="form-control" name="SHR_MANAGER" min="0" max="100" required />
                                                     <label className="active">{CONSTANTS.MESSAGE.MANAGER}</label>
                                                 </div>
                                             </MDBCol>

@@ -1123,7 +1123,7 @@ class Home extends React.Component {
                         result.scholarSLP = result.inGameSLP;
                         if (Object.keys(details).length > 0) {
                             // Update name if the orig name is empty
-                            result.name = result.name ? result.name : details.NAME ? details.NAME : ethAddress;
+                            result.name = details.NAME ? details.NAME : result.name ? result.name : ethAddress;
 
                             // Check if has balance in Ronin x Set new value for total in game slp
                             if (result.blockchain_related.balance !== null && result.blockchain_related.balance > 0) {

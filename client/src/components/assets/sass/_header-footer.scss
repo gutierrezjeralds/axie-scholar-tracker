@@ -14,7 +14,7 @@ header{
 }
 
 footer {
-    @include mediaQueries (mixin-min-small) {
+    @include mediaQueries (mixin-min-medium) {
         position: fixed;
     }
 }

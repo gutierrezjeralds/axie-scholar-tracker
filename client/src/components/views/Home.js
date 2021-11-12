@@ -38,7 +38,7 @@ class Home extends React.Component {
             notifStr: "",
             isUser: this.props.user || "",
             isSponsorName: "",
-            managerPHPInvestment: 339000, // Estimated Investment
+            managerPHPInvestment: 365000, // Estimated Investment
             managerPHPROI: 0,
             managerPHPBreed: 0,
             managerPHPBuy: 0,
@@ -1367,6 +1367,28 @@ class Home extends React.Component {
                         // Generate Daily SLP Data
                         let playerDataDailySLPwillSave = true // For checking if has data data to be save x true or false x true need to save / false no data to be save
                         try {
+                            /*
+                            * If daily slp return empty
+                            * * * Used default object for display (Nothing change in API) (0 Default)
+                            * Else: daily slp has return data
+                            * * * If data is filter by record (ADDRESS)
+                            * * * * * If TODATE is same as current data
+                            * * * * * * * If TODAY SLP is greater than to current InGameSLP (InGameSLP - YESTERDAY SLP)
+                            * * * * * * * * * Update the API for new TODAY SLP
+                            * * * * * * * Else: Used default object for display (Nothing change in API) (0 Default)
+                            * * * * * Else
+                            * * * * * * * If time is greater than to 8AM of current date (Reset the energy game)
+                            * * * * * * * * * If player has claimed (If InGameSLP become 0 or Claime on days is lessthan to 1)
+                            * * * * * * * * * * * Update the API for new 0 value of TODAY SLP and YESTERDAY SLP and also TODATE (current date)
+                            * * * * * * * * * Else: Update the API for new TODAY SLP, YESTERDAY SLP and TODATE (current date)
+                            * * * * * * * Else
+                            * * * * * * * * * If TODAY SLP is greater than to current InGameSLP (InGameSLP - YESTERDAY SLP)
+                            * * * * * * * * * * * Update the API for new TODAY SLP
+                            * * * * * * * * * Else: Used default object for display (Nothing change in API) (0 Default)
+                            * * * Else : Used default object for display (Nothing change in API) (0 Default)
+                            */
+
+
                             // Get TODAY SLP x Subtraction of InGameSLP and YESTERDAY
                             let todaySLP = Number(result.inGameSLP) - Number(details.YESTERDAY);
                             if (Number(details.YESTERDAY) > Number(result.inGameSLP)) {

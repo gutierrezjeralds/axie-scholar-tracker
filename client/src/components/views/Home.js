@@ -1407,11 +1407,12 @@ class Home extends React.Component {
                                     // Update existing record for new data x another date x based in 8AM energy reset
                                     if (Number(result.claim_on_days) <= 1) {
                                         // Update daily slp for newly claimed x pass 1 day after claimed
+                                        const yesterdySLP = Number(result.inGameSLP) > 0 ? result.inGameSLP : 0;
                                         result.dailySLP = {
                                             ADDRESS: details.ADDRESS,
-                                            YESTERDAY: 0,
+                                            YESTERDAY: yesterdySLP,
                                             YESTERDAYRES: 0,
-                                            TODAY: result.inGameSLP,
+                                            TODAY: 0,
                                             TODATE: todayDate,
                                             ACTION: CONSTANTS.MESSAGE.UPDATE,
                                             MESSAGE: "UPDATE from energy reset and was claimed",

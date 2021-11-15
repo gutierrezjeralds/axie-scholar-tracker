@@ -303,8 +303,8 @@ app.post("/api/dailySLP", async (req, res) => {
                         client.end();
                         logger(CONSTANTS.MESSAGE.ERROR_PROCEDURE, error);
                     } else {
-                        // Execute Query for update Yesterday SLP
                         if (items.TBINSERTYESTERDAY) {
+                            // Execute Query for insert Yesterday SLP
                             const insertQuery = `${CONSTANTS.QUERY.INSERT.YESTERDAYSLP} ("ADDRESS", "YESTERDAY", "DATE_ON") VALUES ('${payload.ADDRESS}', '${items.YESTERDAYRES}', '${items.TODATE}')`;
                             client.query(insertQuery, (error) => {
                                 logger(CONSTANTS.MESSAGE.END_INSERTQUERY, items.ADDRESS);
@@ -314,10 +314,8 @@ app.post("/api/dailySLP", async (req, res) => {
                                     logger(CONSTANTS.MESSAGE.ERROR_PROCEDURE, error);
                                 }
                             });
-                        }
-
-                        // Execute Query for delete Yesterday SLP
-                        if (items.TBDELETEYESTERDAY) {
+                        } else if (items.TBDELETEYESTERDAY) {
+                            // Execute Query for delete Yesterday SLP
                             const deleteQuery = `${CONSTANTS.QUERY.DELETE.YESTERDAYSLP} WHERE "ADDRESS" = '${items.ADDRESS}'`;
                             client.query(deleteQuery, (error) => {
                                 logger(CONSTANTS.MESSAGE.END_DELETEQUERY, items.ADDRESS);
@@ -327,6 +325,9 @@ app.post("/api/dailySLP", async (req, res) => {
                                     logger(CONSTANTS.MESSAGE.ERROR_PROCEDURE, error);
                                 }
                             });
+                        } else {
+                            // End Connection
+                            client.end();
                         }
                     }
                 });

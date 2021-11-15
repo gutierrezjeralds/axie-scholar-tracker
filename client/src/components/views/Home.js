@@ -13,6 +13,7 @@ import moment from 'moment';
 import Cookies from 'js-cookie'
 import emailjs from 'emailjs-com';
 import Lightbox from 'react-image-lightbox';
+import CanvasJSReact from '../assets/js/canvasjs.react';
 // import { ExportCSV } from './ExportCSV';
 
 const guildImages = [
@@ -27,6 +28,7 @@ const guildImages = [
     '/assets/images/guides/arena_slp_rewards_2.jpg'
 ];
 
+const CanvasJSChart = CanvasJSReact.CanvasJSChart;
 class Home extends React.Component {
     constructor(props) {
         super(props)
@@ -87,7 +89,8 @@ class Home extends React.Component {
             tabIskoInputsActive: "1",
             slctClaimId: "",
             slctAddEditId: "",
-            hasSponsor: false
+            hasSponsor: false,
+            isViewSLPChart: CONSTANTS.MESSAGE.VIEW_GAINEDSLP_CHART
         }
     }
 
@@ -126,7 +129,7 @@ class Home extends React.Component {
     }
 
     // Modal Toggle for view of Players details
-    modalPlayerDetailsToggle = (cliendId, playerDetails) => () => {
+    modalPlayerDetailsToggle = (cliendId, playerDetails) => async () => {
         let details = [];
         if (cliendId && playerDetails.length > 0) {
             const findDetail = playerDetails.find(items => items.client_id === cliendId);
@@ -157,6 +160,19 @@ class Home extends React.Component {
         } else {
             this.setState({
                 isViewMangerEarning: CONSTANTS.MESSAGE.VIEW_CURRENT_EARNINGS,
+            })
+        }
+    }
+
+    // Hide and Show Player Earnings and SLP Chart
+    onScholarEaningNChartHandle(event) {
+        if (event.target.innerText === CONSTANTS.MESSAGE.VIEW_EARNINGS) {
+            this.setState({
+                isViewSLPChart: CONSTANTS.MESSAGE.VIEW_EARNINGS,
+            })
+        } else {
+            this.setState({
+                isViewSLPChart: CONSTANTS.MESSAGE.VIEW_GAINEDSLP_CHART,
             })
         }
     }
@@ -835,6 +851,7 @@ class Home extends React.Component {
                 const dataRecords = response.data;
                 const dataWithdraw = response.withdraw;
                 const dataManagerEarned = response.managerEarned;
+                const dataYesterdaySLP = response.yesterdaySLP;
                 console.log("result", response)
                 if (dataRecords.length > 0) {
                     // Fetch player details in api of sky mavis
@@ -857,7 +874,7 @@ class Home extends React.Component {
                         }
 
                         // Return
-                        return await this.getPlayerDetails(item, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned);
+                        return await this.getPlayerDetails(item, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned, dataYesterdaySLP);
                     });
 
                     await Promise.all(dataResultPromise).then(async (results) => {
@@ -1048,7 +1065,7 @@ class Home extends React.Component {
     }
 
     // Get Player details base on Sky Mavis API
-    getPlayerDetails = async (details, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned) => {
+    getPlayerDetails = async (details, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned, dataYesterdaySLP) => {
         return new Promise((resolve, reject) => {
             $.ajax({
                 url: "https://game-api.skymavis.com/game-api/clients/" + ethAddress + "/items/1",
@@ -1061,7 +1078,7 @@ class Home extends React.Component {
                         // Get Player ranking base on Sky Mavis API
                         const ranking = await this.getPlayerRanking(ethAddress);
                         // Get Player battle log base on Game API Axie Technology
-                        const battleLogs = await this.getPlayerBattleLog(details.ADDRESS, ethAddress, this.state.PVPENERGY_DEFAULT);
+                        const battleLogs = undefined; // await this.getPlayerBattleLog(details.ADDRESS, ethAddress, this.state.PVPENERGY_DEFAULT);
 
                         if (ranking.error) {
                             // Default object for ranking
@@ -1335,12 +1352,44 @@ class Home extends React.Component {
                             if (this.state.isUser === CONSTANTS.MESSAGE.MANAGER) {
                                 if (ranking.eloStatus === "danger") {
                                     // Send an Email due to Lower MMR
-                                    this.sendMMRMessage(result.name, details.EMAIL, ranking.elo, CONSTANTS.MESSAGE.EMAIL_LOWMMR_MESSAGE);
+                                    // this.sendMMRMessage(result.name, details.EMAIL, ranking.elo, CONSTANTS.MESSAGE.EMAIL_LOWMMR_MESSAGE);
                                 }
 
                                 if (ranking.eloStatus === "warning") {
                                     // Send an Email due to Warning MMR
                                     // this.sendMMRMessage(result.name, details.EMAIL, ranking.elo, CONSTANTS.MESSAGE.EMAIL_WARNINGMMR_MESSAGE);
+                                }
+                            }
+
+                            // Generate canvas chart option/data
+                            details.yesterdaySLPChart = false;
+                            if (dataYesterdaySLP !== undefined  && dataYesterdaySLP.length > 0) {
+                                // Get the specific data of Yesrterday SLP by Ronin Address
+                                const dataYesterdaySLPSet = dataYesterdaySLP.filter(item => item.ADDRESS === details.ADDRESS); // Filter valid data
+                                if (dataYesterdaySLPSet.length > 0) {
+                                    let datas = [];
+                                    dataYesterdaySLPSet.sort((a, b) => moment(a.DATE_ON).unix() - moment(b.DATE_ON).unix()).map(items => {
+                                        const tempObj = {
+                                            x: new Date(items.DATE_ON),
+                                            y: Number(items.YESTERDAY)
+                                        }
+                                        // Push data object
+                                        let tempObject = Object.assign({}, tempObj);
+                                        datas.push(tempObject);
+                                        // Return
+                                        return true;
+                                    })
+                                    // Chart Options with data
+                                    details.yesterdaySLPChart = {
+                                        animationEnabled: true,
+                                        axisX: { valueFormatString: "MMM DD" },
+                                        data: [{
+                                            yValueFormatString: "#,###",
+                                            xValueFormatString: "MMM DD",
+                                            type: "spline",
+                                            dataPoints: datas
+                                        }]
+                                    }
                                 }
                             }
 
@@ -1355,7 +1404,7 @@ class Home extends React.Component {
                         }
 
                         // Update value of win, lose, draw and win rate based in Battle Log
-                        if(battleLogs.error === undefined) {
+                        if(battleLogs !== undefined  && battleLogs.error === undefined) {
                             ranking.win_total = battleLogs.win_total;
                             ranking.lose_total = battleLogs.lose_total;
                             ranking.draw_total = battleLogs.draw_total;
@@ -1367,28 +1416,6 @@ class Home extends React.Component {
                         // Generate Daily SLP Data
                         let playerDataDailySLPwillSave = true // For checking if has data data to be save x true or false x true need to save / false no data to be save
                         try {
-                            /*
-                            * If daily slp return empty
-                            * * * Used default object for display (Nothing change in API) (0 Default)
-                            * Else: daily slp has return data
-                            * * * If data is filter by record (ADDRESS)
-                            * * * * * If TODATE is same as current data
-                            * * * * * * * If TODAY SLP is greater than to current InGameSLP (InGameSLP - YESTERDAY SLP)
-                            * * * * * * * * * Update the API for new TODAY SLP
-                            * * * * * * * Else: Used default object for display (Nothing change in API) (0 Default)
-                            * * * * * Else
-                            * * * * * * * If time is greater than to 8AM of current date (Reset the energy game)
-                            * * * * * * * * * If player has claimed (If InGameSLP become 0 or Claime on days is lessthan to 1)
-                            * * * * * * * * * * * Update the API for new 0 value of TODAY SLP and YESTERDAY SLP and also TODATE (current date)
-                            * * * * * * * * * Else: Update the API for new TODAY SLP, YESTERDAY SLP and TODATE (current date)
-                            * * * * * * * Else
-                            * * * * * * * * * If TODAY SLP is greater than to current InGameSLP (InGameSLP - YESTERDAY SLP)
-                            * * * * * * * * * * * Update the API for new TODAY SLP
-                            * * * * * * * * * Else: Used default object for display (Nothing change in API) (0 Default)
-                            * * * Else : Used default object for display (Nothing change in API) (0 Default)
-                            */
-
-
                             // Get TODAY SLP x Subtraction of InGameSLP and YESTERDAY
                             let todaySLP = Number(result.inGameSLP) - Number(details.YESTERDAY);
                             if (Number(details.YESTERDAY) > Number(result.inGameSLP)) {
@@ -1399,14 +1426,55 @@ class Home extends React.Component {
                             const toDate = moment(details.TODATE).format('YYYY-MM-DD HH:mm:ss');
                             const todayDate = moment().format('YYYY-MM-DD HH:mm:ss');
                             const isSameTODate = moment(toDate).isSame(todayDate, 'date');
-                            if (!isSameTODate) {
-                                // ToDate and date today is not equal x Check if the ToDate (time) is less than to 8AM (Reset of energy)
-                                // const duration = (moment.duration(moment().diff(details.TODATE))).asHours();
-                                const todateTime = moment(toDate).format('HHmmss');
-                                if (Number(todateTime) >= Number("080000")) {
-                                    // Update existing record for new data x another date x based in 8AM energy reset
-                                    if (Number(result.claim_on_days) <= 1) {
-                                        // Update daily slp for newly claimed x pass 1 day after claimed
+                            if (isSameTODate) {
+                                // Same date from tb TODATE and CURRENT DATE
+                                // This will be the process of updating the TODAY SLP, YESTERDAY SLP and TODATE into new value
+                                if (Number(result.inGameSLP) === 0 || Number(result.claim_on_days) === 0) {
+                                    // Checker for already claimed SLP x this will be the process for reset into 0 the data
+                                    const yesterdySLP = Number(result.inGameSLP) > 0 ? result.inGameSLP : 0;
+                                    result.dailySLP = {
+                                        ADDRESS: details.ADDRESS,
+                                        YESTERDAY: yesterdySLP,
+                                        YESTERDAYRES: 0,
+                                        TODAY: 0,
+                                        TODATE: todayDate,
+                                        ACTION: CONSTANTS.MESSAGE.UPDATE,
+                                        MESSAGE: "UPDATE from energy reset and was claimed",
+                                        UPDATEDON: todayDate,
+                                        ALLFIELDS: true, // to be save, if all fields or not x if false, only TODAY
+                                        TBDELETEYESTERDAY: true // delete the yesterday slp table x need to reset the data due to claimed slp
+                                    };
+                                } else {
+                                    // Update TODAY SLP based on computation of YESTERDAY SLP and INGAME SLP
+                                    if (Number(todaySLP) > Number(details.TODAY)) {
+                                        // Update Daily SLP with new TODAY SLP
+                                        result.dailySLP = {
+                                            ADDRESS: details.ADDRESS,
+                                            YESTERDAY: details.YESTERDAY,
+                                            YESTERDAYRES: details.YESTERDAYRES,
+                                            TODAY: todaySLP,
+                                            TODATE: toDate,
+                                            ACTION: CONSTANTS.MESSAGE.UPDATE,
+                                            MESSAGE: "UPDATE from isSameTODate true",
+                                            UPDATEDON: todayDate,
+                                            ALLFIELDS: false // to be save, if all fields or not x if false, only TODAY
+                                        };
+                                    } else {
+                                        // Today SLP is same x no change required
+                                        playerDataDailySLPwillSave = false;
+                                        result.dailySLP = details;
+                                        result.dailySLP.noChange = "isSameTODate - true";
+                                    }
+                                }
+                            } else {
+                                // Not same date from tb TODATE and CURRENT DATE
+                                // Update TODAY SLP based on computation of YESTERDAY SLP and INGAME SLP
+                                // Update TODATE if teh date today is already passed the 8AM game reset
+                                const timeChecker = moment(todayDate).format('HHmmss');
+                                if (!isSameTODate && Number(timeChecker) >= Number("080000")) { // isSameTODate must always false in this process to prevent to update in new data from game reset 8AM
+                                    // This will be the process of updating the TODAY SLP, YESTERDAY SLP and TODATE into new value
+                                    if (Number(result.inGameSLP) === 0 || Number(result.claim_on_days) === 0) {
+                                        // Checker for already claimed SLP x this will be the process for reset into 0 the data
                                         const yesterdySLP = Number(result.inGameSLP) > 0 ? result.inGameSLP : 0;
                                         result.dailySLP = {
                                             ADDRESS: details.ADDRESS,
@@ -1417,7 +1485,8 @@ class Home extends React.Component {
                                             ACTION: CONSTANTS.MESSAGE.UPDATE,
                                             MESSAGE: "UPDATE from energy reset and was claimed",
                                             UPDATEDON: todayDate,
-                                            ALLFIELDS: true // to be save, if all fields or not x if false, only TODAY
+                                            ALLFIELDS: true, // to be save, if all fields or not x if false, only TODAY
+                                            TBDELETEYESTERDAY: true // delete the yesterday slp table x need to reset the data due to claimed slp
                                         };
                                     } else {
                                         // Get YESTERDAY SLP base on YESTERDAY and TODAY SLP
@@ -1434,10 +1503,13 @@ class Home extends React.Component {
                                             ACTION: CONSTANTS.MESSAGE.UPDATE,
                                             MESSAGE: "UPDATE from energy reset",
                                             UPDATEDON: todayDate,
-                                            ALLFIELDS: true // to be save, if all fields or not x if false, only TODAY
+                                            ALLFIELDS: true, // to be save, if all fields or not x if false, only TODAY
+                                            TBINSERTYESTERDAY: true // insert the yesterday slp table for display in chart x get the yesterdayres property value
                                         };
                                     }
                                 } else {
+                                    // This will be the process of updating TODAY SLP only x not yet pass/overlap the 8AM reset
+                                    // Update TODAY SLP based on computation of YESTERDAY SLP and INGAME SLP
                                     if (Number(todaySLP) > Number(details.TODAY)) {
                                         // Update Daily SLP with new TODAY SLP
                                         result.dailySLP = {
@@ -1457,26 +1529,6 @@ class Home extends React.Component {
                                         result.dailySLP = details;
                                         result.dailySLP.noChange = "isSameTODate - false";
                                     }
-                                }
-                            } else {
-                                if (Number(todaySLP) > Number(details.TODAY)) {
-                                    // Update Daily SLP with new TODAY SLP
-                                    result.dailySLP = {
-                                        ADDRESS: details.ADDRESS,
-                                        YESTERDAY: details.YESTERDAY,
-                                        YESTERDAYRES: details.YESTERDAYRES,
-                                        TODAY: todaySLP,
-                                        TODATE: toDate,
-                                        ACTION: CONSTANTS.MESSAGE.UPDATE,
-                                        MESSAGE: "UPDATE from isSameTODate true",
-                                        UPDATEDON: todayDate,
-                                        ALLFIELDS: false // to be save, if all fields or not x if false, only TODAY
-                                    };
-                                } else {
-                                    // Today SLP is same x no change required
-                                    playerDataDailySLPwillSave = false;
-                                    result.dailySLP = details;
-                                    result.dailySLP.noChange = "isSameTODate - true";
                                 }
                             }
                         } catch (err) {
@@ -2015,108 +2067,115 @@ class Home extends React.Component {
                         {/* Header details */}
                         {
                             Object.keys(this.state.modalPlayerDetails).length > 0 ? (
-                                this.state.modalPlayerDetails.map((items, index) => (
-                                    index === 0 ? (
-                                        // Retreive only first loop x must be single display x "this.state.modalPlayerDetails" is already filtered
-                                        <React.Fragment key={items.client_id}>
-                                            <MDBRow between>
-                                                {/* Started playing */}
-                                                <MDBCol size="12" md="6" lg="6">
-                                                    <MDBBox tag="span" className="d-block">
-                                                        {CONSTANTS.MESSAGE.STARTED} <Moment format="MMM DD, YYYY">{items.details.STARTED_ON}</Moment>
+                                <React.Fragment>
+                                    <MDBRow between>
+                                        {/* Started playing */}
+                                        <MDBCol size="12" md="6" lg="6">
+                                            <MDBBox tag="span" className="d-block">
+                                                {CONSTANTS.MESSAGE.STARTED} <Moment format="MMM DD, YYYY">{this.state.modalPlayerDetails[0].details.STARTED_ON}</Moment>
+                                            </MDBBox>
+                                        </MDBCol>
+                                        {/* Market Place link */}
+                                        <MDBCol size="12" md="6" lg="6">
+                                            <MDBBox tag="u" className="d-block d-md-none d-lg-none">
+                                                <a href={"https://marketplace.axieinfinity.com/profile/" + this.state.modalPlayerDetails[0].details.ADDRESS + "/axie"} target="_blank" rel="noreferrer" className="black-text">
+                                                    {CONSTANTS.MESSAGE.OPEN_MARKETPLACE_PROFILE}
+                                                </a>
+                                            </MDBBox>
+                                            <MDBBox tag="u" className="d-none d-md-block d-lg-block text-right">
+                                                <a href={"https://marketplace.axieinfinity.com/profile/" + this.state.modalPlayerDetails[0].details.ADDRESS + "/axie"} target="_blank" rel="noreferrer" className="black-text">
+                                                    {CONSTANTS.MESSAGE.OPEN_MARKETPLACE_PROFILE}
+                                                </a>
+                                            </MDBBox>
+                                        </MDBCol>
+                                        {/* Email */}
+                                        {
+                                            this.state.isUser === CONSTANTS.MESSAGE.MANAGER ? (
+                                                <MDBCol size="12">
+                                                    <MDBBox tag="span" className="d-block selectable-text">
+                                                        {CONSTANTS.MESSAGE.EMAIL}: {this.state.modalPlayerDetails[0].details.EMAIL}
                                                     </MDBBox>
                                                 </MDBCol>
-                                                {/* Market Place link */}
-                                                <MDBCol size="12" md="6" lg="6">
-                                                    <MDBBox tag="u" className="d-block d-md-none d-lg-none">
-                                                        <a href={"https://marketplace.axieinfinity.com/profile/" + items.details.ADDRESS + "/axie"} target="_blank" rel="noreferrer" className="black-text">
-                                                            {CONSTANTS.MESSAGE.OPEN_MARKETPLACE_PROFILE}
-                                                        </a>
-                                                    </MDBBox>
-                                                    <MDBBox tag="u" className="d-none d-md-block d-lg-block text-right">
-                                                        <a href={"https://marketplace.axieinfinity.com/profile/" + items.details.ADDRESS + "/axie"} target="_blank" rel="noreferrer" className="black-text">
-                                                            {CONSTANTS.MESSAGE.OPEN_MARKETPLACE_PROFILE}
-                                                        </a>
-                                                    </MDBBox>
-                                                </MDBCol>
-                                                {/* Email */}
+                                            ) : ("")
+                                        }
+                                    </MDBRow>
+
+                                    {
+                                        this.state.isViewSLPChart === CONSTANTS.MESSAGE.VIEW_GAINEDSLP_CHART ? (
+                                            // View Gained SLP Chart
+                                            <React.Fragment>
+                                                <MDBBox tag="u" className="d-block mb-2 cursor-pointer" onClick={this.onScholarEaningNChartHandle.bind(this)}>{CONSTANTS.MESSAGE.VIEW_EARNINGS}</MDBBox> {/* Opposite label x for hide and show */}
+                                                {/* Yesterday SLP Chart */}
                                                 {
-                                                    this.state.isUser === CONSTANTS.MESSAGE.MANAGER ? (
-                                                        <MDBCol size="12">
-                                                            <MDBBox tag="span" className="d-block selectable-text">
-                                                                {CONSTANTS.MESSAGE.EMAIL}: {items.details.EMAIL}
-                                                            </MDBBox>
-                                                        </MDBCol>
+                                                    this.state.modalPlayerDetails[0].details.yesterdaySLPChart && this.state.modalPlayerDetails[0].details.yesterdaySLPChart.data[0].dataPoints.length > 1 ? (
+                                                        <CanvasJSChart options ={this.state.modalPlayerDetails[0].details.yesterdaySLPChart} />
                                                     ) : ("")
                                                 }
-                                            </MDBRow>
-                                        </React.Fragment>
-                                    ) : ("")
-                                ))
+                                            </React.Fragment>
+                                        ) : (
+                                            // View Earnings
+                                            <React.Fragment>
+                                                <MDBBox tag="u" className="d-block mb-2 cursor-pointer" onClick={this.onScholarEaningNChartHandle.bind(this)}>{CONSTANTS.MESSAGE.VIEW_GAINEDSLP_CHART}</MDBBox> {/* Opposite label x for hide and show */}
+                                                {/* Table Details */}
+                                                <MDBTable scrollY maxHeight="70vh" bordered striped responsive className="mt-2">
+                                                    <MDBTableBody>
+                                                        {/* Arena Game Status */}
+                                                        <tr>
+                                                            <td colSpan="4" className="text-center font-weight-bold rgba-teal-strong white-text">{CONSTANTS.MESSAGE.ARENAGAME_STATUS}</td>
+                                                        </tr>
+                                                        <tr className="text-center">
+                                                            <td className="font-weight-bold text-uppercase table-gray-bg">{CONSTANTS.MESSAGE.WIN}</td>
+                                                            <td className="font-weight-bold text-uppercase table-gray-bg">{CONSTANTS.MESSAGE.LOSE}</td>
+                                                            <td className="font-weight-bold text-uppercase table-gray-bg">{CONSTANTS.MESSAGE.DRAW}</td>
+                                                            <td className="font-weight-bold text-uppercase table-gray-bg">{CONSTANTS.MESSAGE.WIN_RATE}</td>
+                                                        </tr>
+                                                        {
+                                                            Object.keys(this.state.modalPlayerDetails).length > 0 ? (
+                                                                this.state.modalPlayerDetails.map(items => (
+                                                                    <tr key={items.client_id} className="text-center">
+                                                                        <td className="white-bg">{items.ranking.win_total}</td>
+                                                                        <td className="white-bg">{items.ranking.lose_total}</td>
+                                                                        <td className="white-bg">{items.ranking.draw_total}</td>
+                                                                        <td className="white-bg">{items.ranking.win_rate}%</td>
+                                                                    </tr>
+                                                                ))
+                                                            ) : ("")
+                                                        }
+                                                        {/* Total Income */}
+                                                        <tr>
+                                                            <td colSpan="4" className="text-center font-weight-bold rgba-teal-strong white-text">
+                                                                <span>{CONSTANTS.MESSAGE.TOTALINCOME}: &#8369; </span>
+                                                                {(this.state.modalPlayerDetails[0].details.totalIncome).toLocaleString()}
+                                                            </td>
+                                                        </tr>
+                                                        <tr className="text-center">
+                                                            <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.DATE}</td>
+                                                            <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.SLP}</td>
+                                                            <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.SLP_PRICE}</td>
+                                                            <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.EARNING}</td>
+                                                        </tr>
+                                                        {
+                                                            
+                                                            this.state.modalPlayerDetails[0].details.withdrawEarning !== undefined && 
+                                                            Object.keys(this.state.modalPlayerDetails[0].details.withdrawEarning).length > 0 ? (
+                                                                (this.state.modalPlayerDetails[0].details.withdrawEarning).sort((a, b) => moment(b.date).unix() - moment(a.date).unix()).map(items => (
+                                                                    <tr key={items.date} className="text-center">
+                                                                        <td>{<Moment format="MMM DD, YYYY">{items.date}</Moment>}</td>
+                                                                        <td>{items.slp}</td>
+                                                                        <td className="text-uppercase">{items.slpPrice}</td>
+                                                                        <td>{(items.earning).toLocaleString()}</td>
+                                                                    </tr>
+                                                                ))
+                                                            ) : ("")
+                                                        }
+                                                    </MDBTableBody>
+                                                </MDBTable>
+                                            </React.Fragment>
+                                        )
+                                    }
+                                </React.Fragment>
                             ) : ("")
                         }
-
-                        {/* Table Details */}
-                        <MDBTable scrollY maxHeight="70vh" bordered striped responsive className="mt-2">
-                            <MDBTableBody>
-                                {/* Arena Game Status */}
-                                <tr>
-                                    <td colSpan="4" className="text-center font-weight-bold rgba-teal-strong white-text">{CONSTANTS.MESSAGE.ARENAGAME_STATUS}</td>
-                                </tr>
-                                <tr className="text-center">
-                                    <td className="font-weight-bold text-uppercase table-gray-bg">{CONSTANTS.MESSAGE.WIN}</td>
-                                    <td className="font-weight-bold text-uppercase table-gray-bg">{CONSTANTS.MESSAGE.LOSE}</td>
-                                    <td className="font-weight-bold text-uppercase table-gray-bg">{CONSTANTS.MESSAGE.DRAW}</td>
-                                    <td className="font-weight-bold text-uppercase table-gray-bg">{CONSTANTS.MESSAGE.WIN_RATE}</td>
-                                </tr>
-                                {
-                                    Object.keys(this.state.modalPlayerDetails).length > 0 ? (
-                                        this.state.modalPlayerDetails.map(items => (
-                                            <tr key={items.client_id} className="text-center">
-                                                <td className="white-bg">{items.ranking.win_total}</td>
-                                                <td className="white-bg">{items.ranking.lose_total}</td>
-                                                <td className="white-bg">{items.ranking.draw_total}</td>
-                                                <td className="white-bg">{items.ranking.win_rate}%</td>
-                                            </tr>
-                                        ))
-                                    ) : ("")
-                                }
-                                {/* Total Income */}
-                                <tr>
-                                    <td colSpan="4" className="text-center font-weight-bold rgba-teal-strong white-text">
-                                        <span>{CONSTANTS.MESSAGE.TOTALINCOME}: &#8369; </span>
-                                        {
-                                            Object.keys(this.state.modalPlayerDetails).length > 0 && this.state.modalPlayerDetails[0].details.totalIncome !== undefined ? (
-                                                <React.Fragment>
-                                                    {(this.state.modalPlayerDetails[0].details.totalIncome).toLocaleString()}
-                                                </React.Fragment>
-                                            ) : ("0")
-                                        }
-                                    </td>
-                                </tr>
-                                <tr className="text-center">
-                                    <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.DATE}</td>
-                                    <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.SLP}</td>
-                                    <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.SLP_PRICE}</td>
-                                    <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.EARNING}</td>
-                                </tr>
-                                {
-                                    Object.keys(this.state.modalPlayerDetails).length > 0 ? (
-                                        this.state.modalPlayerDetails[0].details.withdrawEarning !== undefined && 
-                                        Object.keys(this.state.modalPlayerDetails[0].details.withdrawEarning).length > 0 ? (
-                                            (this.state.modalPlayerDetails[0].details.withdrawEarning).sort((a, b) => moment(b.date).unix() - moment(a.date).unix()).map(items => (
-                                                <tr key={items.date} className="text-center">
-                                                    <td>{<Moment format="MMM DD, YYYY">{items.date}</Moment>}</td>
-                                                    <td>{items.slp}</td>
-                                                    <td className="text-uppercase">{items.slpPrice}</td>
-                                                    <td>{(items.earning).toLocaleString()}</td>
-                                                </tr>
-                                            ))
-                                        ) : ("")
-                                    ) : ("")
-                                }
-                            </MDBTableBody>
-                        </MDBTable>
                     </MDBModalBody>
                 </MDBModal>
             </React.Fragment>

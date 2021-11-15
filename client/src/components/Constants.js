@@ -134,7 +134,10 @@ const MESSAGE = {
     SLP_CURRENCY: "SLP Currency",
     EARNEDON: "Earned On",
     ADDNEW_ISKO: "Add New Scholar",
-    HASSPONSOR: "Has Sponsor?"
+    HASSPONSOR: "Has Sponsor?",
+    YESTERDAYSLP: "Yesterday SLP",
+    VIEW_GAINEDSLP_CHART: "View Gained SLP Chart",
+    VIEW_EARNINGS: "View Earnings"
 }
 
 export const CONSTANTS = {

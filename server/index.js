@@ -28,9 +28,11 @@ const pgConn = {
     ** TB_CLAIMED
     **** ID, ADDRESS, SHR_MANAGER, SHR_SCHOLAR, SHR_SPONSOR, SLPCURRENCY, WITHDRAW_ON
     ** TB_DAILYSLP
-    **** ID, ADDRESS, YESTERDAY, YESTERDAYRES, TODAY, TODATE, TIMESTAMP
+    **** ID, ADDRESS, YESTERDAY, YESTERDAYRES, TODAY, TODATE
     ** TB_MANAGEREARNED
     **** ID, SLPTOTAL, SLPCURRENCY, CATEGORY, EARNED_ON
+    ** TB_YESTERDAYSLP x This for creating chart for yesterday slp gained
+    **** ID, ADDRESS, YESTERDAY, DATE_ON
 */
 
 const CONSTANTS = {
@@ -43,6 +45,8 @@ const CONSTANTS = {
         END_INSERTQUERY: "INSERT QUERY END!",
         STARTED_UPDATEQUERY: "UPDATE QUERY Started!",
         END_UPDATEQUERY: "UPDATE QUERY END!",
+        STARTED_DELETEQUERY: "DELETE QUERY Started!",
+        END_DELETEQUERY: "DELETE QUERY END!",
         STARTEDPOST: "POST Started!",
         ENDPOST: "POST QUERY END!",
         INSERT: "Insert",
@@ -62,23 +66,28 @@ const CONSTANTS = {
             USERPROFILE: `SELECT * FROM public."TB_USERPROFILE"`,
             DAILYSLP: `SELECT * FROM public."DAILYSLP"`,
             WITHDRAW: `SELECT * FROM public."TB_WITHDRAW"`,
-            MANAGEREARNED: `SELECT * FROM public."TB_MANAGEREARNED"`
+            MANAGEREARNED: `SELECT * FROM public."TB_MANAGEREARNED"`,
+            YESTERDAYSLP: `SELECT * FROM public."TB_YESTERDAYSLP"`
         },
         INSERT: {
             USERPROFILE: `INSERT INTO public."TB_USERPROFILE"`,
             DAILYSLP: `INSERT INTO public."TB_DAILYSLP"`,
             WITHDRAW: `INSERT INTO public."TB_WITHDRAW"`,
-            MANAGEREARNED: `INSERT INTO public."TB_MANAGEREARNED"`
+            MANAGEREARNED: `INSERT INTO public."TB_MANAGEREARNED"`,
+            YESTERDAYSLP: `INSERT INTO public."TB_YESTERDAYSLP"`
         },
         UPDATE: {
             USERPROFILE: `UPDATE public."TB_USERPROFILE"`,
             DAILYSLP: `UPDATE public."TB_DAILYSLP"`
+        },
+        DELETE: {
+            YESTERDAYSLP: `DELETE FROM public."TB_YESTERDAYSLP"`
         }
     }
 }
 
 // Global console log
-const logger = (message, subMessage = "", addedMessage = "", isDevMode = true) => {
+const logger = (message, subMessage = "", addedMessage = "", isDevMode = false) => {
     if (!isDevMode) {
         return console.log(message, subMessage, addedMessage);
     }
@@ -129,25 +138,44 @@ app.get("/api/records", async (req, res) => {
                             managerEarned: []
                         });
                     } else {
-                        // Execute Query x TB_MANAGEREARNED
-                        const query = `${CONSTANTS.QUERY.SELECT.MANAGEREARNED}`;
-                        client.query(query, (err, dataManager) => {
+                        // Execute Query x TB_YESTERDAYSLP
+                        const query = `${CONSTANTS.QUERY.SELECT.YESTERDAYSLP}`;
+                        client.query(query, (err, dataYesterday) => {
                             logger(CONSTANTS.MESSAGE.END_SELECTQUERY);
-                            // End Connection
-                            client.end();
                             if (err) {
+                                // End Connection
+                                client.end();
                                 return res.type("application/json").status(200).send({
                                     error: false,
                                     data: result.rows,
                                     withdraw: dataWithdraw.rows,
+                                    yesterdaySLP: [],
                                     managerEarned: []
                                 });
                             } else {
-                                return res.type("application/json").status(200).send({
-                                    error: false,
-                                    data: result.rows,
-                                    withdraw: dataWithdraw.rows,
-                                    managerEarned: dataManager.rows
+                                // Execute Query x TB_MANAGEREARNED
+                                const query = `${CONSTANTS.QUERY.SELECT.MANAGEREARNED}`;
+                                client.query(query, (err, dataManager) => {
+                                    logger(CONSTANTS.MESSAGE.END_SELECTQUERY);
+                                    // End Connection
+                                    client.end();
+                                    if (err) {
+                                        return res.type("application/json").status(200).send({
+                                            error: false,
+                                            data: result.rows,
+                                            withdraw: dataWithdraw.rows,
+                                            yesterdaySLP: dataYesterday.rows,
+                                            managerEarned: []
+                                        });
+                                    } else {
+                                        return res.type("application/json").status(200).send({
+                                            error: false,
+                                            data: result.rows,
+                                            withdraw: dataWithdraw.rows,
+                                            yesterdaySLP: dataYesterday.rows,
+                                            managerEarned: dataManager.rows
+                                        });
+                                    }
                                 });
                             }
                         });
@@ -261,7 +289,7 @@ app.post("/api/dailySLP", async (req, res) => {
                 const client = new Client(pgConn);
                 client.connect();
 
-                // Execute Query
+                // Execute Query for Daily SLP
                 logger(CONSTANTS.MESSAGE.STARTED_UPDATEQUERY, items.ADDRESS);
                 let query = `${CONSTANTS.QUERY.UPDATE.DAILYSLP} SET "YESTERDAY" = '${items.YESTERDAY}', "YESTERDAYRES" = '${items.YESTERDAYRES}', "TODAY" = '${items.TODAY}', "TODATE" = '${items.TODATE}' WHERE "ADDRESS" = '${items.ADDRESS}'`;
                 if (!items.ALLFIELDS) { // False, only TODATE SLP will be updating
@@ -269,11 +297,37 @@ app.post("/api/dailySLP", async (req, res) => {
                 }
 
                 client.query(query, (error) => {
-                    // End Connection
-                    client.end();
                     logger(CONSTANTS.MESSAGE.END_UPDATEQUERY, items.ADDRESS);
                     if (error) {
+                        // End Connection
+                        client.end();
                         logger(CONSTANTS.MESSAGE.ERROR_PROCEDURE, error);
+                    } else {
+                        // Execute Query for update Yesterday SLP
+                        if (items.TBINSERTYESTERDAY) {
+                            const insertQuery = `${CONSTANTS.QUERY.INSERT.YESTERDAYSLP} ("ADDRESS", "YESTERDAY", "DATE_ON") VALUES ('${payload.ADDRESS}', '${items.YESTERDAYRES}', '${items.TODATE}')`;
+                            client.query(insertQuery, (error) => {
+                                logger(CONSTANTS.MESSAGE.END_INSERTQUERY, items.ADDRESS);
+                                // End Connection
+                                client.end();
+                                if (error) {
+                                    logger(CONSTANTS.MESSAGE.ERROR_PROCEDURE, error);
+                                }
+                            });
+                        }
+
+                        // Execute Query for delete Yesterday SLP
+                        if (items.TBDELETEYESTERDAY) {
+                            const deleteQuery = `${CONSTANTS.QUERY.DELETE.YESTERDAYSLP} WHERE "ADDRESS" = '${items.ADDRESS}'`;
+                            client.query(deleteQuery, (error) => {
+                                logger(CONSTANTS.MESSAGE.END_DELETEQUERY, items.ADDRESS);
+                                // End Connection
+                                client.end();
+                                if (error) {
+                                    logger(CONSTANTS.MESSAGE.ERROR_PROCEDURE, error);
+                                }
+                            });
+                        }
                     }
                 });
             });

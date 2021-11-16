@@ -305,7 +305,7 @@ app.post("/api/dailySLP", async (req, res) => {
                     } else {
                         if (items.TBINSERTYESTERDAY) {
                             // Execute Query for insert Yesterday SLP
-                            const insertQuery = `${CONSTANTS.QUERY.INSERT.YESTERDAYSLP} ("ADDRESS", "YESTERDAY", "DATE_ON") VALUES ('${payload.ADDRESS}', '${items.YESTERDAYRES}', '${items.TODATE}')`;
+                            const insertQuery = `${CONSTANTS.QUERY.INSERT.YESTERDAYSLP} ("ADDRESS", "YESTERDAY", "DATE_ON") VALUES ('${items.ADDRESS}', '${items.YESTERDAYRES}', '${items.TODATE}')`;
                             client.query(insertQuery, (error) => {
                                 logger(CONSTANTS.MESSAGE.END_INSERTQUERY, items.ADDRESS);
                                 // End Connection

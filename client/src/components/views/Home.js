@@ -1439,7 +1439,7 @@ class Home extends React.Component {
                                         TODAY: 0,
                                         TODATE: todayDate,
                                         ACTION: CONSTANTS.MESSAGE.UPDATE,
-                                        MESSAGE: "UPDATE from energy reset and was claimed",
+                                        MESSAGE: "UPDATE from energy reset and was claimed - true",
                                         UPDATEDON: todayDate,
                                         NAME: result.name,
                                         ALLFIELDS: true, // to be save, if all fields or not x if false, only TODAY
@@ -1475,7 +1475,7 @@ class Home extends React.Component {
                                 const timeChecker = moment(todayDate).format('HHmmss');
                                 if (!isSameTODate && Number(timeChecker) >= Number("080000")) { // isSameTODate must always false in this process to prevent to update in new data from game reset 8AM
                                     // This will be the process of updating the TODAY SLP, YESTERDAY SLP and TODATE into new value
-                                    if (Number(result.inGameSLP) === 0 || Number(result.claim_on_days) === 0) {
+                                    if (Number(result.inGameSLP) === 0 && Number(result.claim_on_days) === 0) {
                                         // Checker for already claimed SLP x this will be the process for reset into 0 the data
                                         const yesterdySLP = Number(result.inGameSLP) > 0 ? result.inGameSLP : 0;
                                         result.dailySLP = {
@@ -1485,7 +1485,7 @@ class Home extends React.Component {
                                             TODAY: 0,
                                             TODATE: todayDate,
                                             ACTION: CONSTANTS.MESSAGE.UPDATE,
-                                            MESSAGE: "UPDATE from energy reset and was claimed",
+                                            MESSAGE: "UPDATE from energy reset and was claimed - false",
                                             UPDATEDON: todayDate,
                                             NAME: result.name,
                                             ALLFIELDS: true, // to be save, if all fields or not x if false, only TODAY

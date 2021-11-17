@@ -1441,6 +1441,7 @@ class Home extends React.Component {
                                         ACTION: CONSTANTS.MESSAGE.UPDATE,
                                         MESSAGE: "UPDATE from energy reset and was claimed",
                                         UPDATEDON: todayDate,
+                                        NAME: result.name,
                                         ALLFIELDS: true, // to be save, if all fields or not x if false, only TODAY
                                         TBDELETEYESTERDAY: true // delete the yesterday slp table x need to reset the data due to claimed slp
                                     };
@@ -1457,6 +1458,7 @@ class Home extends React.Component {
                                             ACTION: CONSTANTS.MESSAGE.UPDATE,
                                             MESSAGE: "UPDATE from isSameTODate true",
                                             UPDATEDON: todayDate,
+                                            NAME: result.name,
                                             ALLFIELDS: false // to be save, if all fields or not x if false, only TODAY
                                         };
                                     } else {
@@ -1485,6 +1487,7 @@ class Home extends React.Component {
                                             ACTION: CONSTANTS.MESSAGE.UPDATE,
                                             MESSAGE: "UPDATE from energy reset and was claimed",
                                             UPDATEDON: todayDate,
+                                            NAME: result.name,
                                             ALLFIELDS: true, // to be save, if all fields or not x if false, only TODAY
                                             TBDELETEYESTERDAY: true // delete the yesterday slp table x need to reset the data due to claimed slp
                                         };
@@ -1503,6 +1506,7 @@ class Home extends React.Component {
                                             ACTION: CONSTANTS.MESSAGE.UPDATE,
                                             MESSAGE: "UPDATE from energy reset",
                                             UPDATEDON: todayDate,
+                                            NAME: result.name,
                                             ALLFIELDS: true, // to be save, if all fields or not x if false, only TODAY
                                             TBINSERTYESTERDAY: true // insert the yesterday slp table for display in chart x get the yesterdayres property value
                                         };
@@ -1521,6 +1525,7 @@ class Home extends React.Component {
                                             ACTION: CONSTANTS.MESSAGE.UPDATE,
                                             MESSAGE: "UPDATE from isSameTODate false",
                                             UPDATEDON: todayDate,
+                                            NAME: result.name,
                                             ALLFIELDS: false // to be save, if all fields or not x if false, only TODAY
                                         };
                                     } else {

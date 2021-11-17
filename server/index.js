@@ -88,7 +88,7 @@ const CONSTANTS = {
 
 // Global console log
 const logger = (message, subMessage = "", addedMessage = "", isDevMode = false) => {
-    if (!isDevMode) {
+    if (isDevMode) {
         return console.log(message, subMessage, addedMessage);
     }
 }

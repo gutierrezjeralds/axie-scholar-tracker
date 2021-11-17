@@ -32,14 +32,16 @@ class Login extends React.Component {
             } else {
                 // Get Record Data from table / json
                 $.ajax({
-                    url: "../assets/json/eth-address.json",
-                    dataType: "json",
-                    cache: false
+                    url: "/api/records",
+                    type: "GET",
+                    contentType: 'application/json',
+                    cache: false,
                 })
                 .then(
                     (result) => {
-                        const validUser = result.find(valid => valid.email.toLowerCase() === user.toLowerCase() || valid.name.toLowerCase() === user.toLocaleLowerCase());
-                        const validSponsor = result.find(valid => valid.sponsorName.toLowerCase() === user.toLowerCase());
+                        const dataRecords = result.data;
+                        const validUser = dataRecords.find(valid => valid.email.toLowerCase() === user.toLowerCase() || valid.name.toLowerCase() === user.toLocaleLowerCase());
+                        const validSponsor = dataRecords.find(valid => valid.sponsorName.toLowerCase() === user.toLowerCase());
                         if (validUser && validUser !== undefined && Object.keys(validUser).length > 0) {
                             // Display detail based on credential
                             Cookies.set("filter", user)

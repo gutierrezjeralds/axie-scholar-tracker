@@ -32,7 +32,7 @@ class Login extends React.Component {
             } else {
                 // Get Record Data from table / json
                 $.ajax({
-                    url: "/api/records",
+                    url: "/api/userProfile",
                     type: "GET",
                     contentType: 'application/json',
                     cache: false,

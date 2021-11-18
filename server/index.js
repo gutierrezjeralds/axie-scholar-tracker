@@ -103,6 +103,41 @@ app.get("/api", (req, res) => {
 //     res.sendFile(path.resolve(__dirname, '../client/build', 'index.html'));
 // });
 
+// GET Method x Fetch User Profile x TB_USERPROFILE
+app.get("/api/userProfile", async (req, res) => {
+    try {
+        logger(CONSTANTS.MESSAGE.STARTED_SELECTQUERY);
+
+        // Conect to postgres
+        const client = new Client(pgConn);
+        client.connect();
+
+        // Execute Query x JOIN table
+        const query = `${CONSTANTS.QUERY.SELECT.USERPROFILE}`;
+        client.query(query, (error, result) => {
+            logger(CONSTANTS.MESSAGE.END_SELECTQUERY);
+            // End Connection
+            client.end();
+            if (error) {
+                return res.type("application/json").status(500).send({
+                    error: true,
+                    data: error
+                });
+            } else {
+                return res.type("application/json").status(200).send({
+                    error: false,
+                    data: result.rows
+                });
+            }
+        });
+    } catch (err) {
+        return res.type("application/json").status(500).send({
+            error: true,
+            data: err
+        });
+    }
+})
+
 // GET Method x Fetch records x TB_USERPROFILE + TB_WITHDRAW + TB_DAILYSLP
 app.get("/api/records", async (req, res) => {
     try {

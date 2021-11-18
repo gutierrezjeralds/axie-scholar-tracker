@@ -9,12 +9,18 @@ import {
     MDBTabPane, MDBTabContent, MDBNav, MDBNavItem
 } from "mdbreact";
 import Moment from 'react-moment';
-import moment from 'moment';
+// import moment from 'moment';
+import moment from 'moment-timezone';
 import Cookies from 'js-cookie'
 import emailjs from 'emailjs-com';
 import Lightbox from 'react-image-lightbox';
 import CanvasJSReact from '../assets/js/canvasjs.react';
 // import { ExportCSV } from './ExportCSV';
+
+// const moment = require('moment-timezone');
+const momentToday = moment().tz('Asia/Manila');
+console.log("Default", moment().format("YYYY-MM-DD HH:mm:ss"))
+console.log("Timezone", momentToday.format("YYYY-MM-DD HH:mm:ss"))
 
 const guildImages = [
     '/assets/images/guides/buff_debuff.jpg',
@@ -528,7 +534,7 @@ class Home extends React.Component {
         const shrScholar = event.target.SHR_SCHOLAR.value ? event.target.SHR_SCHOLAR.value : "0";
         const shrSponsor = event.target.SHR_SPONSOR ? event.target.SHR_SPONSOR.value ? event.target.SHR_SPONSOR.value : "0" : "0";
         const shareTotal = Number(shrManager) + Number(shrScholar) + Number(shrSponsor);
-        const dateToday = moment().format("YYYY-MM-DD HH:mm:ss");
+        const dateToday = momentToday.format("YYYY-MM-DD HH:mm:ss");
         if (shareTotal === 100) {
             const sponsorName = Number(shrManager) + Number(shrScholar) === 100 ? "" : event.target.SPONSOR_NAME ? event.target.SPONSOR_NAME.value ? event.target.SPONSOR_NAME.value : "" : "";
             // Continue with the process
@@ -656,7 +662,7 @@ class Home extends React.Component {
         const shrScholar = event.target.SHR_SCHOLAR.value ? event.target.SHR_SCHOLAR.value : "0";
         const shrSponsor = event.target.SHR_SPONSOR.value ? event.target.SHR_SPONSOR.value : "0";
         const slpCurrency = Number(event.target.SLPCURRENCY.value) && Number(event.target.SLPCURRENCY.value) !== 0 ? event.target.SLPCURRENCY.value : this.state.slpCurrentValue;
-        const withdrawOn = event.target.WITHDRAW_ON.value ? moment(event.target.WITHDRAW_ON.value).format("YYYY-MM-DD HH:mm:ss") : moment().format("YYYY-MM-DD HH:mm:ss");
+        const withdrawOn = event.target.WITHDRAW_ON.value ? moment(event.target.WITHDRAW_ON.value).format("YYYY-MM-DD HH:mm:ss") : momentToday.format("YYYY-MM-DD HH:mm:ss");
         if ((Number(shrManager) > 0 || Number(shrScholar) > 0 || Number(shrSponsor) > 0) && roninAddress) {
             // Continue with the process
             const datas = {
@@ -741,7 +747,7 @@ class Home extends React.Component {
         const slpTotal = event.target.SLPTOTAL.value ? event.target.SLPTOTAL.value : "0";
         const slpCurrency = Number(event.target.SLPCURRENCY.value) && Number(event.target.SLPCURRENCY.value) !== 0 ? event.target.SLPCURRENCY.value : this.state.slpCurrentValue;
         const category = $(".managerEarn-inputHolder").find("select option:selected").text();
-        const earnedOn = event.target.EARNED_ON.value ? moment(event.target.EARNED_ON.value).format("YYYY-MM-DD HH:mm:ss") : moment().format("YYYY-MM-DD HH:mm:ss");
+        const earnedOn = event.target.EARNED_ON.value ? moment(event.target.EARNED_ON.value).format("YYYY-MM-DD HH:mm:ss") : momentToday.format("YYYY-MM-DD HH:mm:ss");
         if (Number(slpTotal) > 0 && Number(slpCurrency) > 0 && category) {
             // Continue with the process
             const datas = {
@@ -1091,20 +1097,48 @@ class Home extends React.Component {
                             ranking.win_rate = 0;
                             ranking.textStyle = "";
                             ranking.eloStatus = "";
+                            ranking.slpReward = 0;
                         } else {
                             // Adding text color of MMR based on MMR level
                             if (ranking.elo < 1300 && ranking.elo >= 1100) {
                                 // Estimated SLP gain on this MRR (6SLP) x Set as warning need to up
                                 ranking.textStyle = "orange-text";
                                 ranking.eloStatus = "warning";
-                            } else if (ranking.elo < 1099) {
+                                ranking.slpReward = 6;
+                            } else if (ranking.elo < 1200) {
                                 // Estimated SLP gain on this MRR (3SLP, 1SLP or NOSLP) x Set as warning need to up
                                 ranking.textStyle = "red-text font-weight-bold";
                                 ranking.eloStatus = "danger";
+                                if (ranking.elo < 800 && ranking.elo > 1000) {
+                                    // 1000 - 800 x 1 SLP
+                                    ranking.slpReward = 1;
+                                } else if (ranking.elo >= 800) {
+                                    // 800 below x 0 SLP
+                                    ranking.slpReward = 0;
+                                } else {
+                                    // 1200 - 1000 x 3 SLP
+                                    ranking.slpReward = 3;
+                                }
                             } else {
                                 // Great MMR x Can earn more SLP
                                 ranking.textStyle = "green-text";
                                 ranking.eloStatus = "success";
+                                if (ranking.elo >= 1300 && ranking.elo < 1500) {
+                                    // 1300 - 1499 x 9 SLP
+                                    ranking.slpReward = 9;
+                                } else if (ranking.elo >= 1500 && ranking.elo < 1800) {
+                                    // 1500 - 1799 x 12 SLP
+                                    ranking.slpReward = 12;
+                                } else if (ranking.elo >= 1800 && ranking.elo < 2000) {
+                                    // 1800 - 1999 x 15 SLP
+                                    ranking.slpReward = 15;
+                                } else if (ranking.elo >= 2000 && ranking.elo < 2200) {
+                                    // 2000 - 2199 x 18 SLP
+                                    ranking.slpReward = 18;
+                                } else if (ranking.elo >= 2200) {
+                                    // 2000 up x 21 SLP x can be gained more SLP
+                                    ranking.slpReward = 21;
+                                }
                             }
                         }
 
@@ -1424,7 +1458,7 @@ class Home extends React.Component {
                             }
                             // Check if the data from fetch is same date as date today
                             const toDate = moment(details.TODATE).format('YYYY-MM-DD HH:mm:ss');
-                            const todayDate = moment().format('YYYY-MM-DD HH:mm:ss');
+                            const todayDate = momentToday.format('YYYY-MM-DD HH:mm:ss');
                             const isSameTODate = moment(toDate).isSame(todayDate, 'date');
                             if (isSameTODate) {
                                 // Same date from tb TODATE and CURRENT DATE
@@ -1492,24 +1526,72 @@ class Home extends React.Component {
                                             TBDELETEYESTERDAY: true // delete the yesterday slp table x need to reset the data due to claimed slp
                                         };
                                     } else {
-                                        // Get YESTERDAY SLP base on YESTERDAY and TODAY SLP
-                                        const yesterdySLP = Number(details.YESTERDAY) + Number(details.TODAY);
-                                        // Get TODAY SLP base on InGameSLP and YESTERDAY SLP
-                                        const todaysSLP = Number(result.inGameSLP) - Number(yesterdySLP);
-                                        // Update daily slp with new date
-                                        result.dailySLP = {
-                                            ADDRESS: details.ADDRESS,
-                                            YESTERDAY: yesterdySLP,
-                                            YESTERDAYRES: details.TODAY,
-                                            TODAY: todaysSLP,
-                                            TODATE: todayDate,
-                                            ACTION: CONSTANTS.MESSAGE.UPDATE,
-                                            MESSAGE: "UPDATE from energy reset",
-                                            UPDATEDON: todayDate,
-                                            NAME: result.name,
-                                            ALLFIELDS: true, // to be save, if all fields or not x if false, only TODAY
-                                            TBINSERTYESTERDAY: true // insert the yesterday slp table for display in chart x get the yesterdayres property value
-                                        };
+                                        // Update YESTERDAY and TODAY SLP with TODATE by battle logs
+                                        if(battleLogs !== undefined  && battleLogs.error === undefined) {
+                                            if (Number(battleLogs.win_total) > 0) {
+                                                // Update YESTERDAY and TODAY SLP with TODATE by battle logs
+                                                // Multiple the gained slp reward based on MMR in win total
+                                                // Add the total gained slp reward based from win total in YESTERDAYSLP
+                                                // Minus the total gained slp reward based from win total in inGameSLP x TODAYSLP
+                                                const gainedSLPReward = Number(ranking.slpReward) * Number(battleLogs.win_total);
+                                                const yesterdySLP = Number(details.YESTERDAY) + Number(details.TODAY) + Number(gainedSLPReward);
+                                                const todaysSLP = (Number(result.inGameSLP) - Number(gainedSLPReward)) - Number(yesterdySLP);
+                                                // Update daily slp with new date
+                                                result.dailySLP = {
+                                                    ADDRESS: details.ADDRESS,
+                                                    YESTERDAY: yesterdySLP,
+                                                    YESTERDAYRES: details.TODAY,
+                                                    TODAY: todaysSLP,
+                                                    TODATE: todayDate,
+                                                    ACTION: CONSTANTS.MESSAGE.UPDATE,
+                                                    MESSAGE: "UPDATE from energy reset - with battle logs - has already start the game",
+                                                    UPDATEDON: todayDate,
+                                                    NAME: result.name,
+                                                    ALLFIELDS: true, // to be save, if all fields or not x if false, only TODAY
+                                                    TBINSERTYESTERDAY: true // insert the yesterday slp table for display in chart x get the yesterdayres property value
+                                                };
+                                            } else {
+                                                // Default process for updating YESTERDAY and TODAY SLP with TODATE
+                                                // Get YESTERDAY SLP base on YESTERDAY and TODAY SLP
+                                                const yesterdySLP = Number(details.YESTERDAY) + Number(details.TODAY);
+                                                // Get TODAY SLP base on InGameSLP and YESTERDAY SLP
+                                                const todaysSLP = Number(result.inGameSLP) - Number(yesterdySLP);
+                                                // Update daily slp with new date
+                                                result.dailySLP = {
+                                                    ADDRESS: details.ADDRESS,
+                                                    YESTERDAY: yesterdySLP,
+                                                    YESTERDAYRES: details.TODAY,
+                                                    TODAY: todaysSLP,
+                                                    TODATE: todayDate,
+                                                    ACTION: CONSTANTS.MESSAGE.UPDATE,
+                                                    MESSAGE: "UPDATE from energy reset - with battle logs",
+                                                    UPDATEDON: todayDate,
+                                                    NAME: result.name,
+                                                    ALLFIELDS: true, // to be save, if all fields or not x if false, only TODAY
+                                                    TBINSERTYESTERDAY: true // insert the yesterday slp table for display in chart x get the yesterdayres property value
+                                                };
+                                            }
+                                        } else {
+                                            // Default process for updating YESTERDAY and TODAY SLP with TODATE
+                                            // Get YESTERDAY SLP base on YESTERDAY and TODAY SLP
+                                            const yesterdySLP = Number(details.YESTERDAY) + Number(details.TODAY);
+                                            // Get TODAY SLP base on InGameSLP and YESTERDAY SLP
+                                            const todaysSLP = Number(result.inGameSLP) - Number(yesterdySLP);
+                                            // Update daily slp with new date
+                                            result.dailySLP = {
+                                                ADDRESS: details.ADDRESS,
+                                                YESTERDAY: yesterdySLP,
+                                                YESTERDAYRES: details.TODAY,
+                                                TODAY: todaysSLP,
+                                                TODATE: todayDate,
+                                                ACTION: CONSTANTS.MESSAGE.UPDATE,
+                                                MESSAGE: "UPDATE from energy reset",
+                                                UPDATEDON: todayDate,
+                                                NAME: result.name,
+                                                ALLFIELDS: true, // to be save, if all fields or not x if false, only TODAY
+                                                TBINSERTYESTERDAY: true // insert the yesterday slp table for display in chart x get the yesterdayres property value
+                                            };
+                                        }
                                     }
                                 } else {
                                     // This will be the process of updating TODAY SLP only x not yet pass/overlap the 8AM reset

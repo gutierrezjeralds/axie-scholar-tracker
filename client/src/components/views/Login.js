@@ -16,7 +16,8 @@ class Login extends React.Component {
             isNotif: false,
             notifCat: "default",
             notifStr: "",
-            isValidUser: 0
+            isValidUser: 0,
+            errorMsg: CONSTANTS.MESSAGE.UNEXPECTED_ERROR
         }
     }
 
@@ -55,7 +56,8 @@ class Login extends React.Component {
                                 window.location.reload();
                             } else {
                                 this.setState({
-                                    isValidUser: false
+                                    isValidUser: false,
+                                    errorMsg: CONSTANTS.MESSAGE.INVALID_CREDENTIAL
                                 })
                             }
                         }
@@ -69,7 +71,9 @@ class Login extends React.Component {
                             isNotif: true,
                             notifCat: "error",
                             notifStr: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
-                            error: true
+                            error: true,
+                            isValidUser: false,
+                            errorMsg: CONSTANTS.MESSAGE.UNEXPECTED_ERROR
                         })
                             
                         console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, error)
@@ -82,7 +86,9 @@ class Login extends React.Component {
                             isNotif: true,
                             notifCat: "error",
                             notifStr: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
-                            error: true
+                            error: true,
+                            isValidUser: false,
+                            errorMsg: CONSTANTS.MESSAGE.UNEXPECTED_ERROR
                         })
                             
                         console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
@@ -120,7 +126,7 @@ class Login extends React.Component {
                                                     group type="text"
                                                     className={this.state.isValidUser === 0 ? "" : this.state.isValidUser ? "form-control is-valid" : "form-control is-invalid"}
                                                 />
-                                                <MDBBox tag="div" className={this.state.isValidUser === 0 ? "d-none" : this.state.isValidUser ? "d-none" : "invalid-feedback mt-1rem-neg mb-2 d-block"}>{CONSTANTS.MESSAGE.INVALID_CREDENTIAL}</MDBBox>
+                                                <MDBBox tag="div" className={this.state.isValidUser === 0 ? "d-none" : this.state.isValidUser ? "d-none" : "invalid-feedback mt-1rem-neg mb-2 d-block"}>{this.state.errorMsg}</MDBBox>
                                             </MDBBox>
                                             <MDBBox tag="div" className="text-center">
                                                 <button className="btn btn-default waves-effect waves-light">{CONSTANTS.MESSAGE.LOGIN}</button>

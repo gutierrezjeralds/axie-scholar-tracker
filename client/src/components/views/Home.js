@@ -9,7 +9,7 @@ import {
     MDBTabPane, MDBTabContent, MDBNav, MDBNavItem
 } from "mdbreact";
 import Moment from 'react-moment';
-// import moment from 'moment';
+import moments from 'moment';
 import moment from 'moment-timezone';
 import Cookies from 'js-cookie'
 import emailjs from 'emailjs-com';
@@ -19,7 +19,7 @@ import CanvasJSReact from '../assets/js/canvasjs.react';
 
 // const moment = require('moment-timezone');
 const momentToday = moment().tz('Asia/Manila');
-console.log("Default", moment().format("YYYY-MM-DD HH:mm:ss"))
+console.log("Default", moments().format("YYYY-MM-DD HH:mm:ss"))
 console.log("Timezone", momentToday.format("YYYY-MM-DD HH:mm:ss"))
 
 const guildImages = [
@@ -858,7 +858,7 @@ class Home extends React.Component {
                 const dataWithdraw = response.withdraw;
                 const dataManagerEarned = response.managerEarned;
                 const dataYesterdaySLP = response.yesterdaySLP;
-                console.log("result", response)
+                console.log("getRecord", response)
                 if (dataRecords.length > 0) {
                     // Fetch player details in api of sky mavis
                     const dataResultPromise = dataRecords.map(async (item) => {
@@ -1459,6 +1459,7 @@ class Home extends React.Component {
                             // Check if the data from fetch is same date as date today
                             const toDate = moment(details.TODATE).format('YYYY-MM-DD HH:mm:ss');
                             const todayDate = momentToday.format('YYYY-MM-DD HH:mm:ss');
+                            const yesterdayDate = moment().tz('Asia/Manila').subtract(1, "days").format('YYYY-MM-DD HH:mm:ss');
                             const isSameTODate = moment(toDate).isSame(todayDate, 'date');
                             if (isSameTODate) {
                                 // Same date from tb TODATE and CURRENT DATE
@@ -1470,6 +1471,7 @@ class Home extends React.Component {
                                         ADDRESS: details.ADDRESS,
                                         YESTERDAY: yesterdySLP,
                                         YESTERDAYRES: 0,
+                                        YESTERDAYDATE: yesterdayDate,
                                         TODAY: 0,
                                         TODATE: todayDate,
                                         ACTION: CONSTANTS.MESSAGE.UPDATE,
@@ -1487,6 +1489,7 @@ class Home extends React.Component {
                                             ADDRESS: details.ADDRESS,
                                             YESTERDAY: details.YESTERDAY,
                                             YESTERDAYRES: details.YESTERDAYRES,
+                                            YESTERDAYDATE: yesterdayDate,
                                             TODAY: todaySLP,
                                             TODATE: toDate,
                                             ACTION: CONSTANTS.MESSAGE.UPDATE,
@@ -1516,6 +1519,7 @@ class Home extends React.Component {
                                             ADDRESS: details.ADDRESS,
                                             YESTERDAY: yesterdySLP,
                                             YESTERDAYRES: 0,
+                                            YESTERDAYDATE: yesterdayDate,
                                             TODAY: 0,
                                             TODATE: todayDate,
                                             ACTION: CONSTANTS.MESSAGE.UPDATE,
@@ -1535,12 +1539,14 @@ class Home extends React.Component {
                                                 // Minus the total gained slp reward based from win total in inGameSLP x TODAYSLP
                                                 const gainedSLPReward = Number(ranking.slpReward) * Number(battleLogs.win_total);
                                                 const yesterdySLP = Number(details.YESTERDAY) + Number(details.TODAY) + Number(gainedSLPReward);
+                                                const yesterdyResSLP = Number(details.TODAY) + Number(gainedSLPReward);
                                                 const todaysSLP = (Number(result.inGameSLP) - Number(gainedSLPReward)) - Number(yesterdySLP);
                                                 // Update daily slp with new date
                                                 result.dailySLP = {
                                                     ADDRESS: details.ADDRESS,
                                                     YESTERDAY: yesterdySLP,
-                                                    YESTERDAYRES: details.TODAY,
+                                                    YESTERDAYRES: yesterdyResSLP,
+                                                    YESTERDAYDATE: yesterdayDate,
                                                     TODAY: todaysSLP,
                                                     TODATE: todayDate,
                                                     ACTION: CONSTANTS.MESSAGE.UPDATE,
@@ -1561,6 +1567,7 @@ class Home extends React.Component {
                                                     ADDRESS: details.ADDRESS,
                                                     YESTERDAY: yesterdySLP,
                                                     YESTERDAYRES: details.TODAY,
+                                                    YESTERDAYDATE: yesterdayDate,
                                                     TODAY: todaysSLP,
                                                     TODATE: todayDate,
                                                     ACTION: CONSTANTS.MESSAGE.UPDATE,
@@ -1582,6 +1589,7 @@ class Home extends React.Component {
                                                 ADDRESS: details.ADDRESS,
                                                 YESTERDAY: yesterdySLP,
                                                 YESTERDAYRES: details.TODAY,
+                                                YESTERDAYDATE: yesterdayDate,
                                                 TODAY: todaysSLP,
                                                 TODATE: todayDate,
                                                 ACTION: CONSTANTS.MESSAGE.UPDATE,
@@ -1602,6 +1610,7 @@ class Home extends React.Component {
                                             ADDRESS: details.ADDRESS,
                                             YESTERDAY: details.YESTERDAY,
                                             YESTERDAYRES: details.YESTERDAYRES,
+                                            YESTERDAYDATE: yesterdayDate,
                                             TODAY: todaySLP,
                                             TODATE: toDate,
                                             ACTION: CONSTANTS.MESSAGE.UPDATE,

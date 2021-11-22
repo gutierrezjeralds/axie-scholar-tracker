@@ -46,6 +46,7 @@ class Home extends React.Component {
             notifStr: "",
             isUser: this.props.user || "",
             isSponsorName: "",
+            daysClaimable: 14, // Default day set for allow slp claim
             managerPHPInvestment: 365000, // Estimated Investment
             managerPHPROI: 0,
             managerPHPBreed: 0,
@@ -870,6 +871,33 @@ class Home extends React.Component {
             }
         )
     }
+
+    // Delete data in TB_YESTERDAYSLP
+    deleteYesterdaySLPAPI = async (datas) => {
+        // Run api
+        $.ajax({
+            url: "/api/deleteYesterdaySLP",
+            type: "POST",
+            data: JSON.stringify(datas),
+            contentType: 'application/json',
+            cache: false,
+        }).then(
+            async (result) => {
+                console.log("deleteYesterdaySLPAPI", result)
+            },
+            // Note: it's important to handle errors here
+            // instead of a catch() block so that we don't swallow
+            // exceptions from actual bugs in components.
+            (error) => {
+                console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, error)
+            }
+        )
+        .catch(
+            (err) => {
+                console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
+            }
+        )
+    }
     
     // Fetch Player Record Data
     getRecord = () => {
@@ -917,6 +945,7 @@ class Home extends React.Component {
                         let disExportData = []; // Data to be exported
                         let daialySLPData = [] // Data to be pass in DailySLP API
                         let slpClaimedData = [] // Data to be pass in SLP CLaimed
+                        let delYesterdaySLPData = [] // Data to be pass in deletion of yesterday slp
 
                         const dataResult = results.filter(item => !item.error && item.data !== undefined && item.eth !== undefined); // Filter valid data
                         if (dataResult && dataResult.length > 0) {
@@ -964,8 +993,13 @@ class Home extends React.Component {
                                 }
 
                                 // Data for SLP Claimed
-                                if (data.isSLPClaimed) {
-                                    slpClaimedData.push(data.isSlpCLaimedData)
+                                if (dataItem.isSLPClaimed) {
+                                    slpClaimedData.push(dataItem.isSlpCLaimedData);
+                                }
+
+                                // Data for deletion of Yesterday Data
+                                if (dataItem.delYDASLPData) {
+                                    delYesterdaySLPData.push(dataItem.delYDASLPData);
                                 }
     
                                 // Return
@@ -1016,6 +1050,11 @@ class Home extends React.Component {
                             // Run SLP Claimed update
                             if (slpClaimedData.length > 0) {
                                 this.updateSLPClaimedAPI(slpClaimedData);
+                            }
+
+                            // Run deletion of yesterday slp
+                            if (delYesterdaySLPData.length > 0) {
+                                this.deleteYesterdaySLPAPI(delYesterdaySLPData);
                             }
     
                             // Return data x Set state
@@ -1260,7 +1299,7 @@ class Home extends React.Component {
                                     })
 
                                     // Set new Total Manager Claimable SLP
-                                    if (Number(result.claim_on_days) >= 14) {
+                                    if (Number(result.claim_on_days) >= this.state.daysClaimable) {
                                         this.setState({
                                             totalManagerClaimableSLP: this.state.totalManagerClaimableSLP + result.sharedManagerSLP + roninBalance
                                         })
@@ -1278,7 +1317,7 @@ class Home extends React.Component {
                                     }
                                     
                                     // Set new Total Manager Claimable SLP
-                                    if (Number(result.claim_on_days) >= 14) {
+                                    if (Number(result.claim_on_days) >= this.state.daysClaimable) {
                                         this.setState({
                                             totalManagerClaimableSLP: this.state.totalManagerClaimableSLP + result.sharedManagerSLP
                                         })
@@ -1454,6 +1493,7 @@ class Home extends React.Component {
                             }
 
                             // Generate canvas chart option/data
+                            result.deleteYesterdaySLP = false;
                             details.yesterdaySLPChart = false;
                             if (dataYesterdaySLP !== undefined  && dataYesterdaySLP.length > 0) {
                                 // Get the specific data of Yesrterday SLP by Ronin Address
@@ -1482,6 +1522,19 @@ class Home extends React.Component {
                                             dataPoints: datas
                                         }]
                                     }
+                                }
+
+                                // Generate DELETE YESTERDAY Object if the data is more than in set days, must be the data in database is daysClaimable length per player
+                                if (dataYesterdaySLPSet.length > this.state.daysClaimable) {
+                                    // Create object to remove the first row or first date in data
+                                    dataYesterdaySLPSet.sort((a, b) =>  moment(a.date).unix() - moment(b.date).unix() ).map((yesterdayItem, index) => {
+                                        if (index === 0) {
+                                            result.deleteYesterdaySLP = {
+                                                ADDRESS: details.ADDRESS,
+                                                ID: yesterdayItem.ID
+                                            }
+                                        }
+                                    });
                                 }
                             }
 
@@ -1665,12 +1718,6 @@ class Home extends React.Component {
                                     }
                                 }
                             }
-                            
-                            // DELETE YESTERDAY SLP if the claim day is 1
-                            if (Number(result.claim_on_days) === 1) {
-                                result.dailySLP.TBDELETEYESTERDAY = true; // delete the yesterday slp table x need to reset the data due to claimed slp
-                                result.dailySLP.TBINSERTYESTERDAY = false; // insert the yesterday slp table for display in chart x get the yesterdayres property value
-                            }
                         } catch (err) {
                             // Has error in generate daily slp x used default data for display in table
                             playerDataDailySLPwillSave = false;
@@ -1700,7 +1747,7 @@ class Home extends React.Component {
                             roninSLP: <MDBBox data-th={CONSTANTS.MESSAGE.RONIN_SLP} tag="span">{this.numberWithCommas(roninBalance)} <MDBBox tag="span" className="d-inline d-md-block d-lg-block red-text">{result.managerRoninClaimed ? "(" + this.numberWithCommas(result.details.managerDebtClaimed) + ")" : ""}</MDBBox></MDBBox>,
                             totalScholarEarningSLP: <MDBBox data-th={CONSTANTS.MESSAGE.TOTAL_SLP} tag="span">{this.numberWithCommas(result.totalScholarEarningSLP)}</MDBBox>,
                             totalScholarEarningPHP: <MDBBox data-th={CONSTANTS.MESSAGE.EARNINGS_PHP} tag="span">{this.numberWithCommas((result.totalScholarEarningPHP).toFixed(2))}</MDBBox>,
-                            claimOn: <MDBBox data-th={CONSTANTS.MESSAGE.CLAIMON} tag="span" className="d-block">{moment.unix(result.last_claimed_item_at).add(14, "days").format("MMM DD, hh:mm A")} <MDBBox tag="span" className="d-block">{result.claim_on_days} {CONSTANTS.MESSAGE.DAYS}</MDBBox></MDBBox>,
+                            claimOn: <MDBBox data-th={CONSTANTS.MESSAGE.CLAIMON} tag="span" className="d-block">{moment.unix(result.last_claimed_item_at).add(this.state.daysClaimable, "days").format("MMM DD, hh:mm A")} <MDBBox tag="span" className="d-block">{result.claim_on_days} {CONSTANTS.MESSAGE.DAYS}</MDBBox></MDBBox>,
                             mmr: <MDBBox data-th={CONSTANTS.MESSAGE.MMR} tag="span" className={ranking.textStyle}>{this.numberWithCommas(ranking.elo)}</MDBBox>,
                             rank: <MDBBox data-th={CONSTANTS.MESSAGE.RANK} tag="span">{this.numberWithCommas(ranking.rank)}</MDBBox>,
                             mmrRank: <MDBBox data-th={CONSTANTS.MESSAGE.MMR} tag="span"><MDBBox tag="span" className={ranking.textStyle}>{this.numberWithCommas(ranking.elo)}</MDBBox> <MDBBox tag="span" className="d-inline d-md-block d-lg-block">{ranking.rank > 0 ? ("(" + this.numberWithCommas(ranking.rank) + ")") : ("")}</MDBBox></MDBBox>,
@@ -1721,11 +1768,23 @@ class Home extends React.Component {
                             ManagerSLP: result.sharedManagerSLP,
                             SponsorSLP: result.sharedSponsorSLP,
                             ScholarSLP: result.totalScholarEarningSLP,
-                            ClaimOn: moment.unix(result.last_claimed_item_at).add(14, "days").format("MMM DD, hh:mm A")
+                            ClaimOn: moment.unix(result.last_claimed_item_at).add(this.state.daysClaimable, "days").format("MMM DD, hh:mm A")
                         }
                         
                         // Success return
-                        return resolve({error: false, data: playerDataTableRes, slp: result.inGameSLP, rank: ranking.rank, eth: userEthAddress, export: playerDataTableExport, dailySLP: result.dailySLP, dailySLPwillSave: playerDataDailySLPwillSave, isSLPClaimed: isAlreadyClaimed, isSlpCLaimedData: result.slpClaimed});
+                        return resolve({
+                            error: false,
+                            data: playerDataTableRes,
+                            slp: result.inGameSLP,
+                            rank: ranking.rank,
+                            eth: userEthAddress,
+                            export: playerDataTableExport,
+                            dailySLP: result.dailySLP,
+                            dailySLPwillSave: playerDataDailySLPwillSave,
+                            isSLPClaimed: isAlreadyClaimed,
+                            isSlpCLaimedData: result.slpClaimed,
+                            delYDASLPData: result.deleteYesterdaySLP // Delete yesterday slp data
+                        });
                     } else {
                         return reject({error: true});
                     }

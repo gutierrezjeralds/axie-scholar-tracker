@@ -349,17 +349,6 @@ app.post("/api/dailySLP", async (req, res) => {
                                     logger(CONSTANTS.MESSAGE.ERROR_PROCEDURE, error);
                                 }
                             });
-                        } else if (items.TBDELETEYESTERDAY) {
-                            // Execute Query for delete Yesterday SLP
-                            const deleteQuery = `${CONSTANTS.QUERY.DELETE.YESTERDAYSLP} WHERE "ADDRESS" = '${items.ADDRESS}'`;
-                            client.query(deleteQuery, (error) => {
-                                logger(CONSTANTS.MESSAGE.END_DELETEQUERY, items.ADDRESS);
-                                // End Connection
-                                client.end();
-                                if (error) {
-                                    logger(CONSTANTS.MESSAGE.ERROR_PROCEDURE, error);
-                                }
-                            });
                         } else {
                             // End Connection
                             client.end();
@@ -412,13 +401,65 @@ app.post("/api/updateSLPClaimed", async (req, res) => {
                     logger(CONSTANTS.MESSAGE.END_UPDATEQUERY, items.ADDRESS);
                     // End Connection
                     client.end();
-                    logger(CONSTANTS.MESSAGE.ERROR_PROCEDURE, error);
+                    if (error) {
+                        logger(CONSTANTS.MESSAGE.ERROR_PROCEDURE, error);
+                    }
                 });
             });
 
             // Return
             return await Promise.all(upsertProcedure).then(function () {
                 logger(CONSTANTS.MESSAGE.END_UPDATEQUERY);
+                return res.type("application/json").status(200).send({
+                    error: false,
+                    data: payload
+                });
+            });
+        } else {
+            return res.type("application/json").status(400).send({
+                error: true,
+                data: CONSTANTS.MESSAGE.EMPTYPAYLOAD
+            });
+        }
+    } catch (err) {
+        return res.type("application/json").status(500).send({
+            error: true,
+            data: err
+        });
+    }
+});
+
+// POST Method x Deletion process of YESTERDAY SLP x Delete the old data
+app.post("/api/deleteYesterdaySLP", async (req, res) => {
+    try {
+        logger(CONSTANTS.MESSAGE.STARTED_DELETEQUERY);
+
+        // Body payload
+        const payload = req.body;
+
+        if (payload.length > 0) {
+            // Map the payload for multiple data
+            const upsertProcedure = payload.map((items) => {
+                // Conect to postgres
+                const client = new Client(pgConn);
+                client.connect();
+
+                // Execute Query for Daily SLP
+                logger(CONSTANTS.MESSAGE.STARTED_DELETEQUERY, items.ADDRESS);
+                query = `${CONSTANTS.QUERY.DELETE.YESTERDAYSLP} WHERE "ID" = '${items.ID}'`;
+                client.query(query, (error) => {
+                    logger(CONSTANTS.MESSAGE.END_DELETEQUERY, items.ADDRESS);
+                    // End Connection
+                    client.end();
+                    if (error) {
+                        logger(CONSTANTS.MESSAGE.ERROR_PROCEDURE, error);
+                    }
+                });
+            });
+
+            // Return
+            return await Promise.all(upsertProcedure).then(function () {
+                logger(CONSTANTS.MESSAGE.END_DELETEQUERY);
                 return res.type("application/json").status(200).send({
                     error: false,
                     data: payload

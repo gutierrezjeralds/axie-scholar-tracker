@@ -24,7 +24,7 @@ const pgConn = {
 /*
     Tables
     ** TB_USERPROFILE
-    **** ID, ADDRESS, NAME, EMAIL, SHR_MANAGER, SHR_SCHOLAR, SHR_SPONSOR, SPONSOR_NAME, STARTED_ON
+    **** ID, ADDRESS, NAME, EMAIL, SHR_MANAGER, SHR_SCHOLAR, SHR_SPONSOR, SPONSOR_NAME, STARTED_ON, SLP_CLAIMED
     ** TB_CLAIMED
     **** ID, ADDRESS, SHR_MANAGER, SHR_SCHOLAR, SHR_SPONSOR, SLPCURRENCY, WITHDRAW_ON
     ** TB_DAILYSLP
@@ -240,7 +240,7 @@ app.post("/api/addEditScholar", async (req, res) => {
 
         if (payload.ACTION === CONSTANTS.MESSAGE.INSERT) {
             // Execute Query x insert new team record
-            const query = `${CONSTANTS.QUERY.INSERT.USERPROFILE} ("ADDRESS", "NAME", "EMAIL", "SHR_MANAGER", "SHR_SCHOLAR", "SHR_SPONSOR", "SPONSOR_NAME", "STARTED_ON") VALUES ('${payload.ADDRESS}', '${payload.NAME}', '${payload.EMAIL}', '${payload.SHR_MANAGER}', '${payload.SHR_SCHOLAR}', '${payload.SHR_SPONSOR}', '${payload.SPONSOR_NAME}', '${payload.STARTED_ON}')`;
+            const query = `${CONSTANTS.QUERY.INSERT.USERPROFILE} ("ADDRESS", "NAME", "EMAIL", "SHR_MANAGER", "SHR_SCHOLAR", "SHR_SPONSOR", "SPONSOR_NAME", "STARTED_ON", "SLP_CLAIMED") VALUES ('${payload.ADDRESS}', '${payload.NAME}', '${payload.EMAIL}', '${payload.SHR_MANAGER}', '${payload.SHR_SCHOLAR}', '${payload.SHR_SPONSOR}', '${payload.SPONSOR_NAME}', '${payload.STARTED_ON}', '0')`;
             client.query(query, (error) => {
                 logger(CONSTANTS.MESSAGE.TEAMRECORD, CONSTANTS.MESSAGE.STARTED_INSERTQUERY);
                 if (error) {
@@ -365,6 +365,54 @@ app.post("/api/dailySLP", async (req, res) => {
                             client.end();
                         }
                     }
+                });
+            });
+
+            // Return
+            return await Promise.all(upsertProcedure).then(function () {
+                logger(CONSTANTS.MESSAGE.END_UPDATEQUERY);
+                return res.type("application/json").status(200).send({
+                    error: false,
+                    data: payload
+                });
+            });
+        } else {
+            return res.type("application/json").status(400).send({
+                error: true,
+                data: CONSTANTS.MESSAGE.EMPTYPAYLOAD
+            });
+        }
+    } catch (err) {
+        return res.type("application/json").status(500).send({
+            error: true,
+            data: err
+        });
+    }
+});
+
+// POST Method x Saving process of Update SLP Claimed in USER PROFILE Table
+app.post("/api/updateSLPClaimed", async (req, res) => {
+    try {
+        logger(CONSTANTS.MESSAGE.STARTED_INSERTQUERY);
+
+        // Body payload
+        const payload = req.body;
+
+        if (payload.length > 0) {
+            // Map the payload for multiple data
+            const upsertProcedure = payload.map((items) => {
+                // Conect to postgres
+                const client = new Client(pgConn);
+                client.connect();
+
+                // Execute Query for Daily SLP
+                logger(CONSTANTS.MESSAGE.STARTED_UPDATEQUERY, items.ADDRESS);
+                query = `${CONSTANTS.QUERY.UPDATE.USERPROFILE} SET "SLP_CLAIMED" = '${items.SLP_CLAIMED}' WHERE "ADDRESS" = '${items.ADDRESS}'`;
+                client.query(query, (error) => {
+                    logger(CONSTANTS.MESSAGE.END_UPDATEQUERY, items.ADDRESS);
+                    // End Connection
+                    client.end();
+                    logger(CONSTANTS.MESSAGE.ERROR_PROCEDURE, error);
                 });
             });
 

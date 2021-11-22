@@ -843,6 +843,33 @@ class Home extends React.Component {
             }
         )
     }
+
+    // Update SLP Claimed in USER_PROFILE Table
+    updateSLPClaimedAPI = async (datas) => {
+        // Run api
+        $.ajax({
+            url: "/api/updateSLPClaimed",
+            type: "POST",
+            data: JSON.stringify(datas),
+            contentType: 'application/json',
+            cache: false,
+        }).then(
+            async (result) => {
+                console.log("updateSLPClaimedAPI", result)
+            },
+            // Note: it's important to handle errors here
+            // instead of a catch() block so that we don't swallow
+            // exceptions from actual bugs in components.
+            (error) => {
+                console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, error)
+            }
+        )
+        .catch(
+            (err) => {
+                console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
+            }
+        )
+    }
     
     // Fetch Player Record Data
     getRecord = () => {
@@ -889,6 +916,7 @@ class Home extends React.Component {
                         let managerEarningsDisplay = []; // Data for Manager Earnings in Modal
                         let disExportData = []; // Data to be exported
                         let daialySLPData = [] // Data to be pass in DailySLP API
+                        let slpClaimedData = [] // Data to be pass in SLP CLaimed
 
                         const dataResult = results.filter(item => !item.error && item.data !== undefined && item.eth !== undefined); // Filter valid data
                         if (dataResult && dataResult.length > 0) {
@@ -934,6 +962,11 @@ class Home extends React.Component {
                                 if (dataItem.dailySLPwillSave) {
                                     daialySLPData.push(dataItem.dailySLP);
                                 }
+
+                                // Data for SLP Claimed
+                                if (data.isSLPClaimed) {
+                                    slpClaimedData.push(data.isSlpCLaimedData)
+                                }
     
                                 // Return
                                 return true;
@@ -975,9 +1008,14 @@ class Home extends React.Component {
                                 document.body.classList.add('single-player-datatable-handler');
                             }
 
-                            // Run Daily SLP API x Save cookie
+                            // Run Daily SLP API
                             if (daialySLPData.length > 0) {
                                 this.dailySLPAPI(daialySLPData);
+                            }
+
+                            // Run SLP Claimed update
+                            if (slpClaimedData.length > 0) {
+                                this.updateSLPClaimedAPI(slpClaimedData);
                             }
     
                             // Return data x Set state
@@ -1170,8 +1208,23 @@ class Home extends React.Component {
                             }
                         }
 
-                        result.sharedScholarSLP = result.inGameSLP;
-                        result.scholarSLP = result.inGameSLP;
+                        // Update USER_PROFILE data for SLP_CLAIMED x already claimed x slp from daily slp
+                        //This process is when the response in Axie API is delay
+                        let isAlreadyClaimed = false;
+                        if (Number(result.inGameSLP) !== 0 && Number(result.claim_on_days) === 0) { // If not equal to 0 the inGameSLP x delay receive slkp total from axie API
+                            // Get Total SLP based on Daily SLP API
+                            const totalSLPClaimed = Number(details.YESTERDAY) + Number(details.TODAY);
+                            // Create Object for sending data in Update API
+                            result.slpClaimed = {
+                                ADDRESS: details.ADDRESS,
+                                SLP_CLAIMED: totalSLPClaimed
+                            }
+                            // Flag for update the data
+                            isAlreadyClaimed = true;
+                        }
+
+                        result.sharedScholarSLP = result.inGameSLP; // Default value x can be change in process below
+                        result.scholarSLP = result.inGameSLP; // Default value x can be change in process below
                         if (Object.keys(details).length > 0) {
                             // Update name if the orig name is empty
                             result.name = details.NAME ? details.NAME : result.name ? result.name : ethAddress;
@@ -1180,6 +1233,11 @@ class Home extends React.Component {
                             if (result.blockchain_related.balance !== null && result.blockchain_related.balance > 0) {
                                 roninBalance = result.blockchain_related.balance;
                                 result.inGameSLP = result.total - roninBalance;
+                            }
+
+                            // Check if alreay claimed x delay response from Axie API
+                            if (Number(result.inGameSLP) >= Number(details.SLP_CLAIMED)) {
+                                result.inGameSLP = Number(result.inGameSLP) - Number(details.SLP_CLAIMED);
                             }
 
                             if ((details.SHR_MANAGER).toString() === "100" || details.SHR_MANAGER > 0) { // Condition for Manager Share
@@ -1464,7 +1522,7 @@ class Home extends React.Component {
                             if (isSameTODate) {
                                 // Same date from tb TODATE and CURRENT DATE
                                 // This will be the process of updating the TODAY SLP, YESTERDAY SLP and TODATE into new value
-                                if (Number(result.inGameSLP) === 0 && Number(result.claim_on_days) === 0) {
+                                if (Number(result.inGameSLP) === 0 && Number(details.TODAY) > 0) {
                                     // Checker for already claimed SLP x this will be the process for reset into 0 the data
                                     const yesterdySLP = Number(result.inGameSLP) > 0 ? result.inGameSLP : 0;
                                     result.dailySLP = {
@@ -1478,8 +1536,7 @@ class Home extends React.Component {
                                         MESSAGE: "UPDATE from energy reset and was claimed - true",
                                         UPDATEDON: todayDate,
                                         NAME: result.name,
-                                        ALLFIELDS: true, // to be save, if all fields or not x if false, only TODAY
-                                        TBDELETEYESTERDAY: true // delete the yesterday slp table x need to reset the data due to claimed slp
+                                        ALLFIELDS: true // to be save, if all fields or not x if false, only TODAY
                                     };
                                 } else {
                                     // Update TODAY SLP based on computation of YESTERDAY SLP and INGAME SLP
@@ -1512,72 +1569,32 @@ class Home extends React.Component {
                                 const timeChecker = moment(todayDate).format('HHmmss');
                                 if (!isSameTODate && Number(timeChecker) >= Number("080000")) { // isSameTODate must always false in this process to prevent to update in new data from game reset 8AM
                                     // This will be the process of updating the TODAY SLP, YESTERDAY SLP and TODATE into new value
-                                    if (Number(result.inGameSLP) === 0 && Number(result.claim_on_days) === 0) {
-                                        // Checker for already claimed SLP x this will be the process for reset into 0 the data
-                                        const yesterdySLP = Number(result.inGameSLP) > 0 ? result.inGameSLP : 0;
-                                        result.dailySLP = {
-                                            ADDRESS: details.ADDRESS,
-                                            YESTERDAY: yesterdySLP,
-                                            YESTERDAYRES: 0,
-                                            YESTERDAYDATE: yesterdayDate,
-                                            TODAY: 0,
-                                            TODATE: todayDate,
-                                            ACTION: CONSTANTS.MESSAGE.UPDATE,
-                                            MESSAGE: "UPDATE from energy reset and was claimed - false",
-                                            UPDATEDON: todayDate,
-                                            NAME: result.name,
-                                            ALLFIELDS: true, // to be save, if all fields or not x if false, only TODAY
-                                            TBDELETEYESTERDAY: true // delete the yesterday slp table x need to reset the data due to claimed slp
-                                        };
-                                    } else {
-                                        // Update YESTERDAY and TODAY SLP with TODATE by battle logs
-                                        if(battleLogs !== undefined  && battleLogs.error === undefined) {
-                                            if (Number(battleLogs.win_total) > 0) {
-                                                // Update YESTERDAY and TODAY SLP with TODATE by battle logs
-                                                // Multiple the gained slp reward based on MMR in win total
-                                                // Add the total gained slp reward based from win total in YESTERDAYSLP
-                                                // Minus the total gained slp reward based from win total in inGameSLP x TODAYSLP
-                                                const gainedSLPReward = Number(ranking.slpReward) * Number(battleLogs.win_total);
-                                                const yesterdySLP = Number(details.YESTERDAY) + Number(details.TODAY) + Number(gainedSLPReward);
-                                                const yesterdyResSLP = Number(details.TODAY) + Number(gainedSLPReward);
-                                                const todaysSLP = (Number(result.inGameSLP) - Number(gainedSLPReward)) - Number(yesterdySLP);
-                                                // Update daily slp with new date
-                                                result.dailySLP = {
-                                                    ADDRESS: details.ADDRESS,
-                                                    YESTERDAY: yesterdySLP,
-                                                    YESTERDAYRES: yesterdyResSLP,
-                                                    YESTERDAYDATE: yesterdayDate,
-                                                    TODAY: todaysSLP,
-                                                    TODATE: todayDate,
-                                                    ACTION: CONSTANTS.MESSAGE.UPDATE,
-                                                    MESSAGE: "UPDATE from energy reset - with battle logs - has already start the game",
-                                                    UPDATEDON: todayDate,
-                                                    NAME: result.name,
-                                                    ALLFIELDS: true, // to be save, if all fields or not x if false, only TODAY
-                                                    TBINSERTYESTERDAY: true // insert the yesterday slp table for display in chart x get the yesterdayres property value
-                                                };
-                                            } else {
-                                                // Default process for updating YESTERDAY and TODAY SLP with TODATE
-                                                // Get YESTERDAY SLP base on YESTERDAY and TODAY SLP
-                                                const yesterdySLP = Number(details.YESTERDAY) + Number(details.TODAY);
-                                                // Get TODAY SLP base on InGameSLP and YESTERDAY SLP
-                                                const todaysSLP = Number(result.inGameSLP) - Number(yesterdySLP);
-                                                // Update daily slp with new date
-                                                result.dailySLP = {
-                                                    ADDRESS: details.ADDRESS,
-                                                    YESTERDAY: yesterdySLP,
-                                                    YESTERDAYRES: details.TODAY,
-                                                    YESTERDAYDATE: yesterdayDate,
-                                                    TODAY: todaysSLP,
-                                                    TODATE: todayDate,
-                                                    ACTION: CONSTANTS.MESSAGE.UPDATE,
-                                                    MESSAGE: "UPDATE from energy reset - with battle logs",
-                                                    UPDATEDON: todayDate,
-                                                    NAME: result.name,
-                                                    ALLFIELDS: true, // to be save, if all fields or not x if false, only TODAY
-                                                    TBINSERTYESTERDAY: true // insert the yesterday slp table for display in chart x get the yesterdayres property value
-                                                };
-                                            }
+                                    // Update YESTERDAY and TODAY SLP with TODATE by battle logs
+                                    if(battleLogs !== undefined  && battleLogs.error === undefined) {
+                                        if (Number(battleLogs.win_total) > 0) {
+                                            // Update YESTERDAY and TODAY SLP with TODATE by battle logs
+                                            // Multiple the gained slp reward based on MMR in win total
+                                            // Add the total gained slp reward based from win total in YESTERDAYSLP
+                                            // Minus the total gained slp reward based from win total in inGameSLP x TODAYSLP
+                                            const gainedSLPReward = Number(ranking.slpReward) * Number(battleLogs.win_total);
+                                            const yesterdySLP = Number(details.YESTERDAY) + Number(details.TODAY) + Number(gainedSLPReward);
+                                            const yesterdyResSLP = Number(details.TODAY) + Number(gainedSLPReward);
+                                            const todaysSLP = (Number(result.inGameSLP) - Number(gainedSLPReward)) - Number(yesterdySLP);
+                                            // Update daily slp with new date
+                                            result.dailySLP = {
+                                                ADDRESS: details.ADDRESS,
+                                                YESTERDAY: yesterdySLP,
+                                                YESTERDAYRES: yesterdyResSLP,
+                                                YESTERDAYDATE: yesterdayDate,
+                                                TODAY: todaysSLP,
+                                                TODATE: todayDate,
+                                                ACTION: CONSTANTS.MESSAGE.UPDATE,
+                                                MESSAGE: "UPDATE from energy reset - with battle logs - has already start the game",
+                                                UPDATEDON: todayDate,
+                                                NAME: result.name,
+                                                ALLFIELDS: true, // to be save, if all fields or not x if false, only TODAY
+                                                TBINSERTYESTERDAY: true // insert the yesterday slp table for display in chart x get the yesterdayres property value
+                                            };
                                         } else {
                                             // Default process for updating YESTERDAY and TODAY SLP with TODATE
                                             // Get YESTERDAY SLP base on YESTERDAY and TODAY SLP
@@ -1593,13 +1610,34 @@ class Home extends React.Component {
                                                 TODAY: todaysSLP,
                                                 TODATE: todayDate,
                                                 ACTION: CONSTANTS.MESSAGE.UPDATE,
-                                                MESSAGE: "UPDATE from energy reset",
+                                                MESSAGE: "UPDATE from energy reset - with battle logs",
                                                 UPDATEDON: todayDate,
                                                 NAME: result.name,
                                                 ALLFIELDS: true, // to be save, if all fields or not x if false, only TODAY
                                                 TBINSERTYESTERDAY: true // insert the yesterday slp table for display in chart x get the yesterdayres property value
                                             };
                                         }
+                                    } else {
+                                        // Default process for updating YESTERDAY and TODAY SLP with TODATE
+                                        // Get YESTERDAY SLP base on YESTERDAY and TODAY SLP
+                                        const yesterdySLP = Number(details.YESTERDAY) + Number(details.TODAY);
+                                        // Get TODAY SLP base on InGameSLP and YESTERDAY SLP
+                                        const todaysSLP = Number(result.inGameSLP) - Number(yesterdySLP);
+                                        // Update daily slp with new date
+                                        result.dailySLP = {
+                                            ADDRESS: details.ADDRESS,
+                                            YESTERDAY: yesterdySLP,
+                                            YESTERDAYRES: details.TODAY,
+                                            YESTERDAYDATE: yesterdayDate,
+                                            TODAY: todaysSLP,
+                                            TODATE: todayDate,
+                                            ACTION: CONSTANTS.MESSAGE.UPDATE,
+                                            MESSAGE: "UPDATE from energy reset",
+                                            UPDATEDON: todayDate,
+                                            NAME: result.name,
+                                            ALLFIELDS: true, // to be save, if all fields or not x if false, only TODAY
+                                            TBINSERTYESTERDAY: true // insert the yesterday slp table for display in chart x get the yesterdayres property value
+                                        };
                                     }
                                 } else {
                                     // This will be the process of updating TODAY SLP only x not yet pass/overlap the 8AM reset
@@ -1626,6 +1664,12 @@ class Home extends React.Component {
                                         result.dailySLP.noChange = "isSameTODate - false";
                                     }
                                 }
+                            }
+                            
+                            // DELETE YESTERDAY SLP if the claim day is 1
+                            if (Number(result.claim_on_days) === 1) {
+                                result.dailySLP.TBDELETEYESTERDAY = true; // delete the yesterday slp table x need to reset the data due to claimed slp
+                                result.dailySLP.TBINSERTYESTERDAY = false; // insert the yesterday slp table for display in chart x get the yesterdayres property value
                             }
                         } catch (err) {
                             // Has error in generate daily slp x used default data for display in table
@@ -1681,7 +1725,7 @@ class Home extends React.Component {
                         }
                         
                         // Success return
-                        return resolve({error: false, data: playerDataTableRes, slp: result.inGameSLP, rank: ranking.rank, eth: userEthAddress, export: playerDataTableExport, dailySLP: result.dailySLP, dailySLPwillSave: playerDataDailySLPwillSave});
+                        return resolve({error: false, data: playerDataTableRes, slp: result.inGameSLP, rank: ranking.rank, eth: userEthAddress, export: playerDataTableExport, dailySLP: result.dailySLP, dailySLPwillSave: playerDataDailySLPwillSave, isSLPClaimed: isAlreadyClaimed, isSlpCLaimedData: result.slpClaimed});
                     } else {
                         return reject({error: true});
                     }

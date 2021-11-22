@@ -1527,7 +1527,7 @@ class Home extends React.Component {
                                 // Generate DELETE YESTERDAY Object if the data is more than in set days, must be the data in database is daysClaimable length per player
                                 if (dataYesterdaySLPSet.length > this.state.daysClaimable) {
                                     // Create object to remove the first row or first date in data
-                                    dataYesterdaySLPSet.sort((a, b) =>  moment(a.date).unix() - moment(b.date).unix() ).map((yesterdayItem, index) => {
+                                    dataYesterdaySLPSet.sort((a, b) =>  moment(a.DATE_ON).unix() - moment(b.DATE_ON).unix() ).map((yesterdayItem, index) => {
                                         if (index === 0) {
                                             result.deleteYesterdaySLP = {
                                                 ADDRESS: details.ADDRESS,

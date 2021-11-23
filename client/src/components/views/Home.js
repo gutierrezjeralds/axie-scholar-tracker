@@ -1221,6 +1221,7 @@ class Home extends React.Component {
 
                         // Creating object
                         let roninBalance = 0, managerSLPClaimed = 0;
+                        let isAlreadyClaimed = false;
                         result.name = ranking.name ? ranking.name : "";
                         result.last_claimed_item_at_add = moment.unix(result.last_claimed_item_at).add(1, 'days');
                         result.claim_on_days = 0;
@@ -1247,21 +1248,6 @@ class Home extends React.Component {
                             }
                         }
 
-                        // Update USER_PROFILE data for SLP_CLAIMED x already claimed x slp from daily slp
-                        //This process is when the response in Axie API is delay
-                        let isAlreadyClaimed = false;
-                        if (Number(result.inGameSLP) !== 0 && Number(result.claim_on_days) === 0) { // If not equal to 0 the inGameSLP x delay receive slkp total from axie API
-                            // Get Total SLP based on Daily SLP API
-                            const totalSLPClaimed = Number(details.YESTERDAY) + Number(details.TODAY);
-                            // Create Object for sending data in Update API
-                            result.slpClaimed = {
-                                ADDRESS: details.ADDRESS,
-                                SLP_CLAIMED: totalSLPClaimed
-                            }
-                            // Flag for update the data
-                            isAlreadyClaimed = true;
-                        }
-
                         result.sharedScholarSLP = result.inGameSLP; // Default value x can be change in process below
                         result.scholarSLP = result.inGameSLP; // Default value x can be change in process below
                         if (Object.keys(details).length > 0) {
@@ -1273,8 +1259,35 @@ class Home extends React.Component {
                                 roninBalance = result.blockchain_related.balance;
                                 result.inGameSLP = result.total - roninBalance;
                             }
+                            
+                            // Update USER_PROFILE data for SLP_CLAIMED x already claimed x slp from daily slp
+                            //This process is when the response in Axie API is delay
+                            if (Number(result.inGameSLP) !== 0 && Number(result.claim_on_days) === 0) { // If not equal to 0 the inGameSLP x delay receive slkp total from axie API
+                                // Get Total SLP based on Daily SLP API
+                                const totalSLPClaimed = Number(details.YESTERDAY) + Number(details.TODAY);
+                                // Create Object for sending data in Update API
+                                result.slpClaimed = {
+                                    ADDRESS: details.ADDRESS,
+                                    SLP_CLAIMED: totalSLPClaimed
+                                }
+                                // Flag for update the data
+                                isAlreadyClaimed = true;
+                            } else {
+                                // Reset the SLP Claimed flag if the inGameSLP is already correct the response from Axie API
+                                if (Number(details.SLP_CLAIMED) !== 0 && (Number(result.inGameSLP) <= Number(details.SLP_CLAIMED))) {
+                                    // Create Object for sending data in Update API
+                                    result.slpClaimed = {
+                                        ADDRESS: details.ADDRESS,
+                                        SLP_CLAIMED: 0
+                                    }
+                                    // Flag for update the data
+                                    isAlreadyClaimed = true;
+                                }
+                            }
 
-                            // Check if alreay claimed x delay response from Axie API
+                            // Check if alreay claimed x delay response from Axie API x details.SLP_CLAIMED default value is 0
+                            // No worries about this process, its always return positive value if the result.inGameSLP is greater than in details.SLP_CLAIMED
+                            // Already reset the value of details.SLP_CLAIMED if the result.inGameSLP is less than in details.SLP_CLAIMED x check on the above logic
                             if (Number(result.inGameSLP) >= Number(details.SLP_CLAIMED)) {
                                 result.inGameSLP = Number(result.inGameSLP) - Number(details.SLP_CLAIMED);
                             }

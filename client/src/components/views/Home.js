@@ -1262,7 +1262,7 @@ class Home extends React.Component {
                             
                             // Update USER_PROFILE data for SLP_CLAIMED x already claimed x slp from daily slp
                             //This process is when the response in Axie API is delay
-                            if (Number(result.inGameSLP) !== 0 && Number(result.claim_on_days) === 0) { // If not equal to 0 the inGameSLP x delay receive slkp total from axie API
+                            if (Number(details.SLP_CLAIMED) === 0 && Number(result.inGameSLP) !== 0 && Number(result.claim_on_days) === 0) { // If not equal to 0 the inGameSLP x delay receive slkp total from axie API
                                 // Get Total SLP based on Daily SLP API
                                 const totalSLPClaimed = Number(details.YESTERDAY) + Number(details.TODAY);
                                 // Create Object for sending data in Update API
@@ -1274,7 +1274,7 @@ class Home extends React.Component {
                                 isAlreadyClaimed = true;
                             } else {
                                 // Reset the SLP Claimed flag if the inGameSLP is already correct the response from Axie API
-                                if (Number(details.SLP_CLAIMED) !== 0 && (Number(result.inGameSLP) <= Number(details.SLP_CLAIMED))) {
+                                if (Number(details.SLP_CLAIMED) !== 0 && (Number(result.inGameSLP) < Number(details.SLP_CLAIMED))) {
                                     // Create Object for sending data in Update API
                                     result.slpClaimed = {
                                         ADDRESS: details.ADDRESS,
@@ -1547,6 +1547,8 @@ class Home extends React.Component {
                                                 ID: yesterdayItem.ID
                                             }
                                         }
+                                        // Return
+                                        return true;
                                     });
                                 }
                             }
@@ -1581,7 +1583,8 @@ class Home extends React.Component {
                                 todaySLP = result.inGameSLP; // retain old data for newly claimed, must be update on the next day
                             }
                             // Check if the data from fetch is same date as date today
-                            const toDate = moment(details.TODATE).format('YYYY-MM-DD HH:mm:ss');
+                            const toDateRes = moment(details.TODATE);
+                            const toDate = toDateRes.tz('Asia/Manila').format('YYYY-MM-DD HH:mm:ss');
                             const todayDate = momentToday.format('YYYY-MM-DD HH:mm:ss');
                             const yesterdayDate = moment().tz('Asia/Manila').subtract(1, "days").format('YYYY-MM-DD HH:mm:ss');
                             const isSameTODate = moment(toDate).isSame(todayDate, 'date');

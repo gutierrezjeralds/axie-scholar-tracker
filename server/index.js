@@ -339,16 +339,21 @@ app.post("/api/dailySLP", async (req, res) => {
                         logger(CONSTANTS.MESSAGE.ERROR_PROCEDURE, error);
                     } else {
                         if (items.TBINSERTYESTERDAY) {
-                            // Execute Query for insert Yesterday SLP
-                            const insertQuery = `${CONSTANTS.QUERY.INSERT.YESTERDAYSLP} ("ADDRESS", "YESTERDAY", "DATE_ON") VALUES ('${items.ADDRESS}', '${items.YESTERDAYRES}', '${items.YESTERDAYDATE}')`;
-                            client.query(insertQuery, (error) => {
-                                logger(CONSTANTS.MESSAGE.END_INSERTQUERY, items.ADDRESS);
+                            if (Number(items.YESTERDAYRES) > 0) { // Insert all positive value x greater than zero
+                                // Execute Query for insert Yesterday SLP
+                                const insertQuery = `${CONSTANTS.QUERY.INSERT.YESTERDAYSLP} ("ADDRESS", "YESTERDAY", "DATE_ON") VALUES ('${items.ADDRESS}', '${items.YESTERDAYRES}', '${items.YESTERDAYDATE}')`;
+                                client.query(insertQuery, (error) => {
+                                    logger(CONSTANTS.MESSAGE.END_INSERTQUERY, items.ADDRESS);
+                                    // End Connection
+                                    client.end();
+                                    if (error) {
+                                        logger(CONSTANTS.MESSAGE.ERROR_PROCEDURE, error);
+                                    }
+                                });
+                            } else {
                                 // End Connection
                                 client.end();
-                                if (error) {
-                                    logger(CONSTANTS.MESSAGE.ERROR_PROCEDURE, error);
-                                }
-                            });
+                            }
                         } else {
                             // End Connection
                             client.end();

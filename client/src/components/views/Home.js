@@ -99,7 +99,8 @@ class Home extends React.Component {
             slctAddEditId: "",
             hasSponsor: false,
             isViewSLPChart: CONSTANTS.MESSAGE.VIEW_GAINEDSLP_CHART,
-            isBonusSLPRewardOn: true // Indicator if the display of SLP Rewards is vissible to other user
+            isBonusSLPRewardOn: true, // Indicator if the display of SLP Rewards is vissible to other user
+            isDeleted: false
         }
     }
 
@@ -199,6 +200,13 @@ class Home extends React.Component {
     handleHasSponsorCheckChange(event) {
         this.setState({
             hasSponsor: event.target.checked
+        })
+    }
+
+    // Onchange checkbos if user profile is delete in add/edit modal
+    handleIsDeleteCheckChange(event) {
+        this.setState({
+            isDeleted: event.target.checked
         })
     }
 
@@ -465,7 +473,9 @@ class Home extends React.Component {
     // Handle for onchange select of Add/Edit Scholar
     handleAddEditIskoChange(event) {
         this.setState({
-            slctAddEditId: event.target.value
+            slctAddEditId: event.target.value,
+            hasSponsor: false,
+            isDeleted: false
         })
 
         if (event.target.value) {
@@ -478,9 +488,11 @@ class Home extends React.Component {
                     this.setState({
                         hasSponsor: true
                     })
-                } else {
+                }
+                // Check if item is delete
+                if (dataSet[0].isDeleted) {
                     this.setState({
-                        hasSponsor: false
+                        isDeleted: true
                     })
                 }
                 // Update input fields
@@ -550,6 +562,7 @@ class Home extends React.Component {
                 SHR_SPONSOR: shrSponsor,
                 SPONSOR_NAME: sponsorName,
                 STARTED_ON: dateToday,
+                DELETEIND: this.state.isDeleted ? "X" : "",
                 ACTION: this.state.slctAddEditId ? CONSTANTS.MESSAGE.UPDATE : CONSTANTS.MESSAGE.INSERT // Empty addEdit id from select will be insert
             }
 
@@ -952,7 +965,7 @@ class Home extends React.Component {
                         let slpClaimedData = [] // Data to be pass in SLP CLaimed
                         let delYesterdaySLPData = [] // Data to be pass in deletion of yesterday slp
 
-                        const dataResult = results.filter(item => !item.error && item.data !== undefined && item.eth !== undefined); // Filter valid data
+                        const dataResult = results.filter(item => item && !item.error && item.data !== undefined && item.eth !== undefined); // Filter valid data
                         if (dataResult && dataResult.length > 0) {
                             // Sort as Top MMR Ranking
                             dataResult.sort(function (a, b) {
@@ -977,7 +990,9 @@ class Home extends React.Component {
     
                                 // Display data
                                 if (this.state.isUser === CONSTANTS.MESSAGE.MANAGER) {
-                                    initDisplay.push(dataItem.data); // Data for initial display x display all
+                                    if (!dataItem.isDelete) { // Display not deleted player
+                                        initDisplay.push(dataItem.data); // Data for initial display x display all
+                                    }
                                 } else {
                                     if (dataItem.eth !== null) {
                                         initDisplay.push(dataItem.data); // Data for initial display x specific data to be display
@@ -985,12 +1000,14 @@ class Home extends React.Component {
                                 }
     
                                 // Data for players MMR list display in Modal x Pushed specific data
-                                mmrDisplay.push({
-                                    order: dataItem.data.order,
-                                    name: dataItem.data.name,
-                                    mmr: dataItem.data.mmr,
-                                    rank: dataItem.data.rank
-                                });
+                                if (!dataItem.isDelete) { // Display not deleted player
+                                    mmrDisplay.push({
+                                        order: dataItem.data.order,
+                                        name: dataItem.data.name,
+                                        mmr: dataItem.data.mmr,
+                                        rank: dataItem.data.rank
+                                    });
+                                }
 
                                 // Data for Daily SLP
                                 if (dataItem.dailySLPwillSave) {
@@ -1796,6 +1813,9 @@ class Home extends React.Component {
                         result.details = details;
                         result.ranking = ranking;
 
+                        // Adding property of delete
+                        result.isDeleted = details.DELETEIND ? details.DELETEIND : "";
+
                         // Get all ETH Address x for other display x MMR Ranking x etc
                         this.state.playerRecords.push(result);
 
@@ -1854,7 +1874,8 @@ class Home extends React.Component {
                             dailySLPwillSave: playerDataDailySLPwillSave,
                             isSLPClaimed: isAlreadyClaimed,
                             isSlpCLaimedData: result.slpClaimed,
-                            delYDASLPData: result.deleteYesterdaySLP // Delete yesterday slp data
+                            delYDASLPData: result.deleteYesterdaySLP, // Delete yesterday slp data
+                            isDelete: result.isDeleted
                         });
                     } else {
                         return reject({error: true});
@@ -2556,6 +2577,7 @@ class Home extends React.Component {
                                                 </MDBRow>
                                             ) : ("")
                                         }
+                                        <MDBInput containerClass="md-form mt-2rem-neg checkbox-mdb-custom redLabel" label={CONSTANTS.MESSAGE.DELETE} type="checkbox" id="isDelete-checkbox" checked={this.state.isDeleted} onChange={this.handleIsDeleteCheckChange.bind(this)} />
                                         <MDBBox tag="div" className={this.state.isValidAddTeam === 0 ? "d-none" : this.state.isValidAddTeam ? "d-none" : "invalid-feedback mt-0pt3rem-neg mb-2 px-3 d-block"}>{this.state.errorMsg}</MDBBox>
                                     </MDBBox>
                                     <MDBBox tag="div" className="text-center">

@@ -782,6 +782,11 @@ body, #root{
     input[type="checkbox"] {
         display: none;
     }
+    &.redLabel {
+        label {
+            color: $danger-dark;
+        }
+    }
     input[type="checkbox"]+label{
         display: inline-block;
         position: relative;

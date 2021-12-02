@@ -141,7 +141,8 @@ const MESSAGE = {
     REWARDS_SLP: "Rewards SLP",
     PHP: "PHP",
     MGR: "MGR",
-    SCH: "SCH"
+    SCH: "SCH",
+    DELETE: "Delete?"
 }
 
 export const CONSTANTS = {

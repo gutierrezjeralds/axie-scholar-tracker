@@ -137,7 +137,11 @@ const MESSAGE = {
     HASSPONSOR: "Has Sponsor?",
     YESTERDAYSLP: "Yesterday SLP",
     VIEW_GAINEDSLP_CHART: "View Gained SLP Chart",
-    VIEW_EARNINGS: "View Earnings"
+    VIEW_EARNINGS: "View Earnings",
+    REWARDS_SLP: "Rewards SLP",
+    PHP: "PHP",
+    MGR: "MGR",
+    SCH: "SCH"
 }
 
 export const CONSTANTS = {

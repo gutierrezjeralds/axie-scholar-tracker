@@ -1,0 +1,86 @@
+[
+    {
+        "id": 1,
+        "roninAddress": "ronin:c0a2796857293218ee40d0eb1fbcbf59f8f23efb",
+        "name": "BunnyBalds",
+        "managerDebtClaimed": 0,
+        "managerSLPClaimed": 0
+    },
+    {
+        "id": 2,
+        "roninAddress": "ronin:411bf3e5386c688920392dbfc8af6685405d12d8",
+        "name": "taengpusa",
+        "managerDebtClaimed": 0,
+        "managerSLPClaimed": 422
+    },
+    {
+        "id": 3,
+        "roninAddress": "ronin:1263e0cf33a3cafbf9e9090665aa8f9a23b05268",
+        "name": "Janok",
+        "managerDebtClaimed": 0,
+        "managerSLPClaimed": 1578
+    },
+    {
+        "id": 4,
+        "roninAddress": "ronin:e3b430f34db38d6ce76f679330b8d81baf2121f5",
+        "name": "Juls",
+        "managerDebtClaimed": 0,
+        "managerSLPClaimed": 730
+    },
+    {
+        "id": 5,
+        "roninAddress": "ronin:bcb2952ef31c29d007025bc2e4f3c7271c419272",
+        "name": "JCarl",
+        "managerDebtClaimed": 0,
+        "managerSLPClaimed": 1478
+    },
+    {
+        "id": 6,
+        "roninAddress": "ronin:26acfd9cebe8a9b20066010455aa7289a9f4f882",
+        "name": "Dean",
+        "managerDebtClaimed": 0,
+        "managerSLPClaimed": 1164
+    },
+    {
+        "id": 7,
+        "roninAddress": "ronin:f39becd5ca4f09e60693e84d5691e73690441c23",
+        "name": "Karen",
+        "managerDebtClaimed": 0,
+        "managerSLPClaimed": 277
+    },
+    {
+        "id": 8,
+        "roninAddress": "ronin:284e74b691bb6ac43163df9af47b19ba6950fdaf",
+        "name": "Jerome",
+        "managerDebtClaimed": 0,
+        "managerSLPClaimed": 1779
+    },
+    {
+        "id": 9,
+        "roninAddress": "ronin:d12638497e9e1cf32fad611a1afd46335ed68b7a",
+        "name": "Owens",
+        "managerDebtClaimed": 0,
+        "managerSLPClaimed": 47
+    },
+    {
+        "id": 9,
+        "roninAddress": "ronin:eeb917c272a41406d4ff2d9f6b434527ecafa640",
+        "name": "JN",
+        "managerDebtClaimed": 0,
+        "managerSLPClaimed": 897
+    },
+    {
+        "id": 10,
+        "roninAddress": "ronin:d71e1da2d1433da1edfaac5de62b5b6468afcae8",
+        "name": "Pao",
+        "managerDebtClaimed": 0,
+        "managerSLPClaimed": 0
+    },
+    {
+        "id": 11,
+        "roninAddress": "ronin:0620ab90dc059faab5a9ad216cb42ab502c1cde4",
+        "name": "Mikky",
+        "managerDebtClaimed": 0,
+        "managerSLPClaimed": 0
+    }
+]

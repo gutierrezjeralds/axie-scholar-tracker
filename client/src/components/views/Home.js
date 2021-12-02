@@ -15,6 +15,7 @@ import Cookies from 'js-cookie'
 import emailjs from 'emailjs-com';
 import Lightbox from 'react-image-lightbox';
 import CanvasJSReact from '../assets/js/canvasjs.react';
+import playerStaticData from '../assets/json/players.json'
 // import { ExportCSV } from './ExportCSV';
 
 // const moment = require('moment-timezone');
@@ -97,7 +98,8 @@ class Home extends React.Component {
             slctClaimId: "",
             slctAddEditId: "",
             hasSponsor: false,
-            isViewSLPChart: CONSTANTS.MESSAGE.VIEW_GAINEDSLP_CHART
+            isViewSLPChart: CONSTANTS.MESSAGE.VIEW_GAINEDSLP_CHART,
+            isBonusSLPRewardOn: true // Indicator if the display of SLP Rewards is vissible to other user
         }
     }
 
@@ -921,6 +923,9 @@ class Home extends React.Component {
                         let userEthAddress = null;
                         const iSponsorName = item.SPONSOR_NAME ? item.SPONSOR_NAME.toLowerCase() : ""
 
+                        const staticData = playerStaticData.filter(items => items.roninAddress === item.ADDRESS); // Filter valid data
+                        const playersStaticData = staticData.length > 0 ? staticData[0] : undefined;
+
                         if (item.EMAIL.toLowerCase() === this.state.isUser.toLowerCase() ||
                             item.NAME.toLowerCase() === this.state.isUser.toLowerCase() ||
                             iSponsorName === this.state.isUser.toLowerCase()) {
@@ -935,7 +940,7 @@ class Home extends React.Component {
                         }
 
                         // Return
-                        return await this.getPlayerDetails(item, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned, dataYesterdaySLP);
+                        return await this.getPlayerDetails(item, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned, dataYesterdaySLP, playersStaticData);
                     });
 
                     await Promise.all(dataResultPromise).then(async (results) => {
@@ -1056,24 +1061,45 @@ class Home extends React.Component {
                             if (delYesterdaySLPData.length > 0) {
                                 this.deleteYesterdaySLPAPI(delYesterdaySLPData);
                             }
+
+                            // Default Columns for Player Datatable
+                            let playerDataTableColums = [
+                                {label: CONSTANTS.MESSAGE.NAME, field: "name"},
+                                {label: CONSTANTS.MESSAGE.DAILYSLP, field: "dailySLP"},
+                                {label: CONSTANTS.MESSAGE.INGAME_SLP, field: "ingameSLP"},
+                                {label: CONSTANTS.MESSAGE.SHARED_SLP, field: "sharedScholarSLP"},
+                                {label: CONSTANTS.MESSAGE.RONIN_SLP, field: "roninSLP"},
+                                {label: CONSTANTS.MESSAGE.TOTAL_SLP, field: "totalScholarEarningSLP"},
+                                {label: CONSTANTS.MESSAGE.EARNINGS_PHP, field: "totalScholarEarningPHP"},
+                                {label: CONSTANTS.MESSAGE.CLAIMON, field: "claimOn"},
+                                {label: CONSTANTS.MESSAGE.PVP_ENERGY, field: "pvpEnergy"},
+                                {label: CONSTANTS.MESSAGE.MMR, field: "mmrRank"}
+                            ];
+
+                            // Adding additional Column for Player Datatable x Reward Bonus SLP Column
+                            if (this.state.isBonusSLPRewardOn && this.state.isUser === CONSTANTS.MESSAGE.MANAGER) {
+                                playerDataTableColums = [
+                                    {label: CONSTANTS.MESSAGE.NAME, field: "name"},
+                                    {label: CONSTANTS.MESSAGE.DAILYSLP, field: "dailySLP"},
+                                    {label: CONSTANTS.MESSAGE.INGAME_SLP, field: "ingameSLP"},
+                                    {label: CONSTANTS.MESSAGE.SHARED_SLP, field: "sharedScholarSLP"},
+                                    {label: CONSTANTS.MESSAGE.RONIN_SLP, field: "roninSLP"},
+                                    {label: CONSTANTS.MESSAGE.TOTAL_SLP, field: "totalScholarEarningSLP"},
+                                    {label: CONSTANTS.MESSAGE.EARNINGS_PHP, field: "totalScholarEarningPHP"},
+                                    {label: CONSTANTS.MESSAGE.REWARDS_SLP, field: "rewardSLP"}, // Additional Column
+                                    {label: CONSTANTS.MESSAGE.CLAIMON, field: "claimOn"},
+                                    {label: CONSTANTS.MESSAGE.PVP_ENERGY, field: "pvpEnergy"},
+                                    {label: CONSTANTS.MESSAGE.MMR, field: "mmrRank"}
+                                ];
+                            }
     
                             // Return data x Set state
                             this.setState({
                                 isLoaded: true,
                                 isPlayerLoaded: true,
                                 playerDataTable: {
-                                    columns: [
-                                        {label: CONSTANTS.MESSAGE.NAME, field: "name"},
-                                        {label: CONSTANTS.MESSAGE.DAILYSLP, field: "dailySLP"},
-                                        {label: CONSTANTS.MESSAGE.INGAME_SLP, field: "ingameSLP"},
-                                        {label: CONSTANTS.MESSAGE.SHARED_SLP, field: "sharedScholarSLP"},
-                                        {label: CONSTANTS.MESSAGE.RONIN_SLP, field: "roninSLP"},
-                                        {label: CONSTANTS.MESSAGE.TOTAL_SLP, field: "totalScholarEarningSLP"},
-                                        {label: CONSTANTS.MESSAGE.EARNINGS_PHP, field: "totalScholarEarningPHP"},
-                                        {label: CONSTANTS.MESSAGE.CLAIMON, field: "claimOn"},
-                                        {label: CONSTANTS.MESSAGE.PVP_ENERGY, field: "pvpEnergy"},
-                                        {label: CONSTANTS.MESSAGE.MMR, field: "mmrRank"}
-                                    ], rows: initDisplay
+                                    columns: playerDataTableColums,
+                                    rows: initDisplay
                                 },
                                 mmrDatatable: {
                                     columns: [
@@ -1148,7 +1174,7 @@ class Home extends React.Component {
     }
 
     // Get Player details base on Sky Mavis API
-    getPlayerDetails = async (details, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned, dataYesterdaySLP) => {
+    getPlayerDetails = async (details, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned, dataYesterdaySLP, playersStaticData) => {
         return new Promise((resolve, reject) => {
             $.ajax({
                 url: "https://game-api.skymavis.com/game-api/clients/" + ethAddress + "/items/1",
@@ -1189,7 +1215,7 @@ class Home extends React.Component {
                                 if (ranking.elo < 800 && ranking.elo > 1000) {
                                     // 1000 - 800 x 1 SLP
                                     ranking.slpReward = 1;
-                                } else if (ranking.elo >= 800) {
+                                } else if (ranking.elo <= 800) {
                                     // 800 below x 0 SLP
                                     ranking.slpReward = 0;
                                 } else {
@@ -1232,6 +1258,10 @@ class Home extends React.Component {
                         result.sharedSponsorSLP = 0;
                         result.pvp_energy = this.state.PVPENERGY_DEFAULT !== undefined ? this.state.PVPENERGY_DEFAULT + "/" + this.state.PVPENERGY_DEFAULT : "20/20"; // 20 is Default energy
                         result.managerRoninClaimed = false;
+                        result.totalSLPManagerClaim = 0; // This portion is for the event of bonus slp reward x totalSLPRewards and totalPHPRewards
+                        result.totalSLPRewards = 0;
+                        result.totalPHPRewards = 0;
+                        result.isBonusSLPReward = false; // Indicator to display the SLP Bonus Reward
 
                         // Set new value for Claim On (Days) x last_claimed_item_at_add - current date
                         const lastClaimedDate = new Date(moment.unix(result.last_claimed_item_at)).getTime();
@@ -1323,10 +1353,12 @@ class Home extends React.Component {
                                     }
                                 } else {
                                     // Set new Total Manager's Earning
-                                    if (details.managerDebtClaimed === undefined || details.managerDebtClaimed <= 0) {
-                                        this.setState({
-                                            totalManagerSLP: this.state.totalManagerSLP + result.sharedManagerSLP
-                                        })
+                                    if (playersStaticData !== undefined) {
+                                        if (playersStaticData.managerDebtClaimed === undefined || playersStaticData.managerDebtClaimed <= 0) {
+                                            this.setState({
+                                                totalManagerSLP: this.state.totalManagerSLP + result.sharedManagerSLP
+                                            })
+                                        }
                                     }
                                     
                                     // Set new Total Manager Claimable SLP
@@ -1451,29 +1483,43 @@ class Home extends React.Component {
 
                             // Has InGame SLP
                             if (result.inGameSLP > 0) {
-                                // Minus the total InGame SLP and add in ronin if has Manager SLP Claimed x Manager Ronin Claimed
-                                if (details.managerDebtClaimed !== undefined && details.managerDebtClaimed > 0) {
-                                    managerSLPClaimed = details.managerDebtClaimed;
-                                    result.managerRoninClaimed = true; // Indicator for Manager Claimed
-                                    // Minus the InGame SLP
-                                    if (result.inGameSLP > details.managerDebtClaimed) {
-                                        result.inGameSLP = result.inGameSLP - details.managerDebtClaimed;
-                                    } else {
-                                        result.inGameSLP = details.managerDebtClaimed - result.inGameSLP;
+                                if (playersStaticData !== undefined) {
+                                    // Minus the total InGame SLP and add in ronin if has Manager SLP Claimed x Manager Ronin Claimed
+                                    if (playersStaticData.managerDebtClaimed !== undefined && playersStaticData.managerDebtClaimed > 0) {
+                                        managerSLPClaimed = playersStaticData.managerDebtClaimed;
+                                        result.managerRoninClaimed = true; // Indicator for Manager Claimed
+                                        // Minus the InGame SLP
+                                        if (result.inGameSLP > playersStaticData.managerDebtClaimed) {
+                                            result.inGameSLP = result.inGameSLP - playersStaticData.managerDebtClaimed;
+                                        } else {
+                                            result.inGameSLP = playersStaticData.managerDebtClaimed - result.inGameSLP;
+                                        }
+    
+                                        // Update Manager Shared
+                                        if (result.inGameSLP > playersStaticData.managerDebtClaimed) {
+                                            const managerShare = (details.SHR_MANAGER).toString() === "100" ? 1 : "0." + details.SHR_MANAGER;
+                                            const currentInGameSLP = result.inGameSLP - playersStaticData.managerDebtClaimed; // Minus again for computation of Manager Shared SLP
+                                            result.sharedManagerSLP = Math.ceil(currentInGameSLP * managerShare);
+                                            // Adding ronin balance in total Manage SLP x // Set new Total Manager's Earning
+                                            this.setState({
+                                                totalManagerSLP: this.state.totalManagerSLP + result.sharedManagerSLP
+                                            })
+                                        } else {
+                                            // Zero manager shared
+                                            result.sharedManagerSLP = 0;
+                                        }
                                     }
 
-                                    // Update Manager Shared
-                                    if (result.inGameSLP > details.managerDebtClaimed) {
-                                        const managerShare = (details.SHR_MANAGER).toString() === "100" ? 1 : "0." + details.SHR_MANAGER;
-                                        const currentInGameSLP = result.inGameSLP - details.managerDebtClaimed; // Minus again for computation of Manager Shared SLP
-                                        result.sharedManagerSLP = Math.ceil(currentInGameSLP * managerShare);
-                                        // Adding ronin balance in total Manage SLP x // Set new Total Manager's Earning
-                                        this.setState({
-                                            totalManagerSLP: this.state.totalManagerSLP + result.sharedManagerSLP
-                                        })
-                                    } else {
-                                        // Zero manager shared
-                                        result.sharedManagerSLP = 0;
+                                    // Set the bonus reward of Scholar
+                                    // playersStaticData.managerSLPClaimed is amount of Manager Claimable Only
+                                    // Minus the amount of Manager Claimable to inGameSLP and Plus to ronin SLP (if any) = Total SLP Claimable of Scholar
+                                    if (this.state.isBonusSLPRewardOn) {
+                                        if (playersStaticData.managerSLPClaimed !== undefined && playersStaticData.managerSLPClaimed > 0) {
+                                            result.isBonusSLPReward = true;
+                                            result.totalSLPManagerClaim = playersStaticData.managerSLPClaimed;
+                                            result.totalSLPRewards = (result.inGameSLP - playersStaticData.managerSLPClaimed) + roninBalance;
+                                            result.totalPHPRewards = result.totalSLPRewards * this.state.slpCurrentValue;
+                                        }
                                     }
                                 }
 
@@ -1760,7 +1806,7 @@ class Home extends React.Component {
                             dailySLP: <MDBBox data-th={CONSTANTS.MESSAGE.DAILYSLP} tag="span"><MDBBox tag="span" className={Number(result.dailySLP.YESTERDAYRES) > Number(result.dailySLP.TODAY) ? "green-text d-inline d-md-block d-lg-block" : "red-text d-inline d-md-block d-lg-block"}><strong>Y:</strong> {result.dailySLP.YESTERDAYRES}</MDBBox> <MDBBox tag="span" className={Number(result.dailySLP.YESTERDAYRES) > Number(result.dailySLP.TODAY) ? "red-text d-inline d-md-block d-lg-block" : "green-text d-inline d-md-block d-lg-block"}><strong>T:</strong> {result.dailySLP.TODAY}</MDBBox></MDBBox>,
                             ingameSLP: <MDBBox data-th={CONSTANTS.MESSAGE.INGAME_SLP} tag="span">{this.numberWithCommas(result.inGameSLP)}</MDBBox>,
                             sharedScholarSLP: <MDBBox data-th={CONSTANTS.MESSAGE.SHARED_SLP} tag="span" className="d-inline d-md-block d-lg-block">{this.numberWithCommas(result.sharedScholarSLP)} <MDBBox tag="span" className="d-inline d-md-block d-lg-block">({(details.SHR_MANAGER).toString() === "100" ? details.SHR_MANAGER : details.SHR_SCHOLAR}%)</MDBBox></MDBBox>,
-                            roninSLP: <MDBBox data-th={CONSTANTS.MESSAGE.RONIN_SLP} tag="span">{this.numberWithCommas(roninBalance)} <MDBBox tag="span" className="d-inline d-md-block d-lg-block red-text">{result.managerRoninClaimed ? "(" + this.numberWithCommas(result.details.managerDebtClaimed) + ")" : ""}</MDBBox></MDBBox>,
+                            roninSLP: <MDBBox data-th={CONSTANTS.MESSAGE.RONIN_SLP} tag="span">{this.numberWithCommas(roninBalance)} <MDBBox tag="span" className="d-inline d-md-block d-lg-block red-text">{result.managerRoninClaimed ? "(" + this.numberWithCommas(playersStaticData.managerDebtClaimed) + ")" : ""}</MDBBox></MDBBox>,
                             totalScholarEarningSLP: <MDBBox data-th={CONSTANTS.MESSAGE.TOTAL_SLP} tag="span">{this.numberWithCommas(result.totalScholarEarningSLP)}</MDBBox>,
                             totalScholarEarningPHP: <MDBBox data-th={CONSTANTS.MESSAGE.EARNINGS_PHP} tag="span">{this.numberWithCommas((result.totalScholarEarningPHP).toFixed(2))}</MDBBox>,
                             claimOn: <MDBBox data-th={CONSTANTS.MESSAGE.CLAIMON} tag="span" className="d-block">{moment.unix(result.last_claimed_item_at).add(this.state.daysClaimable, "days").format("MMM DD, hh:mm A")} <MDBBox tag="span" className="d-block">{result.claim_on_days} {CONSTANTS.MESSAGE.DAYS}</MDBBox></MDBBox>,
@@ -1774,6 +1820,15 @@ class Home extends React.Component {
                             nameMmr: `${result.name} (${ranking.elo})`,
                             nameInGameSLP: `${result.name} (${result.inGameSLP})`,
                             pvpEnergy: <MDBBox data-th={CONSTANTS.MESSAGE.PVP_ENERGY} tag="span">{result.pvp_energy}</MDBBox>,
+                            rewardSLP: <MDBBox data-th={CONSTANTS.MESSAGE.REWARDS_SLP} tag="span">
+                                            {result.isBonusSLPReward ? 
+                                                <React.Fragment>
+                                                    <MDBBox tag="span" className="d-block">{CONSTANTS.MESSAGE.MGR}: {this.numberWithCommas(result.totalSLPManagerClaim)}</MDBBox>
+                                                    <MDBBox tag="span" className="d-block">{CONSTANTS.MESSAGE.SCH}: {this.numberWithCommas(result.totalSLPRewards)}</MDBBox>
+                                                    <MDBBox tag="span" className="d-block">&#8369; {this.numberWithCommas((result.totalPHPRewards).toFixed(2))}</MDBBox>
+                                                </React.Fragment>
+                                            : 0}
+                                        </MDBBox>,
                             clickEvent: this.modalPlayerDetailsToggle(result.client_id, [result])
                         };
 
@@ -2303,16 +2358,18 @@ class Home extends React.Component {
                                                 </a>
                                             </MDBBox>
                                         </MDBCol>
+                                        {/* Ronin Address */}
+                                        <MDBCol size="12">
+                                            <MDBBox tag="span" className="d-block selectable-text">
+                                                {CONSTANTS.MESSAGE.RONIN}: {this.state.modalPlayerDetails[0].details.ADDRESS}
+                                            </MDBBox>
+                                        </MDBCol>
                                         {/* Email */}
-                                        {
-                                            this.state.isUser === CONSTANTS.MESSAGE.MANAGER ? (
-                                                <MDBCol size="12">
-                                                    <MDBBox tag="span" className="d-block selectable-text">
-                                                        {CONSTANTS.MESSAGE.EMAIL}: {this.state.modalPlayerDetails[0].details.EMAIL}
-                                                    </MDBBox>
-                                                </MDBCol>
-                                            ) : ("")
-                                        }
+                                        <MDBCol size="12">
+                                            <MDBBox tag="span" className="d-block selectable-text">
+                                                {CONSTANTS.MESSAGE.EMAIL}: {this.state.modalPlayerDetails[0].details.EMAIL}
+                                            </MDBBox>
+                                        </MDBCol>
                                     </MDBRow>
 
                                     {

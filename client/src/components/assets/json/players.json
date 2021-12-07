@@ -74,13 +74,13 @@
         "roninAddress": "ronin:d71e1da2d1433da1edfaac5de62b5b6468afcae8",
         "name": "Pao",
         "managerDebtClaimed": 0,
-        "managerSLPClaimed": 0
+        "managerSLPClaimed": 944
     },
     {
         "id": 11,
         "roninAddress": "ronin:0620ab90dc059faab5a9ad216cb42ab502c1cde4",
         "name": "Mikky",
         "managerDebtClaimed": 0,
-        "managerSLPClaimed": 0
+        "managerSLPClaimed": 404
     }
 ]

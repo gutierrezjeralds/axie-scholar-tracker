@@ -1659,8 +1659,8 @@ class Home extends React.Component {
                                     const yesterdySLP = Number(result.inGameSLP) > 0 ? result.inGameSLP : 0;
                                     result.dailySLP = {
                                         ADDRESS: details.ADDRESS,
-                                        YESTERDAY: yesterdySLP,
-                                        YESTERDAYRES: 0,
+                                        YESTERDAY: 0,
+                                        YESTERDAYRES: details.YESTERDAYRES,
                                         YESTERDAYDATE: yesterdayDate,
                                         TODAY: 0,
                                         TODATE: todayDate,

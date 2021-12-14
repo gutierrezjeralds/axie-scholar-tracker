@@ -150,7 +150,8 @@ class Home extends React.Component {
 
         this.setState({
             isModalPlayerDetailsOpen: !this.state.isModalPlayerDetailsOpen,
-            modalPlayerDetails: details
+            modalPlayerDetails: details,
+            isViewSLPChart: CONSTANTS.MESSAGE.VIEW_GAINEDSLP_CHART
         });
     }
 

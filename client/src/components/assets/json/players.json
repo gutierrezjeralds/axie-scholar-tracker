@@ -60,7 +60,7 @@
         "roninAddress": "ronin:d12638497e9e1cf32fad611a1afd46335ed68b7a",
         "name": "Owens",
         "managerDebtClaimed": 0,
-        "managerSLPClaimed": 47
+        "managerSLPClaimed": 0
     },
     {
         "id": 9,
@@ -81,6 +81,6 @@
         "roninAddress": "ronin:0620ab90dc059faab5a9ad216cb42ab502c1cde4",
         "name": "Mikky",
         "managerDebtClaimed": 0,
-        "managerSLPClaimed": 404
+        "managerSLPClaimed": 0
     }
 ]

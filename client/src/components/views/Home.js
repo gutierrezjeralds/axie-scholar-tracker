@@ -99,7 +99,7 @@ class Home extends React.Component {
             slctAddEditId: "",
             hasSponsor: false,
             isViewSLPChart: CONSTANTS.MESSAGE.VIEW_GAINEDSLP_CHART,
-            isBonusSLPRewardOn: true, // Indicator if the display of SLP Rewards is vissible to other user
+            isBonusSLPRewardOn: false, // Indicator if the display of SLP Rewards is vissible to other user
             isDeleted: false
         }
     }

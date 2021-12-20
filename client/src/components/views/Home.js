@@ -99,7 +99,7 @@ class Home extends React.Component {
             slctAddEditId: "",
             hasSponsor: false,
             isViewSLPChart: CONSTANTS.MESSAGE.VIEW_GAINEDSLP_CHART,
-            isBonusSLPRewardOn: false, // Indicator if the display of SLP Rewards is vissible to other user
+            isBonusSLPRewardOn: false, // Indicator if the display of SLP Rewards is vissible
             isDeleted: false
         }
     }
@@ -1348,11 +1348,7 @@ class Home extends React.Component {
                                 if ((details.SHR_MANAGER).toString() === "100") {
                                     // Set new Shared SLP
                                     result.scholarSLP = 0;
-                                    if (roninBalance > result.total) {
-                                        result.sharedScholarSLP = Math.ceil(roninBalance - result.total);
-                                    } else {
-                                        result.sharedScholarSLP = Math.ceil(result.total - roninBalance);
-                                    }
+                                    result.sharedScholarSLP = result.inGameSLP;
 
                                     // Adding ronin balance in total Manage SLP x // Set new Total Manager's Earning
                                     this.setState({
@@ -1657,13 +1653,14 @@ class Home extends React.Component {
                                 // This will be the process of updating the TODAY SLP, YESTERDAY SLP and TODATE into new value
                                 if (Number(result.inGameSLP) === 0 && Number(details.TODAY) > 0) {
                                     // Checker for already claimed SLP x this will be the process for reset into 0 the data
-                                    const yesterdySLP = Number(result.inGameSLP) > 0 ? result.inGameSLP : 0;
+                                    // const yesterdySLP = Number(result.inGameSLP) > 0 ? result.inGameSLP : 0;
                                     result.dailySLP = {
                                         ADDRESS: details.ADDRESS,
                                         YESTERDAY: 0,
                                         YESTERDAYRES: details.YESTERDAYRES,
                                         YESTERDAYDATE: yesterdayDate,
                                         TODAY: 0,
+                                        TODAYRES: todaySLP,
                                         TODATE: todayDate,
                                         ACTION: CONSTANTS.MESSAGE.UPDATE,
                                         MESSAGE: "UPDATE from energy reset and was claimed - true",
@@ -1672,6 +1669,8 @@ class Home extends React.Component {
                                         ALLFIELDS: true // to be save, if all fields or not x if false, only TODAY
                                     };
                                 } else {
+                                    // Get TODAY SLP if already claimed within the day
+                                    const resToday = result.claim_on_days === 0 ? Number(todaySLP) + Number(details.TODAYRES) : 0; // Display this if the TODAY is equal to zero, get this value
                                     // Update TODAY SLP based on computation of YESTERDAY SLP and INGAME SLP
                                     if (Number(todaySLP) > Number(details.TODAY)) {
                                         // Update Daily SLP with new TODAY SLP
@@ -1681,6 +1680,7 @@ class Home extends React.Component {
                                             YESTERDAYRES: details.YESTERDAYRES,
                                             YESTERDAYDATE: yesterdayDate,
                                             TODAY: todaySLP,
+                                            TODAYRES: resToday,
                                             TODATE: toDate,
                                             ACTION: CONSTANTS.MESSAGE.UPDATE,
                                             MESSAGE: "UPDATE from isSameTODate true",
@@ -1720,6 +1720,7 @@ class Home extends React.Component {
                                                 YESTERDAYRES: yesterdyResSLP,
                                                 YESTERDAYDATE: yesterdayDate,
                                                 TODAY: todaysSLP,
+                                                TODAYRES: details.TODAYRES,
                                                 TODATE: todayDate,
                                                 ACTION: CONSTANTS.MESSAGE.UPDATE,
                                                 MESSAGE: "UPDATE from energy reset - with battle logs - has already start the game",
@@ -1741,6 +1742,7 @@ class Home extends React.Component {
                                                 YESTERDAYRES: details.TODAY,
                                                 YESTERDAYDATE: yesterdayDate,
                                                 TODAY: todaysSLP,
+                                                TODAYRES: details.TODAYRES,
                                                 TODATE: todayDate,
                                                 ACTION: CONSTANTS.MESSAGE.UPDATE,
                                                 MESSAGE: "UPDATE from energy reset - with battle logs",
@@ -1763,6 +1765,7 @@ class Home extends React.Component {
                                             YESTERDAYRES: details.TODAY,
                                             YESTERDAYDATE: yesterdayDate,
                                             TODAY: todaysSLP,
+                                            TODAYRES: details.TODAYRES,
                                             TODATE: todayDate,
                                             ACTION: CONSTANTS.MESSAGE.UPDATE,
                                             MESSAGE: "UPDATE from energy reset",
@@ -1783,6 +1786,7 @@ class Home extends React.Component {
                                             YESTERDAYRES: details.YESTERDAYRES,
                                             YESTERDAYDATE: yesterdayDate,
                                             TODAY: todaySLP,
+                                            TODAYRES: details.TODAYRES,
                                             TODATE: toDate,
                                             ACTION: CONSTANTS.MESSAGE.UPDATE,
                                             MESSAGE: "UPDATE from isSameTODate false",
@@ -1824,7 +1828,7 @@ class Home extends React.Component {
                         const playerDataTableRes = {
                             name: result.name,
                             averageSLP: <MDBBox data-th={CONSTANTS.MESSAGE.AVERAGE_SLP_PERDAY_V2} tag="span">{result.averageSLPDay}</MDBBox>,
-                            dailySLP: <MDBBox data-th={CONSTANTS.MESSAGE.DAILYSLP} tag="span"><MDBBox tag="span" className={Number(result.dailySLP.YESTERDAYRES) > Number(result.dailySLP.TODAY) ? "green-text d-inline d-md-block d-lg-block" : "red-text d-inline d-md-block d-lg-block"}><strong>Y:</strong> {result.dailySLP.YESTERDAYRES}</MDBBox> <MDBBox tag="span" className={Number(result.dailySLP.YESTERDAYRES) > Number(result.dailySLP.TODAY) ? "red-text d-inline d-md-block d-lg-block" : "green-text d-inline d-md-block d-lg-block"}><strong>T:</strong> {result.dailySLP.TODAY}</MDBBox></MDBBox>,
+                            dailySLP: <MDBBox data-th={CONSTANTS.MESSAGE.DAILYSLP} tag="span"><MDBBox tag="span" className={Number(result.dailySLP.YESTERDAYRES) > Number(result.dailySLP.TODAY) ? "green-text d-inline d-md-block d-lg-block" : "red-text d-inline d-md-block d-lg-block"}><strong>Y:</strong> {result.dailySLP.YESTERDAYRES}</MDBBox> <MDBBox tag="span" className={Number(result.dailySLP.YESTERDAYRES) > Number(result.dailySLP.TODAY) ? "red-text d-inline d-md-block d-lg-block" : "green-text d-inline d-md-block d-lg-block"}><strong>T:</strong> {Number(result.dailySLP.TODAYRES) > 0 ? result.dailySLP.TODAYRES : result.dailySLP.TODAY}</MDBBox></MDBBox>,
                             ingameSLP: <MDBBox data-th={CONSTANTS.MESSAGE.INGAME_SLP} tag="span">{this.numberWithCommas(result.inGameSLP)}</MDBBox>,
                             sharedScholarSLP: <MDBBox data-th={CONSTANTS.MESSAGE.SHARED_SLP} tag="span" className="d-inline d-md-block d-lg-block">{this.numberWithCommas(result.sharedScholarSLP)} <MDBBox tag="span" className="d-inline d-md-block d-lg-block">({(details.SHR_MANAGER).toString() === "100" ? details.SHR_MANAGER : details.SHR_SCHOLAR}%)</MDBBox></MDBBox>,
                             roninSLP: <MDBBox data-th={CONSTANTS.MESSAGE.RONIN_SLP} tag="span">{this.numberWithCommas(roninBalance)} <MDBBox tag="span" className="d-inline d-md-block d-lg-block red-text">{result.managerRoninClaimed ? "(" + this.numberWithCommas(playersStaticData.managerDebtClaimed) + ")" : ""}</MDBBox></MDBBox>,

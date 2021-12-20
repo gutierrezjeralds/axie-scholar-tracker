@@ -28,7 +28,7 @@ const pgConn = {
     ** TB_CLAIMED
     **** ID, ADDRESS, SHR_MANAGER, SHR_SCHOLAR, SHR_SPONSOR, SLPCURRENCY, WITHDRAW_ON
     ** TB_DAILYSLP
-    **** ID, ADDRESS, YESTERDAY, YESTERDAYRES, TODAY, TODATE
+    **** ID, ADDRESS, YESTERDAY, YESTERDAYRES, TODAY, TODAYRES, TODATE x TODAYRES is the TODAY SLP gained when claimed
     ** TB_MANAGEREARNED
     **** ID, SLPTOTAL, SLPCURRENCY, CATEGORY, EARNED_ON
     ** TB_YESTERDAYSLP x This for creating chart for yesterday slp gained
@@ -326,9 +326,9 @@ app.post("/api/dailySLP", async (req, res) => {
 
                 // Execute Query for Daily SLP
                 logger(CONSTANTS.MESSAGE.STARTED_UPDATEQUERY, items.ADDRESS);
-                let query = `${CONSTANTS.QUERY.UPDATE.DAILYSLP} SET "YESTERDAY" = '${items.YESTERDAY}', "YESTERDAYRES" = '${items.YESTERDAYRES}', "TODAY" = '${items.TODAY}', "TODATE" = '${items.TODATE}' WHERE "ADDRESS" = '${items.ADDRESS}'`;
+                let query = `${CONSTANTS.QUERY.UPDATE.DAILYSLP} SET "YESTERDAY" = '${items.YESTERDAY}', "YESTERDAYRES" = '${items.YESTERDAYRES}', "TODAY" = '${items.TODAY}', "TODAYRES" = '${items.TODAYRES}', "TODATE" = '${items.TODATE}' WHERE "ADDRESS" = '${items.ADDRESS}'`;
                 if (!items.ALLFIELDS) { // False, only TODATE SLP will be updating
-                    query = `${CONSTANTS.QUERY.UPDATE.DAILYSLP} SET "TODAY" = '${items.TODAY}' WHERE "ADDRESS" = '${items.ADDRESS}'`;
+                    query = `${CONSTANTS.QUERY.UPDATE.DAILYSLP} SET "TODAY" = '${items.TODAY}', "TODAYRES" = '${items.TODAYRES}' WHERE "ADDRESS" = '${items.ADDRESS}'`;
                 }
 
                 client.query(query, (error) => {
@@ -339,9 +339,10 @@ app.post("/api/dailySLP", async (req, res) => {
                         logger(CONSTANTS.MESSAGE.ERROR_PROCEDURE, error);
                     } else {
                         if (items.TBINSERTYESTERDAY) {
-                            if (Number(items.YESTERDAYRES) > 0) { // Insert all positive value x greater than zero
+                            const slpGained = Number(items.TODAYRES) > 0 ? items.TODAYRES : items.YESTERDAYRES; // Check if the TODAYRES (From claimed process) is not equal to zero x if yes, get the value of TODAYRES else get the value of YESTERDAYRES
+                            if (Number(slpGained) > 0) { // Insert all positive value x greater than zero
                                 // Execute Query for insert Yesterday SLP
-                                const insertQuery = `${CONSTANTS.QUERY.INSERT.YESTERDAYSLP} ("ADDRESS", "YESTERDAY", "DATE_ON") VALUES ('${items.ADDRESS}', '${items.YESTERDAYRES}', '${items.YESTERDAYDATE}')`;
+                                const insertQuery = `${CONSTANTS.QUERY.INSERT.YESTERDAYSLP} ("ADDRESS", "YESTERDAY", "DATE_ON") VALUES ('${items.ADDRESS}', '${slpGained}', '${items.YESTERDAYDATE}')`;
                                 client.query(insertQuery, (error) => {
                                     logger(CONSTANTS.MESSAGE.END_INSERTQUERY, items.ADDRESS);
                                     // End Connection

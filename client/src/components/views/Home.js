@@ -1576,18 +1576,33 @@ class Home extends React.Component {
                                     dataYesterdaySLPSet.sort((a, b) => moment(a.DATE_ON).unix() - moment(b.DATE_ON).unix()).map(items => {
                                         const tempObj = {
                                             x: new Date(items.DATE_ON),
-                                            y: Number(items.YESTERDAY)
+                                            y: Number(items.YESTERDAY),
+                                            z: this.numberWithCommas(items.MMR)
                                         }
                                         // Push data object
                                         let tempObject = Object.assign({}, tempObj);
                                         datas.push(tempObject);
                                         // Return
-                                        return true;
+                                        return true; 
                                     })
                                     // Chart Options with data
                                     details.yesterdaySLPChart = {
                                         animationEnabled: true,
                                         axisX: { valueFormatString: "MMM DD" },
+                                        toolTip:{   
+                                            // content: "{x}: SLP {y} / MMR {z}"
+                                            contentFormatter: function (e) {
+                                                var content = " ";
+                                                for (var i = 0; i < e.entries.length; i++) {
+                                                    content += "<b>" + moment(e.entries[i].dataPoint.x).format('MMM DD') + "</b>";
+                                                    content += "<br/>";
+                                                    content += CONSTANTS.MESSAGE.SLP + ": " + e.entries[i].dataPoint.y;
+                                                    content += "<br/>";
+                                                    content += CONSTANTS.MESSAGE.MMR + ": " + e.entries[i].dataPoint.z;
+                                                }
+                                                return content;
+                                            }
+                                        },
                                         data: [{
                                             yValueFormatString: "#,###",
                                             xValueFormatString: "MMM DD",
@@ -1653,7 +1668,7 @@ class Home extends React.Component {
                                 // This will be the process of updating the TODAY SLP, YESTERDAY SLP and TODATE into new value
                                 if (Number(result.inGameSLP) === 0 && Number(details.TODAY) > 0) {
                                     // Checker for already claimed SLP x this will be the process for reset into 0 the data
-                                    const yesterdySLP = Number(result.inGameSLP) > 0 ? result.inGameSLP : 0;
+                                    // const yesterdySLP = Number(result.inGameSLP) > 0 ? result.inGameSLP : 0;
                                     result.dailySLP = {
                                         ADDRESS: details.ADDRESS,
                                         YESTERDAY: 0,
@@ -1665,6 +1680,7 @@ class Home extends React.Component {
                                         MESSAGE: "UPDATE from energy reset and was claimed - true",
                                         UPDATEDON: todayDate,
                                         NAME: result.name,
+                                        MMR: ranking.elo,
                                         ALLFIELDS: true // to be save, if all fields or not x if false, only TODAY
                                     };
                                 } else {
@@ -1682,6 +1698,7 @@ class Home extends React.Component {
                                             MESSAGE: "UPDATE from isSameTODate true",
                                             UPDATEDON: todayDate,
                                             NAME: result.name,
+                                            MMR: ranking.elo,
                                             ALLFIELDS: false // to be save, if all fields or not x if false, only TODAY
                                         };
                                     } else {
@@ -1721,6 +1738,7 @@ class Home extends React.Component {
                                                 MESSAGE: "UPDATE from energy reset - with battle logs - has already start the game",
                                                 UPDATEDON: todayDate,
                                                 NAME: result.name,
+                                                MMR: ranking.elo,
                                                 ALLFIELDS: true, // to be save, if all fields or not x if false, only TODAY
                                                 TBINSERTYESTERDAY: true // insert the yesterday slp table for display in chart x get the yesterdayres property value
                                             };
@@ -1742,6 +1760,7 @@ class Home extends React.Component {
                                                 MESSAGE: "UPDATE from energy reset - with battle logs",
                                                 UPDATEDON: todayDate,
                                                 NAME: result.name,
+                                                MMR: ranking.elo,
                                                 ALLFIELDS: true, // to be save, if all fields or not x if false, only TODAY
                                                 TBINSERTYESTERDAY: true // insert the yesterday slp table for display in chart x get the yesterdayres property value
                                             };
@@ -1764,6 +1783,7 @@ class Home extends React.Component {
                                             MESSAGE: "UPDATE from energy reset",
                                             UPDATEDON: todayDate,
                                             NAME: result.name,
+                                            MMR: ranking.elo,
                                             ALLFIELDS: true, // to be save, if all fields or not x if false, only TODAY
                                             TBINSERTYESTERDAY: true // insert the yesterday slp table for display in chart x get the yesterdayres property value
                                         };
@@ -1784,6 +1804,7 @@ class Home extends React.Component {
                                             MESSAGE: "UPDATE from isSameTODate false",
                                             UPDATEDON: todayDate,
                                             NAME: result.name,
+                                            MMR: ranking.elo,
                                             ALLFIELDS: false // to be save, if all fields or not x if false, only TODAY
                                         };
                                     } else {

@@ -32,7 +32,7 @@ const pgConn = {
     ** TB_MANAGEREARNED
     **** ID, SLPTOTAL, SLPCURRENCY, CATEGORY, EARNED_ON
     ** TB_YESTERDAYSLP x This for creating chart for yesterday slp gained
-    **** ID, ADDRESS, YESTERDAY, DATE_ON
+    **** ID, ADDRESS, YESTERDAY, DATE_ON, MMR
 */
 
 const CONSTANTS = {
@@ -341,7 +341,7 @@ app.post("/api/dailySLP", async (req, res) => {
                         if (items.TBINSERTYESTERDAY) {
                             if (Number(items.YESTERDAYRES) > 0) { // Insert all positive value x greater than zero
                                 // Execute Query for insert Yesterday SLP
-                                const insertQuery = `${CONSTANTS.QUERY.INSERT.YESTERDAYSLP} ("ADDRESS", "YESTERDAY", "DATE_ON") VALUES ('${items.ADDRESS}', '${items.YESTERDAYRES}', '${items.YESTERDAYDATE}')`;
+                                const insertQuery = `${CONSTANTS.QUERY.INSERT.YESTERDAYSLP} ("ADDRESS", "YESTERDAY", "DATE_ON", "MMR") VALUES ('${items.ADDRESS}', '${items.YESTERDAYRES}', '${items.YESTERDAYDATE}', '${items.MMR}')`;
                                 client.query(insertQuery, (error) => {
                                     logger(CONSTANTS.MESSAGE.END_INSERTQUERY, items.ADDRESS);
                                     // End Connection

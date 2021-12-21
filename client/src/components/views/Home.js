@@ -1594,7 +1594,7 @@ class Home extends React.Component {
                                             contentFormatter: function (e) {
                                                 var content = " ";
                                                 for (var i = 0; i < e.entries.length; i++) {
-                                                    content += "<b>" + moment(e.entries[i].dataPoint.x).format('MMM DD') + "</b>";
+                                                    content += "<b class='primary'>" + moment(e.entries[i].dataPoint.x).format('MMM DD') + "</b>";
                                                     content += "<br/>";
                                                     content += CONSTANTS.MESSAGE.SLP + ": " + e.entries[i].dataPoint.y;
                                                     content += "<br/>";

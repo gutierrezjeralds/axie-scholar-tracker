@@ -2231,7 +2231,7 @@ class Home extends React.Component {
                     return (
                         <React.Fragment>
                             <MDBCol size="12">
-                                <MDBBox tag="div" className="py-3 px-2 text-center rgba-teal-strong">
+                                <MDBBox tag="div" className="py-3 px-2 text-center player-details">
                                     {
                                         // Display Sponsor's Earing
                                         this.state.totalSponsorSLP > 0 ? (

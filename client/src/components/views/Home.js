@@ -1310,16 +1310,18 @@ class Home extends React.Component {
                             
                             // Update USER_PROFILE data for SLP_CLAIMED x already claimed x slp from daily slp
                             //This process is when the response in Axie API is delay
-                            if (Number(details.SLP_CLAIMED) === 0 && Number(result.inGameSLP) !== 0 && Number(result.claim_on_days) === 0) { // If not equal to 0 the inGameSLP x delay receive slkp total from axie API
+                            if (Number(result.inGameSLP) !== 0 && Number(result.claim_on_days) === 0) { // If not equal to 0 the inGameSLP x delay receive slkp total from axie API
                                 // Get Total SLP based on Daily SLP API
                                 const totalSLPClaimed = Number(details.YESTERDAY) + Number(details.TODAY);
-                                // Create Object for sending data in Update API
-                                result.slpClaimed = {
-                                    ADDRESS: details.ADDRESS,
-                                    SLP_CLAIMED: totalSLPClaimed
+                                if (Number(details.SLP_CLAIMED) === 0 || (Number(details.SLP_CLAIMED) !== totalSLPClaimed && Number(details.YESTERDAY) > 0)) {
+                                    // Create Object for sending data in Update API
+                                    result.slpClaimed = {
+                                        ADDRESS: details.ADDRESS,
+                                        SLP_CLAIMED: totalSLPClaimed + Number(details.SLP_CLAIMED)
+                                    }
+                                    // Flag for update the data
+                                    isAlreadyClaimed = true;
                                 }
-                                // Flag for update the data
-                                isAlreadyClaimed = true;
                             } else {
                                 // Reset the SLP Claimed flag if the inGameSLP is already correct the response from Axie API
                                 if (Number(details.SLP_CLAIMED) !== 0 && (Number(result.inGameSLP) < Number(details.SLP_CLAIMED))) {

@@ -1313,7 +1313,7 @@ class Home extends React.Component {
                             if (Number(result.inGameSLP) !== 0 && Number(result.claim_on_days) === 0) { // If not equal to 0 the inGameSLP x delay receive slkp total from axie API
                                 // Get Total SLP based on Daily SLP API
                                 const totalSLPClaimed = Number(details.YESTERDAY) + Number(details.TODAY);
-                                if (Number(details.SLP_CLAIMED) === 0 || (Number(details.SLP_CLAIMED) !== totalSLPClaimed && Number(details.YESTERDAY) > 0)) {
+                                if (Number(details.SLP_CLAIMED) === 0 || Number(details.YESTERDAY) > 0) { // details.YESTERDAY is 0 x automatically reset in below condition
                                     // Create Object for sending data in Update API
                                     result.slpClaimed = {
                                         ADDRESS: details.ADDRESS,

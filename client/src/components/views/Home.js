@@ -1310,7 +1310,12 @@ class Home extends React.Component {
                             
                             // Update USER_PROFILE data for SLP_CLAIMED x already claimed x slp from daily slp
                             //This process is when the response in Axie API is delay
-                            if (Number(result.inGameSLP) !== 0 && Number(result.claim_on_days) === 0) { // If not equal to 0 the inGameSLP x delay receive slkp total from axie API
+                            // Check if the player is just started today
+                            const startedOnRes = moment(details.STARTED_ON);
+                            const startedDate = startedOnRes.tz('Asia/Manila').format('YYYY-MM-DD HH:mm:ss');
+                            const todayDate = momentToday.format('YYYY-MM-DD HH:mm:ss');
+                            const isSameTODate = moment(startedDate).isSame(todayDate, 'date');
+                            if (!isSameTODate && Number(result.inGameSLP) !== 0 && Number(result.claim_on_days) === 0) { // If not equal to 0 the inGameSLP x delay receive slkp total from axie API
                                 // Get Total SLP based on Daily SLP API
                                 const totalSLPClaimed = Number(details.YESTERDAY) + Number(details.TODAY);
                                 if (Number(details.SLP_CLAIMED) === 0 || Number(details.YESTERDAY) > 0) { // details.YESTERDAY is 0 x automatically reset in below condition

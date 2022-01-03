@@ -1302,7 +1302,7 @@ class Home extends React.Component {
                             result.name = details.NAME ? details.NAME : result.name ? result.name : ethAddress; // Update name if the orig name is empty
                             result.slpClaimed = { // Default Object for Claimed SLP
                                 ADDRESS: details.ADDRESS,
-                                SLP_CLAIMED: 0
+                                SLP_CLAIMED: details.SLP_CLAIMED
                             };
 
                             // Check if has balance in Ronin x Set new value for total in game slp

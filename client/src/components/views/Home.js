@@ -1689,7 +1689,7 @@ class Home extends React.Component {
                                     };
                                 } else {
                                     // Update TODAY SLP based on computation of YESTERDAY SLP and INGAME SLP
-                                    if (Number(todaySLP) > Number(details.TODAY)) {
+                                    if (Number(todaySLP) !== Number(details.TODAY)) {
                                         // Update Daily SLP with new TODAY SLP
                                         result.dailySLP = {
                                             ADDRESS: details.ADDRESS,
@@ -1795,7 +1795,7 @@ class Home extends React.Component {
                                 } else {
                                     // This will be the process of updating TODAY SLP only x not yet pass/overlap the 8AM reset
                                     // Update TODAY SLP based on computation of YESTERDAY SLP and INGAME SLP
-                                    if (Number(todaySLP) > Number(details.TODAY)) {
+                                    if (Number(todaySLP) !== Number(details.TODAY)) {
                                         // Update Daily SLP with new TODAY SLP
                                         result.dailySLP = {
                                             ADDRESS: details.ADDRESS,

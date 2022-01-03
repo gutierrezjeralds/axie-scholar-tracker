@@ -1299,8 +1299,11 @@ class Home extends React.Component {
                         result.sharedScholarSLP = result.inGameSLP; // Default value x can be change in process below
                         result.scholarSLP = result.inGameSLP; // Default value x can be change in process below
                         if (Object.keys(details).length > 0) {
-                            // Update name if the orig name is empty
-                            result.name = details.NAME ? details.NAME : result.name ? result.name : ethAddress;
+                            result.name = details.NAME ? details.NAME : result.name ? result.name : ethAddress; // Update name if the orig name is empty
+                            result.slpClaimed = { // Default Object for Claimed SLP
+                                ADDRESS: details.ADDRESS,
+                                SLP_CLAIMED: 0
+                            };
 
                             // Check if has balance in Ronin x Set new value for total in game slp
                             if (result.blockchain_related.balance !== null && result.blockchain_related.balance > 0) {
@@ -1320,10 +1323,7 @@ class Home extends React.Component {
                                 const totalSLPClaimed = Number(details.YESTERDAY) + Number(details.TODAY);
                                 if (Number(details.SLP_CLAIMED) === 0 || Number(details.YESTERDAY) > 0) { // details.YESTERDAY is 0 x automatically reset in below condition
                                     // Create Object for sending data in Update API
-                                    result.slpClaimed = {
-                                        ADDRESS: details.ADDRESS,
-                                        SLP_CLAIMED: totalSLPClaimed + Number(details.SLP_CLAIMED)
-                                    }
+                                    result.slpClaimed.SLP_CLAIMED = totalSLPClaimed + Number(details.SLP_CLAIMED)
                                     // Flag for update the data
                                     isAlreadyClaimed = true;
                                 }
@@ -1331,10 +1331,7 @@ class Home extends React.Component {
                                 // Reset the SLP Claimed flag if the inGameSLP is already correct the response from Axie API
                                 if (Number(details.SLP_CLAIMED) !== 0 && (Number(result.inGameSLP) < Number(details.SLP_CLAIMED))) {
                                     // Create Object for sending data in Update API
-                                    result.slpClaimed = {
-                                        ADDRESS: details.ADDRESS,
-                                        SLP_CLAIMED: 0
-                                    }
+                                    result.slpClaimed.SLP_CLAIMED = 0;
                                     // Flag for update the data
                                     isAlreadyClaimed = true;
                                 }
@@ -1343,8 +1340,8 @@ class Home extends React.Component {
                             // Check if alreay claimed x delay response from Axie API x details.SLP_CLAIMED default value is 0
                             // No worries about this process, its always return positive value if the result.inGameSLP is greater than in details.SLP_CLAIMED
                             // Already reset the value of details.SLP_CLAIMED if the result.inGameSLP is less than in details.SLP_CLAIMED x check on the above logic
-                            if (Number(result.inGameSLP) >= Number(details.SLP_CLAIMED)) {
-                                result.inGameSLP = Number(result.inGameSLP) - Number(details.SLP_CLAIMED);
+                            if (Number(result.inGameSLP) >= Number(result.slpClaimed.SLP_CLAIMED)) {
+                                result.inGameSLP = Number(result.inGameSLP) - Number(result.slpClaimed.SLP_CLAIMED);
                             }
 
                             if ((details.SHR_MANAGER).toString() === "100" || details.SHR_MANAGER > 0) { // Condition for Manager Share

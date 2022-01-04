@@ -100,7 +100,13 @@ class Home extends React.Component {
             hasSponsor: false,
             isViewSLPChart: CONSTANTS.MESSAGE.VIEW_GAINEDSLP_CHART,
             isBonusSLPRewardOn: false, // Indicator if the display of SLP Rewards is vissible to other user
-            isDeleted: false
+            isDeleted: false,
+            maxGainSLP: 500,
+            highestGainedSLP: { // Object for Highest SLP Gained
+                Name: "",
+                SLP: 0,
+                Date: ""
+            }
         }
     }
 
@@ -941,15 +947,16 @@ class Home extends React.Component {
                         const playersStaticData = staticData.length > 0 ? staticData[0] : undefined;
 
                         if (item.EMAIL.toLowerCase() === this.state.isUser.toLowerCase() ||
-                            item.NAME.toLowerCase() === this.state.isUser.toLowerCase() ||
-                            iSponsorName === this.state.isUser.toLowerCase()) {
+                            item.NAME.toLowerCase() === this.state.isUser.toLowerCase()) {
                                 // Get ETH Address based on Credential
                                 userEthAddress = ethAddress;
-                                if (item.SHR_SPONSOR !== "" || item.SHR_SPONSOR !== "0" || item.SHR_SPONSOR !== undefined) {
-                                    // Set valid Sponsor Name
-                                    this.setState({
-                                        isSponsorName: this.state.isUser
-                                    })
+                                if (iSponsorName === this.state.isUser.toLowerCase()) {
+                                    if (item.SHR_SPONSOR !== "" || item.SHR_SPONSOR !== "0" || item.SHR_SPONSOR !== undefined) {
+                                        // Set valid Sponsor Name
+                                        this.setState({
+                                            isSponsorName: this.state.isUser
+                                        })
+                                    }
                                 }
                         }
 
@@ -1266,6 +1273,8 @@ class Home extends React.Component {
                         // Creating object
                         let roninBalance = 0, managerSLPClaimed = 0;
                         let isAlreadyClaimed = false;
+                        let playerDataDailySLPwillSave = true // For checking if has data data to be save x true or false x true need to save / false no data to be save
+                        const todayDate = momentToday.format('YYYY-MM-DD HH:mm:ss');
                         result.name = ranking.name ? ranking.name : "";
                         result.last_claimed_item_at_add = moment.unix(result.last_claimed_item_at).add(1, 'days');
                         result.claim_on_days = 0;
@@ -1316,7 +1325,6 @@ class Home extends React.Component {
                             // Check if the player is just started today
                             const startedOnRes = moment(details.STARTED_ON);
                             const startedDate = startedOnRes.tz('Asia/Manila').format('YYYY-MM-DD HH:mm:ss');
-                            const todayDate = momentToday.format('YYYY-MM-DD HH:mm:ss');
                             const isSameTODate = moment(startedDate).isSame(todayDate, 'date');
                             if (!isSameTODate && Number(result.inGameSLP) !== 0 && Number(result.claim_on_days) === 0) { // If not equal to 0 the inGameSLP x delay receive slkp total from axie API
                                 // Get Total SLP based on Daily SLP API
@@ -1640,112 +1648,132 @@ class Home extends React.Component {
                             result.totalManagerEarningPHP = result.sharedManagerSLP * this.state.slpCurrentValue;
                             // Set new total Sponsor SLP Earning x computed base on sharedSponsorSLP multiply slpCurrentValue
                             result.totalSponsorEarningPHP = result.sharedSponsorSLP * this.state.slpCurrentValue;
-                        }
 
-                        // Update value of win, lose, draw and win rate based in Battle Log
-                        if(battleLogs !== undefined  && battleLogs.error === undefined) {
-                            ranking.win_total = battleLogs.win_total;
-                            ranking.lose_total = battleLogs.lose_total;
-                            ranking.draw_total = battleLogs.draw_total;
-                            ranking.win_rate = battleLogs.win_rate;
-                            // Update PVP Energy left
-                            result.pvp_energy = battleLogs.pvp_energy;
-                        }
-
-                        // Generate Daily SLP Data
-                        let playerDataDailySLPwillSave = true // For checking if has data data to be save x true or false x true need to save / false no data to be save
-                        try {
-                            // Get TODAY SLP x Subtraction of InGameSLP and YESTERDAY
-                            let todaySLP = Number(result.inGameSLP) - Number(details.YESTERDAY);
-                            if (Number(details.YESTERDAY) > Number(result.inGameSLP)) {
-                                // 0 ingameslp, already claimed
-                                todaySLP = result.inGameSLP; // retain old data for newly claimed, must be update on the next day
+                            // Update value of win, lose, draw and win rate based in Battle Log
+                            if(battleLogs !== undefined  && battleLogs.error === undefined) {
+                                ranking.win_total = battleLogs.win_total;
+                                ranking.lose_total = battleLogs.lose_total;
+                                ranking.draw_total = battleLogs.draw_total;
+                                ranking.win_rate = battleLogs.win_rate;
+                                // Update PVP Energy left
+                                result.pvp_energy = battleLogs.pvp_energy;
                             }
-                            // Check if the data from fetch is same date as date today
-                            const toDateRes = moment(details.TODATE);
-                            const toDate = toDateRes.tz('Asia/Manila').format('YYYY-MM-DD HH:mm:ss');
-                            const todayDate = momentToday.format('YYYY-MM-DD HH:mm:ss');
-                            const yesterdayDate = moment().tz('Asia/Manila').subtract(1, "days").format('YYYY-MM-DD HH:mm:ss');
-                            const isSameTODate = moment(toDate).isSame(todayDate, 'date');
-                            if (isSameTODate) {
-                                // Same date from tb TODATE and CURRENT DATE
-                                // This will be the process of updating the TODAY SLP, YESTERDAY SLP and TODATE into new value
-                                if (Number(result.inGameSLP) === 0 && Number(details.TODAY) > 0) {
-                                    // Checker for already claimed SLP x this will be the process for reset into 0 the data
-                                    // const yesterdySLP = Number(result.inGameSLP) > 0 ? result.inGameSLP : 0;
-                                    result.dailySLP = {
-                                        ADDRESS: details.ADDRESS,
-                                        YESTERDAY: 0,
-                                        YESTERDAYRES: details.YESTERDAYRES,
-                                        YESTERDAYDATE: yesterdayDate,
-                                        TODAY: 0,
-                                        TODATE: todayDate,
-                                        ACTION: CONSTANTS.MESSAGE.UPDATE,
-                                        MESSAGE: "UPDATE from energy reset and was claimed - true",
-                                        UPDATEDON: todayDate,
-                                        NAME: result.name,
-                                        MMR: ranking.elo,
-                                        ALLFIELDS: true // to be save, if all fields or not x if false, only TODAY
-                                    };
-                                } else {
-                                    // Update TODAY SLP based on computation of YESTERDAY SLP and INGAME SLP
-                                    if (Number(todaySLP) !== Number(details.TODAY)) {
-                                        // Update Daily SLP with new TODAY SLP
+
+                            // Generate Daily SLP Data
+                            try {
+                                // Get TODAY SLP x Subtraction of InGameSLP and YESTERDAY
+                                let todaySLP = Number(result.inGameSLP) - Number(details.YESTERDAY);
+                                if (Number(details.YESTERDAY) > Number(result.inGameSLP)) {
+                                    // 0 ingameslp, already claimed
+                                    todaySLP = result.inGameSLP; // retain old data for newly claimed, must be update on the next day
+                                }
+                                // Check if the data from fetch is same date as date today
+                                const toDateRes = moment(details.TODATE);
+                                const toDate = toDateRes.tz('Asia/Manila').format('YYYY-MM-DD HH:mm:ss');
+                                const yesterdayDate = moment().tz('Asia/Manila').subtract(1, "days").format('YYYY-MM-DD HH:mm:ss');
+                                const isSameTODate = moment(toDate).isSame(todayDate, 'date');
+                                if (isSameTODate) {
+                                    // Same date from tb TODATE and CURRENT DATE
+                                    // This will be the process of updating the TODAY SLP, YESTERDAY SLP and TODATE into new value
+                                    if (Number(result.inGameSLP) === 0 && Number(details.TODAY) > 0) {
+                                        // Checker for already claimed SLP x this will be the process for reset into 0 the data
+                                        // const yesterdySLP = Number(result.inGameSLP) > 0 ? result.inGameSLP : 0;
                                         result.dailySLP = {
                                             ADDRESS: details.ADDRESS,
-                                            YESTERDAY: details.YESTERDAY,
+                                            YESTERDAY: 0,
                                             YESTERDAYRES: details.YESTERDAYRES,
                                             YESTERDAYDATE: yesterdayDate,
-                                            TODAY: todaySLP,
-                                            TODATE: toDate,
+                                            TODAY: 0,
+                                            TODATE: todayDate,
                                             ACTION: CONSTANTS.MESSAGE.UPDATE,
-                                            MESSAGE: "UPDATE from isSameTODate true",
+                                            MESSAGE: "UPDATE from energy reset and was claimed - true",
                                             UPDATEDON: todayDate,
                                             NAME: result.name,
                                             MMR: ranking.elo,
-                                            ALLFIELDS: false // to be save, if all fields or not x if false, only TODAY
+                                            ALLFIELDS: true // to be save, if all fields or not x if false, only TODAY
                                         };
                                     } else {
-                                        // Today SLP is same x no change required
-                                        playerDataDailySLPwillSave = false;
-                                        result.dailySLP = details;
-                                        result.dailySLP.noChange = "isSameTODate - true";
-                                    }
-                                }
-                            } else {
-                                // Not same date from tb TODATE and CURRENT DATE
-                                // Update TODAY SLP based on computation of YESTERDAY SLP and INGAME SLP
-                                // Update TODATE if teh date today is already passed the 8AM game reset
-                                const timeChecker = moment(todayDate).format('HHmmss');
-                                if (!isSameTODate && Number(timeChecker) >= Number("080000")) { // isSameTODate must always false in this process to prevent to update in new data from game reset 8AM
-                                    // This will be the process of updating the TODAY SLP, YESTERDAY SLP and TODATE into new value
-                                    // Update YESTERDAY and TODAY SLP with TODATE by battle logs
-                                    if(battleLogs !== undefined  && battleLogs.error === undefined) {
-                                        if (Number(battleLogs.win_total) > 0) {
-                                            // Update YESTERDAY and TODAY SLP with TODATE by battle logs
-                                            // Multiple the gained slp reward based on MMR in win total
-                                            // Add the total gained slp reward based from win total in YESTERDAYSLP
-                                            // Minus the total gained slp reward based from win total in inGameSLP x TODAYSLP
-                                            const gainedSLPReward = Number(ranking.slpReward) * Number(battleLogs.win_total);
-                                            const yesterdySLP = Number(details.YESTERDAY) + Number(details.TODAY) + Number(gainedSLPReward);
-                                            const yesterdyResSLP = Number(details.TODAY) + Number(gainedSLPReward);
-                                            const todaysSLP = (Number(result.inGameSLP) - Number(gainedSLPReward)) - Number(yesterdySLP);
-                                            // Update daily slp with new date
+                                        // Update TODAY SLP based on computation of YESTERDAY SLP and INGAME SLP
+                                        if (Number(todaySLP) !== Number(details.TODAY)) {
+                                            // Update Daily SLP with new TODAY SLP
                                             result.dailySLP = {
                                                 ADDRESS: details.ADDRESS,
-                                                YESTERDAY: yesterdySLP,
-                                                YESTERDAYRES: yesterdyResSLP,
+                                                YESTERDAY: details.YESTERDAY,
+                                                YESTERDAYRES: details.YESTERDAYRES,
                                                 YESTERDAYDATE: yesterdayDate,
-                                                TODAY: todaysSLP,
-                                                TODATE: todayDate,
+                                                TODAY: todaySLP,
+                                                TODATE: toDate,
                                                 ACTION: CONSTANTS.MESSAGE.UPDATE,
-                                                MESSAGE: "UPDATE from energy reset - with battle logs - has already start the game",
+                                                MESSAGE: "UPDATE from isSameTODate true",
                                                 UPDATEDON: todayDate,
                                                 NAME: result.name,
                                                 MMR: ranking.elo,
-                                                ALLFIELDS: true, // to be save, if all fields or not x if false, only TODAY
-                                                TBINSERTYESTERDAY: true // insert the yesterday slp table for display in chart x get the yesterdayres property value
+                                                ALLFIELDS: false // to be save, if all fields or not x if false, only TODAY
                                             };
+                                        } else {
+                                            // Today SLP is same x no change required
+                                            playerDataDailySLPwillSave = false;
+                                            result.dailySLP = details;
+                                            result.dailySLP.noChange = "isSameTODate - true";
+                                        }
+                                    }
+                                } else {
+                                    // Not same date from tb TODATE and CURRENT DATE
+                                    // Update TODAY SLP based on computation of YESTERDAY SLP and INGAME SLP
+                                    // Update TODATE if teh date today is already passed the 8AM game reset
+                                    const timeChecker = moment(todayDate).format('HHmmss');
+                                    if (!isSameTODate && Number(timeChecker) >= Number("080000")) { // isSameTODate must always false in this process to prevent to update in new data from game reset 8AM
+                                        // This will be the process of updating the TODAY SLP, YESTERDAY SLP and TODATE into new value
+                                        // Update YESTERDAY and TODAY SLP with TODATE by battle logs
+                                        if(battleLogs !== undefined  && battleLogs.error === undefined) {
+                                            if (Number(battleLogs.win_total) > 0) {
+                                                // Update YESTERDAY and TODAY SLP with TODATE by battle logs
+                                                // Multiple the gained slp reward based on MMR in win total
+                                                // Add the total gained slp reward based from win total in YESTERDAYSLP
+                                                // Minus the total gained slp reward based from win total in inGameSLP x TODAYSLP
+                                                const gainedSLPReward = Number(ranking.slpReward) * Number(battleLogs.win_total);
+                                                const yesterdySLP = Number(details.YESTERDAY) + Number(details.TODAY) + Number(gainedSLPReward);
+                                                const yesterdyResSLP = Number(details.TODAY) + Number(gainedSLPReward);
+                                                const todaysSLP = (Number(result.inGameSLP) - Number(gainedSLPReward)) - Number(yesterdySLP);
+                                                // Update daily slp with new date
+                                                result.dailySLP = {
+                                                    ADDRESS: details.ADDRESS,
+                                                    YESTERDAY: yesterdySLP,
+                                                    YESTERDAYRES: yesterdyResSLP,
+                                                    YESTERDAYDATE: yesterdayDate,
+                                                    TODAY: todaysSLP,
+                                                    TODATE: todayDate,
+                                                    ACTION: CONSTANTS.MESSAGE.UPDATE,
+                                                    MESSAGE: "UPDATE from energy reset - with battle logs - has already start the game",
+                                                    UPDATEDON: todayDate,
+                                                    NAME: result.name,
+                                                    MMR: ranking.elo,
+                                                    ALLFIELDS: true, // to be save, if all fields or not x if false, only TODAY
+                                                    TBINSERTYESTERDAY: true // insert the yesterday slp table for display in chart x get the yesterdayres property value
+                                                };
+                                            } else {
+                                                // Default process for updating YESTERDAY and TODAY SLP with TODATE
+                                                // Get YESTERDAY SLP base on YESTERDAY and TODAY SLP
+                                                const yesterdySLP = Number(details.YESTERDAY) + Number(details.TODAY);
+                                                // Get TODAY SLP base on InGameSLP and YESTERDAY SLP
+                                                const todaysSLP = Number(result.inGameSLP) - Number(yesterdySLP);
+                                                // Update daily slp with new date
+                                                result.dailySLP = {
+                                                    ADDRESS: details.ADDRESS,
+                                                    YESTERDAY: yesterdySLP,
+                                                    YESTERDAYRES: details.TODAY,
+                                                    YESTERDAYDATE: yesterdayDate,
+                                                    TODAY: todaysSLP,
+                                                    TODATE: todayDate,
+                                                    ACTION: CONSTANTS.MESSAGE.UPDATE,
+                                                    MESSAGE: "UPDATE from energy reset - with battle logs",
+                                                    UPDATEDON: todayDate,
+                                                    NAME: result.name,
+                                                    MMR: ranking.elo,
+                                                    ALLFIELDS: true, // to be save, if all fields or not x if false, only TODAY
+                                                    TBINSERTYESTERDAY: true // insert the yesterday slp table for display in chart x get the yesterdayres property value
+                                                };
+                                            }
                                         } else {
                                             // Default process for updating YESTERDAY and TODAY SLP with TODATE
                                             // Get YESTERDAY SLP base on YESTERDAY and TODAY SLP
@@ -1761,7 +1789,7 @@ class Home extends React.Component {
                                                 TODAY: todaysSLP,
                                                 TODATE: todayDate,
                                                 ACTION: CONSTANTS.MESSAGE.UPDATE,
-                                                MESSAGE: "UPDATE from energy reset - with battle logs",
+                                                MESSAGE: "UPDATE from energy reset",
                                                 UPDATEDON: todayDate,
                                                 NAME: result.name,
                                                 MMR: ranking.elo,
@@ -1770,64 +1798,64 @@ class Home extends React.Component {
                                             };
                                         }
                                     } else {
-                                        // Default process for updating YESTERDAY and TODAY SLP with TODATE
-                                        // Get YESTERDAY SLP base on YESTERDAY and TODAY SLP
-                                        const yesterdySLP = Number(details.YESTERDAY) + Number(details.TODAY);
-                                        // Get TODAY SLP base on InGameSLP and YESTERDAY SLP
-                                        const todaysSLP = Number(result.inGameSLP) - Number(yesterdySLP);
-                                        // Update daily slp with new date
-                                        result.dailySLP = {
-                                            ADDRESS: details.ADDRESS,
-                                            YESTERDAY: yesterdySLP,
-                                            YESTERDAYRES: details.TODAY,
-                                            YESTERDAYDATE: yesterdayDate,
-                                            TODAY: todaysSLP,
-                                            TODATE: todayDate,
-                                            ACTION: CONSTANTS.MESSAGE.UPDATE,
-                                            MESSAGE: "UPDATE from energy reset",
-                                            UPDATEDON: todayDate,
-                                            NAME: result.name,
-                                            MMR: ranking.elo,
-                                            ALLFIELDS: true, // to be save, if all fields or not x if false, only TODAY
-                                            TBINSERTYESTERDAY: true // insert the yesterday slp table for display in chart x get the yesterdayres property value
-                                        };
-                                    }
-                                } else {
-                                    // This will be the process of updating TODAY SLP only x not yet pass/overlap the 8AM reset
-                                    // Update TODAY SLP based on computation of YESTERDAY SLP and INGAME SLP
-                                    if (Number(todaySLP) !== Number(details.TODAY)) {
-                                        // Update Daily SLP with new TODAY SLP
-                                        result.dailySLP = {
-                                            ADDRESS: details.ADDRESS,
-                                            YESTERDAY: details.YESTERDAY,
-                                            YESTERDAYRES: details.YESTERDAYRES,
-                                            YESTERDAYDATE: yesterdayDate,
-                                            TODAY: todaySLP,
-                                            TODATE: toDate,
-                                            ACTION: CONSTANTS.MESSAGE.UPDATE,
-                                            MESSAGE: "UPDATE from isSameTODate false",
-                                            UPDATEDON: todayDate,
-                                            NAME: result.name,
-                                            MMR: ranking.elo,
-                                            ALLFIELDS: false // to be save, if all fields or not x if false, only TODAY
-                                        };
-                                    } else {
-                                        // Today SLP is same x no change required
-                                        playerDataDailySLPwillSave = false;
-                                        result.dailySLP = details;
-                                        result.dailySLP.noChange = "isSameTODate - false";
+                                        // This will be the process of updating TODAY SLP only x not yet pass/overlap the 8AM reset
+                                        // Update TODAY SLP based on computation of YESTERDAY SLP and INGAME SLP
+                                        if (Number(todaySLP) !== Number(details.TODAY)) {
+                                            // Update Daily SLP with new TODAY SLP
+                                            result.dailySLP = {
+                                                ADDRESS: details.ADDRESS,
+                                                YESTERDAY: details.YESTERDAY,
+                                                YESTERDAYRES: details.YESTERDAYRES,
+                                                YESTERDAYDATE: yesterdayDate,
+                                                TODAY: todaySLP,
+                                                TODATE: toDate,
+                                                ACTION: CONSTANTS.MESSAGE.UPDATE,
+                                                MESSAGE: "UPDATE from isSameTODate false",
+                                                UPDATEDON: todayDate,
+                                                NAME: result.name,
+                                                MMR: ranking.elo,
+                                                ALLFIELDS: false // to be save, if all fields or not x if false, only TODAY
+                                            };
+                                        } else {
+                                            // Today SLP is same x no change required
+                                            playerDataDailySLPwillSave = false;
+                                            result.dailySLP = details;
+                                            result.dailySLP.noChange = "isSameTODate - false";
+                                        }
                                     }
                                 }
+                            } catch (err) {
+                                // Has error in generate daily slp x used default data for display in table
+                                playerDataDailySLPwillSave = false;
+                                result.dailySLP = {
+                                    ADDRESS: details.ADDRESS,
+                                    YESTERDAY: 0,
+                                    YESTERDAYRES: 0,
+                                    TODAY: 0,
+                                    ERROR: err
+                                }
                             }
-                        } catch (err) {
-                            // Has error in generate daily slp x used default data for display in table
-                            playerDataDailySLPwillSave = false;
-                            result.dailySLP = {
-                                ADDRESS: details.ADDRESS,
-                                YESTERDAY: 0,
-                                YESTERDAYRES: 0,
-                                TODAY: 0,
-                                ERROR: err
+
+                            // Generate Highest SLP Gained
+                            if (Number(result.dailySLP.TODAY) <= Number(this.state.maxGainSLP) && Number(result.dailySLP.TODAY) > Number(details.HIGH_SLP_GAIN)) {
+                                // Insert New Object of Highest SLP Gained by each player in Daily SLP
+                                result.dailySLP.TBUPDATEHIGHSLP = true;
+                                result.dailySLP.HIGHSLPGAIN = result.dailySLP.TODAY;
+                                result.dailySLP.HIGHSLPDATE = todayDate;
+                                // Set new High SLP in object of player details
+                                details.HIGHSLPGAIN = result.dailySLP.TODAY;
+                                details.HIGHSLPDATE = todayDate;
+                            }
+
+                            // Check which SLP Gained is Highest from all player
+                            if (Number(details.HIGHSLPGAIN) > Number(this.state.highestGainedSLP.SLP)) {
+                                this.setState({
+                                    highestGainedSLP: {
+                                        Name: result.name,
+                                        SLP: details.HIGHSLPGAIN,
+                                        Date: details.HIGHSLPDATE
+                                    }
+                                })
                             }
                         }
 
@@ -2124,6 +2152,34 @@ class Home extends React.Component {
         )
     }
 
+    // Render Highest SLP Gained
+    renderHighSLPGained() {
+        if ( this.state.isPlayerLoaded && this.state.isLoaded && !this.state.error ) {
+            if (this.state.isUser !== CONSTANTS.MESSAGE.MANAGER && Object.keys(this.state.playerRecords).length > 0) {
+                return (
+                    <React.Fragment>
+                        <MDBCol size="12" className="mb-3">
+                            <MDBBox tag="div" className="py-3 px-2 text-center player-details">
+                                <MDBBox tag="span" className="d-block d-md-inline d-lg-inline mr-1">
+                                    {CONSTANTS.MESSAGE.HIGH_SLPGAINED}:
+                                </MDBBox>
+                                <MDBBox tag="span" className="d-block d-md-inline d-lg-inline mr-1">
+                                    <strong>{CONSTANTS.MESSAGE.NAME}:</strong> {this.state.highestGainedSLP.Name}
+                                </MDBBox>
+                                <MDBBox tag="span" className="d-block d-md-inline d-lg-inline mr-1">
+                                    <strong>{CONSTANTS.MESSAGE.SLP}:</strong> {this.state.highestGainedSLP.SLP}
+                                </MDBBox>
+                                <MDBBox tag="span" className="d-block d-md-inline d-lg-inline">
+                                    <strong>{CONSTANTS.MESSAGE.DATE}:</strong> <Moment format="MMM DD, YYYY">{this.state.highestGainedSLP.Date}</Moment>
+                                </MDBBox>
+                            </MDBBox>
+                        </MDBCol>
+                    </React.Fragment>
+                )
+            }
+        }
+    }
+
     // Render Total Earnings of Manager, Scholar and Sponsor
     renderEarnings() {
         if ( this.state.isPlayerLoaded && this.state.isLoaded && !this.state.error ) {
@@ -2146,21 +2202,42 @@ class Home extends React.Component {
                             </MDBCard>
                         </MDBCol>
 
-                        {/* Total Average SLP of all players */}
-                        <MDBCol size="6" md="4" lg="2" className="my-2">
-                            <MDBCard className="z-depth-2 player-details h-180px">
-                                <MDBCardBody className="black-text d-flex-center">
-                                    <MDBBox tag="div" className="text-center">
-                                        <MDBBox tag="span" className="d-block">{CONSTANTS.MESSAGE.TOTAL_AVERAGE_SLP}</MDBBox>
-                                        <MDBBox tag="span" className="d-block font-size-1pt3rem font-weight-bold">
-                                            <img src="/assets/images/smooth-love-potion.png" className="w-24px mr-1 mt-0pt3rem-neg" alt="SLP" />
-                                            {this.numberWithCommas(Math.floor(this.state.totalAverageSLP / this.state.playerRecords.length))}
-                                        </MDBBox>
-                                        <MDBBox tag="span" className="d-block font-size-1pt3rem font-weight-bold">&#8369; {this.numberWithCommas(((this.state.totalAverageSLP / this.state.playerRecords.length) * this.state.slpCurrentValue).toFixed(2))}</MDBBox>
-                                    </MDBBox>
-                                </MDBCardBody>
-                            </MDBCard>
-                        </MDBCol>
+                        {
+                            Number(this.state.highestGainedSLP.SLP) > 0 ? (
+                                // Highest SLP Gained
+                                <MDBCol size="6" md="4" lg="2" className="my-2">
+                                    <MDBCard className="z-depth-2 player-details h-180px">
+                                        <MDBCardBody className="black-text d-flex-center">
+                                            <MDBBox tag="div" className="text-center">
+                                                <MDBBox tag="span" className="d-block">{CONSTANTS.MESSAGE.HIGH_SLPGAINED}</MDBBox>
+                                                <MDBBox tag="span" className="d-block font-size-1pt3rem font-weight-bold">
+                                                    <img src="/assets/images/smooth-love-potion.png" className="w-24px mr-1 mt-0pt3rem-neg" alt="SLP" />
+                                                    {this.numberWithCommas(this.state.highestGainedSLP.SLP)}
+                                                </MDBBox>
+                                                <MDBBox tag="span" className="d-block font-size-1pt font-weight-bold">{this.state.highestGainedSLP.Name}</MDBBox>
+                                                <MDBBox tag="span" className="d-block font-size-pt9rem"><Moment format="MMM DD, YYYY">{this.state.highestGainedSLP.Date}</Moment></MDBBox>
+                                            </MDBBox>
+                                        </MDBCardBody>
+                                    </MDBCard>
+                                </MDBCol>
+                            ) : (
+                                // Total Average SLP of all players
+                                <MDBCol size="6" md="4" lg="2" className="my-2">
+                                    <MDBCard className="z-depth-2 player-details h-180px">
+                                        <MDBCardBody className="black-text d-flex-center">
+                                            <MDBBox tag="div" className="text-center">
+                                                <MDBBox tag="span" className="d-block">{CONSTANTS.MESSAGE.TOTAL_AVERAGE_SLP}</MDBBox>
+                                                <MDBBox tag="span" className="d-block font-size-1pt3rem font-weight-bold">
+                                                    <img src="/assets/images/smooth-love-potion.png" className="w-24px mr-1 mt-0pt3rem-neg" alt="SLP" />
+                                                    {this.numberWithCommas(Math.floor(this.state.totalAverageSLP / this.state.playerRecords.length))}
+                                                </MDBBox>
+                                                <MDBBox tag="span" className="d-block font-size-1pt3rem font-weight-bold">&#8369; {this.numberWithCommas(((this.state.totalAverageSLP / this.state.playerRecords.length) * this.state.slpCurrentValue).toFixed(2))}</MDBBox>
+                                            </MDBBox>
+                                        </MDBCardBody>
+                                    </MDBCard>
+                                </MDBCol>
+                            )
+                        }
 
                         {/* Total SLP of all players */}
                         <MDBCol size="6" md="4" lg="2" className="my-2">
@@ -2760,6 +2837,7 @@ class Home extends React.Component {
                     <MDBRow>
                         {this.renderCurrencies()}
                         {this.renderTopScholar()}
+                        {this.renderHighSLPGained()}
                         {this.renderEarnings()}
                     </MDBRow>
                 </MDBContainer>

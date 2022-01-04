@@ -24,7 +24,7 @@ const pgConn = {
 /*
     Tables
     ** TB_USERPROFILE
-    **** ID, ADDRESS, NAME, EMAIL, SHR_MANAGER, SHR_SCHOLAR, SHR_SPONSOR, SPONSOR_NAME, STARTED_ON, SLP_CLAIMED, DELETEIND (X)
+    **** ID, ADDRESS, NAME, EMAIL, SHR_MANAGER, SHR_SCHOLAR, SHR_SPONSOR, SPONSOR_NAME, STARTED_ON, SLP_CLAIMED, DELETEIND (X), HIGH_SLP_GAIN, HIGH_SLP_DATE
     ** TB_CLAIMED
     **** ID, ADDRESS, SHR_MANAGER, SHR_SCHOLAR, SHR_SPONSOR, SLPCURRENCY, WITHDRAW_ON
     ** TB_DAILYSLP
@@ -354,6 +354,17 @@ app.post("/api/dailySLP", async (req, res) => {
                                 // End Connection
                                 client.end();
                             }
+                        } else if (items.TBUPDATEHIGHSLP) { // Update High SLP Gained
+                            // Execute Query x update team record
+                            const query = `${CONSTANTS.QUERY.UPDATE.USERPROFILE} SET "HIGH_SLP_GAIN" = '${items.HIGHSLPGAIN}', "HIGH_SLP_DATE" = '${items.HIGHSLPDATE}' WHERE "ADDRESS" = '${items.ADDRESS}'`;
+                            client.query(query, (error) => {
+                                logger(CONSTANTS.MESSAGE.STARTED_UPDATEQUERY, items.ADDRESS);
+                                // End Connection
+                                client.end();
+                                if (error) {
+                                    logger(CONSTANTS.MESSAGE.ERROR_PROCEDURE, error);
+                                }
+                            });
                         } else {
                             // End Connection
                             client.end();

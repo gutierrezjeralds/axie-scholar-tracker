@@ -1672,6 +1672,7 @@ class Home extends React.Component {
                                 const toDate = toDateRes.tz('Asia/Manila').format("YYYY-MM-DD HH:mm:ss");
                                 const yesterdayDate = moment().tz('Asia/Manila').subtract(1, "days").format("YYYY-MM-DD HH:mm:ss");
                                 const isSameTODate = moment(toDate).isSame(todayDate, 'date');
+                                console.log("isSameTODate", result.name + " - " + isSameTODate + " - " + toDate + " - " + todayDate)
                                 if (isSameTODate) {
                                     // Same date from tb TODATE and CURRENT DATE
                                     // This will be the process of updating the TODAY SLP, YESTERDAY SLP and TODATE into new value

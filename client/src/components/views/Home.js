@@ -1843,17 +1843,17 @@ class Home extends React.Component {
                                 result.dailySLP.HIGHSLPGAIN = result.dailySLP.TODAY;
                                 result.dailySLP.HIGHSLPDATE = todayDate;
                                 // Set new High SLP in object of player details
-                                details.HIGHSLPGAIN = result.dailySLP.TODAY;
-                                details.HIGHSLPDATE = todayDate;
+                                details.HIGH_SLP_GAIN = result.dailySLP.TODAY;
+                                details.HIGH_SLP_DATE = todayDate;
                             }
 
                             // Check which SLP Gained is Highest from all player
-                            if (Number(details.HIGHSLPGAIN) > Number(this.state.highestGainedSLP.SLP)) {
+                            if (Number(details.HIGH_SLP_GAIN) > Number(this.state.highestGainedSLP.SLP)) {
                                 this.setState({
                                     highestGainedSLP: {
                                         Name: result.name,
-                                        SLP: details.HIGHSLPGAIN,
-                                        Date: details.HIGHSLPDATE
+                                        SLP: details.HIGH_SLP_GAIN,
+                                        Date: details.HIGH_SLP_DATE
                                     }
                                 })
                             }

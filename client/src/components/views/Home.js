@@ -1668,10 +1668,10 @@ class Home extends React.Component {
                                     todaySLP = result.inGameSLP; // retain old data for newly claimed, must be update on the next day
                                 }
                                 // Check if the data from fetch is same date as date today
-                                const toDate = moment(details.TODATE).format("YYYY-MM-DD HH:mm:ss");
+                                const toDateRes = moment(details.TODATE);
+                                const toDate = toDateRes.tz('Asia/Manila').format("YYYY-MM-DD HH:mm:ss");
                                 const yesterdayDate = moment().tz('Asia/Manila').subtract(1, "days").format("YYYY-MM-DD HH:mm:ss");
                                 const isSameTODate = moment(toDate).isSame(todayDate, 'date');
-                                console.log("isSameTODate", result.name + " - " + isSameTODate + " - " + toDate + " - " + todayDate)
                                 if (isSameTODate) {
                                     // Same date from tb TODATE and CURRENT DATE
                                     // This will be the process of updating the TODAY SLP, YESTERDAY SLP and TODATE into new value
@@ -1722,7 +1722,7 @@ class Home extends React.Component {
                                     // Update TODAY SLP based on computation of YESTERDAY SLP and INGAME SLP
                                     // Update TODATE if teh date today is already passed the 8AM game reset
                                     const timeChecker = moment(todayDate).format('HHmmss');
-                                    if (!isSameTODate && Number(timeChecker) >= Number("080000")) { // isSameTODate must always false in this process to prevent to update in new data from game reset 8AM
+                                    if (!isSameTODate && Number(result.claim_on_days) > 0 && Number(timeChecker) >= Number("080000")) { // isSameTODate must always false in this process to prevent to update in new data from game reset 8AM
                                         // This will be the process of updating the TODAY SLP, YESTERDAY SLP and TODATE into new value
                                         // Update YESTERDAY and TODAY SLP with TODATE by battle logs
                                         if(battleLogs !== undefined  && battleLogs.error === undefined) {

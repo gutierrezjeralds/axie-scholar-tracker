@@ -1275,6 +1275,7 @@ class Home extends React.Component {
                         let isAlreadyClaimed = false;
                         let playerDataDailySLPwillSave = true // For checking if has data data to be save x true or false x true need to save / false no data to be save
                         const todayDate = momentToday.format("YYYY-MM-DD HH:mm:ss");
+                        const currentTimeDate = new Date().getTime();
                         result.name = ranking.name ? ranking.name : "";
                         result.last_claimed_item_at_add = moment.unix(result.last_claimed_item_at).add(1, 'days');
                         result.claim_on_days = 0;
@@ -1292,9 +1293,8 @@ class Home extends React.Component {
 
                         // Set new value for Claim On (Days) x last_claimed_item_at_add - current date
                         const lastClaimedDate = new Date(moment.unix(result.last_claimed_item_at)).getTime();
-                        const currentDate = new Date().getTime();
-                        if (currentDate > lastClaimedDate) {
-                            result.claim_on_days = Math.round((currentDate - lastClaimedDate) / (1000 * 3600 * 24)).toFixed(0);
+                        if (currentTimeDate > lastClaimedDate) {
+                            result.claim_on_days = Math.round((currentTimeDate - lastClaimedDate) / (1000 * 3600 * 24)).toFixed(0);
                         }
 
                         if (result.blockchain_related === null || result.blockchain_related.signature === null) {
@@ -1324,9 +1324,9 @@ class Home extends React.Component {
                             //This process is when the response in Axie API is delay
                             // Check if the player is just started today
                             const startedOnRes = moment(details.STARTED_ON);
-                            const startedDate = startedOnRes.tz('Asia/Manila').format("YYYY-MM-DD HH:mm:ss");
-                            const isSameTODate = moment(startedDate).isSame(todayDate, 'date');
-                            if (!isSameTODate && Number(result.inGameSLP) !== 0 && Number(result.claim_on_days) === 0) { // If not equal to 0 the inGameSLP x delay receive slkp total from axie API
+                            const startedGetTimeDate = new Date(startedOnRes.tz('Asia/Manila').format("YYYY-MM-DD HH:mm:ss")).getTime();
+                            const isNewCanClaim = (Math.round((currentTimeDate - startedGetTimeDate) / (1000 * 3600 * 24)).toFixed(0)) - 1; // Variable for checking if new added player is if can claim now
+                            if (isNewCanClaim >= this.state.daysClaimable && Number(result.inGameSLP) !== 0 && Number(result.claim_on_days) === 0) { // If not equal to 0 the inGameSLP x delay receive slkp total from axie API
                                 // Get Total SLP based on Daily SLP API
                                 const totalSLPClaimed = Number(details.YESTERDAY) + Number(details.TODAY);
                                 if (Number(details.SLP_CLAIMED) === 0 || Number(details.YESTERDAY) > 0) { // details.YESTERDAY is 0 x automatically reset in below condition

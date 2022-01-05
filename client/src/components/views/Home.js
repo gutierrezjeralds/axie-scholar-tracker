@@ -1274,7 +1274,7 @@ class Home extends React.Component {
                         let roninBalance = 0, managerSLPClaimed = 0;
                         let isAlreadyClaimed = false;
                         let playerDataDailySLPwillSave = true // For checking if has data data to be save x true or false x true need to save / false no data to be save
-                        const todayDate = momentToday.format('YYYY-MM-DD HH:mm:ss');
+                        const todayDate = momentToday.format("YYYY-MM-DD HH:mm:ss");
                         result.name = ranking.name ? ranking.name : "";
                         result.last_claimed_item_at_add = moment.unix(result.last_claimed_item_at).add(1, 'days');
                         result.claim_on_days = 0;
@@ -1324,7 +1324,7 @@ class Home extends React.Component {
                             //This process is when the response in Axie API is delay
                             // Check if the player is just started today
                             const startedOnRes = moment(details.STARTED_ON);
-                            const startedDate = startedOnRes.tz('Asia/Manila').format('YYYY-MM-DD HH:mm:ss');
+                            const startedDate = startedOnRes.tz('Asia/Manila').format("YYYY-MM-DD HH:mm:ss");
                             const isSameTODate = moment(startedDate).isSame(todayDate, 'date');
                             if (!isSameTODate && Number(result.inGameSLP) !== 0 && Number(result.claim_on_days) === 0) { // If not equal to 0 the inGameSLP x delay receive slkp total from axie API
                                 // Get Total SLP based on Daily SLP API
@@ -1669,8 +1669,8 @@ class Home extends React.Component {
                                 }
                                 // Check if the data from fetch is same date as date today
                                 const toDateRes = moment(details.TODATE);
-                                const toDate = toDateRes.tz('Asia/Manila').format('YYYY-MM-DD HH:mm:ss');
-                                const yesterdayDate = moment().tz('Asia/Manila').subtract(1, "days").format('YYYY-MM-DD HH:mm:ss');
+                                const toDate = toDateRes.tz('Asia/Manila').format("YYYY-MM-DD HH:mm:ss");
+                                const yesterdayDate = moment().tz('Asia/Manila').subtract(1, "days").format("YYYY-MM-DD HH:mm:ss");
                                 const isSameTODate = moment(toDate).isSame(todayDate, 'date');
                                 if (isSameTODate) {
                                     // Same date from tb TODATE and CURRENT DATE
@@ -1838,13 +1838,20 @@ class Home extends React.Component {
 
                             // Generate Highest SLP Gained
                             if (Number(result.dailySLP.TODAY) <= Number(this.state.maxGainSLP) && Number(result.dailySLP.TODAY) > Number(details.HIGH_SLP_GAIN)) {
+                                let todayGainDate = todayDate;
+                                const timeChecker = moment(todayDate).format('HHmmss');
+                                if (Number(timeChecker) < Number("080000")) {
+                                    // Check if the date is not yet reset, get the previous date for setting up the Highest SLP Gained Date
+                                    todayGainDate = moment().tz('Asia/Manila').subtract(1, "days").format("YYYY-MM-DD HH:mm:ss");
+                                }
+
                                 // Insert New Object of Highest SLP Gained by each player in Daily SLP
                                 result.dailySLP.TBUPDATEHIGHSLP = true;
                                 result.dailySLP.HIGHSLPGAIN = result.dailySLP.TODAY;
-                                result.dailySLP.HIGHSLPDATE = todayDate;
+                                result.dailySLP.HIGHSLPDATE = todayGainDate;
                                 // Set new High SLP in object of player details
                                 details.HIGH_SLP_GAIN = result.dailySLP.TODAY;
-                                details.HIGH_SLP_DATE = todayDate;
+                                details.HIGH_SLP_DATE = todayGainDate;
                             }
 
                             // Check which SLP Gained is Highest from all player
@@ -2155,7 +2162,7 @@ class Home extends React.Component {
     // Render Highest SLP Gained
     renderHighSLPGained() {
         if ( this.state.isPlayerLoaded && this.state.isLoaded && !this.state.error ) {
-            if (this.state.isUser !== CONSTANTS.MESSAGE.MANAGER && Object.keys(this.state.playerRecords).length > 0) {
+            if (this.state.isUser !== CONSTANTS.MESSAGE.MANAGER && Object.keys(this.state.playerRecords).length > 0 && Number(this.state.highestGainedSLP.SLP) > 0) {
                 return (
                     <React.Fragment>
                         <MDBCol size="12" className="mb-3">

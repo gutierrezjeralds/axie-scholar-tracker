@@ -1668,11 +1668,10 @@ class Home extends React.Component {
                                     todaySLP = result.inGameSLP; // retain old data for newly claimed, must be update on the next day
                                 }
                                 // Check if the data from fetch is same date as date today
-                                const toDateRes = moment(details.TODATE);
-                                const toDate = toDateRes.tz('Asia/Manila').format("YYYY-MM-DD HH:mm:ss");
+                                const toDateRes = moment(details.TODATE).format("YYYY-MM-DD HH:mm:ss");
                                 const yesterdayDate = moment().tz('Asia/Manila').subtract(1, "days").format("YYYY-MM-DD HH:mm:ss");
-                                const isSameTODate = moment(toDate).isSame(todayDate, 'date');
-                                console.log("isSameTODate", result.name + " - " + isSameTODate + " - " + toDate + " - " + todayDate)
+                                const isSameTODate = moment(toDateRes).isSame(todayDate, 'date');
+                                console.log("isSameTODate", result.name + " - " + isSameTODate + " - " + toDateRes + " - " + todayDate)
                                 if (isSameTODate) {
                                     // Same date from tb TODATE and CURRENT DATE
                                     // This will be the process of updating the TODAY SLP, YESTERDAY SLP and TODATE into new value

@@ -1690,6 +1690,7 @@ class Home extends React.Component {
                                             UPDATEDON: todayDate,
                                             NAME: result.name,
                                             MMR: ranking.elo,
+                                            MAXGAINSLP: this.state.maxGainSLP,
                                             ALLFIELDS: true // to be save, if all fields or not x if false, only TODAY
                                         };
                                     } else {
@@ -1708,6 +1709,7 @@ class Home extends React.Component {
                                                 UPDATEDON: todayDate,
                                                 NAME: result.name,
                                                 MMR: ranking.elo,
+                                                MAXGAINSLP: this.state.maxGainSLP,
                                                 ALLFIELDS: false // to be save, if all fields or not x if false, only TODAY
                                             };
                                         } else {
@@ -1748,6 +1750,7 @@ class Home extends React.Component {
                                                     UPDATEDON: todayDate,
                                                     NAME: result.name,
                                                     MMR: ranking.elo,
+                                                    MAXGAINSLP: this.state.maxGainSLP,
                                                     ALLFIELDS: true, // to be save, if all fields or not x if false, only TODAY
                                                     TBINSERTYESTERDAY: true // insert the yesterday slp table for display in chart x get the yesterdayres property value
                                                 };
@@ -1770,6 +1773,7 @@ class Home extends React.Component {
                                                     UPDATEDON: todayDate,
                                                     NAME: result.name,
                                                     MMR: ranking.elo,
+                                                    MAXGAINSLP: this.state.maxGainSLP,
                                                     ALLFIELDS: true, // to be save, if all fields or not x if false, only TODAY
                                                     TBINSERTYESTERDAY: true // insert the yesterday slp table for display in chart x get the yesterdayres property value
                                                 };
@@ -1793,6 +1797,7 @@ class Home extends React.Component {
                                                 UPDATEDON: todayDate,
                                                 NAME: result.name,
                                                 MMR: ranking.elo,
+                                                MAXGAINSLP: this.state.maxGainSLP,
                                                 ALLFIELDS: true, // to be save, if all fields or not x if false, only TODAY
                                                 TBINSERTYESTERDAY: true // insert the yesterday slp table for display in chart x get the yesterdayres property value
                                             };
@@ -1814,6 +1819,7 @@ class Home extends React.Component {
                                                 UPDATEDON: todayDate,
                                                 NAME: result.name,
                                                 MMR: ranking.elo,
+                                                MAXGAINSLP: this.state.maxGainSLP,
                                                 ALLFIELDS: false // to be save, if all fields or not x if false, only TODAY
                                             };
                                         } else {

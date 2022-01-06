@@ -339,7 +339,7 @@ app.post("/api/dailySLP", async (req, res) => {
                         logger(CONSTANTS.MESSAGE.ERROR_PROCEDURE, error);
                     } else {
                         if (items.TBINSERTYESTERDAY) {
-                            if (Number(items.YESTERDAYRES) > 0) { // Insert all positive value x greater than zero
+                            if (Number(items.YESTERDAYRES) > 0 && Number(items.YESTERDAYRES) <= Number(items.MAXGAINSLP)) { // Insert all positive value x greater than zero
                                 // Execute Query for insert Yesterday SLP
                                 const insertQuery = `${CONSTANTS.QUERY.INSERT.YESTERDAYSLP} ("ADDRESS", "YESTERDAY", "DATE_ON", "MMR") VALUES ('${items.ADDRESS}', '${items.YESTERDAYRES}', '${items.YESTERDAYDATE}', '${items.MMR}')`;
                                 client.query(insertQuery, (error) => {

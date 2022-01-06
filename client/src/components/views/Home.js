@@ -1675,7 +1675,8 @@ class Home extends React.Component {
                                 if (isSameTODate) {
                                     // Same date from tb TODATE and CURRENT DATE
                                     // This will be the process of updating the TODAY SLP, YESTERDAY SLP and TODATE into new value
-                                    if (Number(result.inGameSLP) === 0 && Number(details.TODAY) > 0 || (Number(result.inGameSLP) === 0)) {
+                                    if (Number(result.inGameSLP) === 0 && Number(details.TODAY) > 0 || (Number(result.inGameSLP) === 0 && Number(result.claim_on_days) === 0)) {
+                                        // First operator - If player claimed after the quest/grind x Second operator - If player claimed before starting the quest/grind
                                         // Checker for already claimed SLP x this will be the process for reset into 0 the data
                                         // const yesterdySLP = Number(result.inGameSLP) > 0 ? result.inGameSLP : 0;
                                         result.dailySLP = {

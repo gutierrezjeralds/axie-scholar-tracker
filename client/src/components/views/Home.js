@@ -36,6 +36,8 @@ const guildImages = [
 ];
 
 const CanvasJSChart = CanvasJSReact.CanvasJSChart;
+
+const emailRegex = new RegExp(/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/);
 class Home extends React.Component {
     constructor(props) {
         super(props)
@@ -46,6 +48,7 @@ class Home extends React.Component {
             notifCat: "default",
             notifStr: "",
             isUser: this.props.user || "",
+            isUserEmail: false,
             isSponsorName: "",
             daysClaimable: 14, // Default day set for allow slp claim
             managerPHPInvestment: 365000, // Estimated Investment
@@ -101,6 +104,7 @@ class Home extends React.Component {
             isViewSLPChart: CONSTANTS.MESSAGE.VIEW_GAINEDSLP_CHART,
             isBonusSLPRewardOn: false, // Indicator if the display of SLP Rewards is vissible to other user
             isDeleted: false,
+            isBattleLogEnable: true,
             maxGainSLP: 500,
             highestGainedSLP: { // Object for Highest SLP Gained
                 Name: "",
@@ -115,6 +119,12 @@ class Home extends React.Component {
         this.getCoingecko();
         // this.getBinance();
         this.getRecord();
+        // Check if the user is valid email x for checking for display all the player data
+        if (emailRegex.test(this.state.isUser)) {
+            this.setState({
+                isUserEmail: true
+            })
+        }
     }
 
     // Adding comma in number x replacement in toLocaleString()
@@ -127,6 +137,7 @@ class Home extends React.Component {
 
     // Modal Toggle for view of Manager and Sponsor's Earning
     modalEarningToggle = (title, filters, managerEarnings) => () => {
+        // Open Modal Eraning from filters of "Manager and Sponsor"
         const data = managerEarnings ? managerEarnings : [];
         this.setState({
             isModalEarningOpen: !this.state.isModalEarningOpen,
@@ -946,17 +957,17 @@ class Home extends React.Component {
                         const staticData = playerStaticData.filter(items => items.roninAddress === item.ADDRESS); // Filter valid data
                         const playersStaticData = staticData.length > 0 ? staticData[0] : undefined;
 
+                        // Set ETH Address and Sponsor Name
                         if (item.EMAIL.toLowerCase() === this.state.isUser.toLowerCase() ||
-                            item.NAME.toLowerCase() === this.state.isUser.toLowerCase()) {
+                            item.NAME.toLowerCase() === this.state.isUser.toLowerCase() ||
+                            iSponsorName === this.state.isUser.toLowerCase()) {
                                 // Get ETH Address based on Credential
                                 userEthAddress = ethAddress;
-                                if (iSponsorName === this.state.isUser.toLowerCase()) {
-                                    if (item.SHR_SPONSOR !== "" || item.SHR_SPONSOR !== "0" || item.SHR_SPONSOR !== undefined) {
-                                        // Set valid Sponsor Name
-                                        this.setState({
-                                            isSponsorName: this.state.isUser
-                                        })
-                                    }
+                                if (item.SHR_SPONSOR !== "" && item.SHR_SPONSOR !== "0" && item.SHR_SPONSOR !== undefined) {
+                                    // Set valid Sponsor Name
+                                    this.setState({
+                                        isSponsorName: this.state.isUser
+                                    })
                                 }
                         }
 
@@ -997,7 +1008,7 @@ class Home extends React.Component {
                                 }
     
                                 // Display data
-                                if (this.state.isUser === CONSTANTS.MESSAGE.MANAGER) {
+                                if (this.state.isUser === CONSTANTS.MESSAGE.MANAGER || this.state.isUserEmail) {
                                     if (!dataItem.isDelete) { // Display not deleted player
                                         initDisplay.push(dataItem.data); // Data for initial display x display all
                                     }
@@ -1048,7 +1059,7 @@ class Home extends React.Component {
                                 }
 
                                 // Display data
-                                if (this.state.isUser === CONSTANTS.MESSAGE.MANAGER) {
+                                if (this.state.isUser === CONSTANTS.MESSAGE.MANAGER || this.state.isUserEmail) {
                                     // Data for Manager Earnings in Modal x Pushed specific data
                                     managerEarningsDisplay.push({
                                         name: dataItem.data.name,
@@ -1102,7 +1113,7 @@ class Home extends React.Component {
                             ];
 
                             // Adding additional Column for Player Datatable x Reward Bonus SLP Column
-                            if (this.state.isBonusSLPRewardOn && this.state.isUser === CONSTANTS.MESSAGE.MANAGER) {
+                            if (this.state.isBonusSLPRewardOn && (this.state.isUser === CONSTANTS.MESSAGE.MANAGER || this.state.isUserEmail)) {
                                 playerDataTableColums = [
                                     {label: CONSTANTS.MESSAGE.NAME, field: "name"},
                                     {label: CONSTANTS.MESSAGE.DAILYSLP, field: "dailySLP"},
@@ -1212,7 +1223,10 @@ class Home extends React.Component {
                         // Get Player ranking base on Sky Mavis API
                         const ranking = await this.getPlayerRanking(ethAddress);
                         // Get Player battle log base on Game API Axie Technology
-                        const battleLogs = undefined; // await this.getPlayerBattleLog(details.ADDRESS, ethAddress, this.state.PVPENERGY_DEFAULT);
+                        let battleLogs = undefined;
+                        if (this.state.isBattleLogEnable) {
+                            // battleLogs = await this.getPlayerBattleLog(details.ADDRESS, ethAddress, this.state.PVPENERGY_DEFAULT);
+                        }
 
                         if (ranking.error) {
                             // Default object for ranking
@@ -1650,7 +1664,7 @@ class Home extends React.Component {
                             result.totalSponsorEarningPHP = result.sharedSponsorSLP * this.state.slpCurrentValue;
 
                             // Update value of win, lose, draw and win rate based in Battle Log
-                            if(battleLogs !== undefined  && battleLogs.error === undefined) {
+                            if(this.state.isBattleLogEnable && (battleLogs !== undefined  && battleLogs.error === undefined)) {
                                 ranking.win_total = battleLogs.win_total;
                                 ranking.lose_total = battleLogs.lose_total;
                                 ranking.draw_total = battleLogs.draw_total;
@@ -1728,7 +1742,7 @@ class Home extends React.Component {
                                     if (!isSameTODate && Number(result.claim_on_days) > 0 && Number(timeChecker) >= Number("080000")) { // isSameTODate must always false in this process to prevent to update in new data from game reset 8AM
                                         // This will be the process of updating the TODAY SLP, YESTERDAY SLP and TODATE into new value
                                         // Update YESTERDAY and TODAY SLP with TODATE by battle logs
-                                        if(battleLogs !== undefined  && battleLogs.error === undefined) {
+                                        if(this.state.isBattleLogEnable && (battleLogs !== undefined  && battleLogs.error === undefined)) {
                                             if (Number(battleLogs.win_total) > 0) {
                                                 // Update YESTERDAY and TODAY SLP with TODATE by battle logs
                                                 // Multiple the gained slp reward based on MMR in win total
@@ -1889,10 +1903,27 @@ class Home extends React.Component {
                             averageSLP: <MDBBox data-th={CONSTANTS.MESSAGE.AVERAGE_SLP_PERDAY_V2} tag="span">{result.averageSLPDay}</MDBBox>,
                             dailySLP: <MDBBox data-th={CONSTANTS.MESSAGE.DAILYSLP} tag="span"><MDBBox tag="span" className={Number(result.dailySLP.YESTERDAYRES) > Number(result.dailySLP.TODAY) ? "green-text d-inline d-md-block d-lg-block" : "red-text d-inline d-md-block d-lg-block"}><strong>Y:</strong> {result.dailySLP.YESTERDAYRES}</MDBBox> <MDBBox tag="span" className={Number(result.dailySLP.YESTERDAYRES) > Number(result.dailySLP.TODAY) ? "red-text d-inline d-md-block d-lg-block" : "green-text d-inline d-md-block d-lg-block"}><strong>T:</strong> {result.dailySLP.TODAY}</MDBBox></MDBBox>,
                             ingameSLP: <MDBBox data-th={CONSTANTS.MESSAGE.INGAME_SLP} tag="span">{this.numberWithCommas(result.inGameSLP)}</MDBBox>,
-                            sharedScholarSLP: <MDBBox data-th={CONSTANTS.MESSAGE.SHARED_SLP} tag="span" className="d-inline d-md-block d-lg-block">{this.numberWithCommas(result.sharedScholarSLP)} <MDBBox tag="span" className="d-inline d-md-block d-lg-block">({(details.SHR_MANAGER).toString() === "100" ? details.SHR_MANAGER : details.SHR_SCHOLAR}%)</MDBBox></MDBBox>,
+                            sharedScholarSLP: <MDBBox data-th={CONSTANTS.MESSAGE.SHARED_SLP} tag="span" className="d-inline d-md-block d-lg-block">
+                                                    {
+                                                        this.state.isUser === CONSTANTS.MESSAGE.MANAGER || !this.state.isUserEmail || (this.state.isUser).toLowerCase() === (result.details.EMAIL).toLowerCase() ? (
+                                                            <React.Fragment>
+                                                                {this.numberWithCommas(result.sharedScholarSLP)}
+                                                                <MDBBox tag="span" className="d-inline d-md-block d-lg-block">
+                                                                    ({(details.SHR_MANAGER).toString() === "100" ? details.SHR_MANAGER : details.SHR_SCHOLAR}%)
+                                                                </MDBBox>
+                                                            </React.Fragment>
+                                                        ) : (0) // If user is email x display 0 for other player
+                                                    }
+                                                </MDBBox>,
                             roninSLP: <MDBBox data-th={CONSTANTS.MESSAGE.RONIN_SLP} tag="span">{this.numberWithCommas(roninBalance)} <MDBBox tag="span" className="d-inline d-md-block d-lg-block red-text">{result.managerRoninClaimed ? "(" + this.numberWithCommas(playersStaticData.managerDebtClaimed) + ")" : ""}</MDBBox></MDBBox>,
                             totalScholarEarningSLP: <MDBBox data-th={CONSTANTS.MESSAGE.TOTAL_SLP} tag="span">{this.numberWithCommas(result.totalScholarEarningSLP)}</MDBBox>,
-                            totalScholarEarningPHP: <MDBBox data-th={CONSTANTS.MESSAGE.EARNINGS_PHP} tag="span">{this.numberWithCommas((result.totalScholarEarningPHP).toFixed(2))}</MDBBox>,
+                            totalScholarEarningPHP: <MDBBox data-th={CONSTANTS.MESSAGE.EARNINGS_PHP} tag="span">
+                                                        {
+                                                            this.state.isUser === CONSTANTS.MESSAGE.MANAGER || !this.state.isUserEmail || (this.state.isUser).toLowerCase() === (result.details.EMAIL).toLowerCase() ? (
+                                                                this.numberWithCommas((result.totalScholarEarningPHP).toFixed(2))
+                                                            ) : (0) // If user is email x display 0 for other player
+                                                        }
+                                                    </MDBBox>,
                             claimOn: <MDBBox data-th={CONSTANTS.MESSAGE.CLAIMON} tag="span" className="d-block">{moment.unix(result.last_claimed_item_at).add(this.state.daysClaimable, "days").format("MMM DD, hh:mm A")} <MDBBox tag="span" className="d-block">{result.claim_on_days} {CONSTANTS.MESSAGE.DAYS}</MDBBox></MDBBox>,
                             mmr: <MDBBox data-th={CONSTANTS.MESSAGE.MMR} tag="span" className={ranking.textStyle}>{this.numberWithCommas(ranking.elo)}</MDBBox>,
                             rank: <MDBBox data-th={CONSTANTS.MESSAGE.RANK} tag="span">{this.numberWithCommas(ranking.rank)}</MDBBox>,
@@ -2128,7 +2159,7 @@ class Home extends React.Component {
     // Render Top scholar x ELO Ranking and SLP Earning
     renderTopScholar() {
         if ( this.state.isPlayerLoaded && this.state.isLoaded && !this.state.error ) {
-            if (this.state.isUser !== CONSTANTS.MESSAGE.MANAGER && Object.keys(this.state.playerRecords).length > 0) {
+            if (this.state.isUser !== CONSTANTS.MESSAGE.MANAGER && !this.state.isUserEmail && Object.keys(this.state.playerRecords).length > 0) {
                 return (
                     <React.Fragment>
                         <MDBCol size="12" className="mb-3">
@@ -2169,7 +2200,7 @@ class Home extends React.Component {
     // Render Highest SLP Gained
     renderHighSLPGained() {
         if ( this.state.isPlayerLoaded && this.state.isLoaded && !this.state.error ) {
-            if (this.state.isUser !== CONSTANTS.MESSAGE.MANAGER && Object.keys(this.state.playerRecords).length > 0 && Number(this.state.highestGainedSLP.SLP) > 0) {
+            if (this.state.isUser !== CONSTANTS.MESSAGE.MANAGER && !this.state.isUserEmail && Object.keys(this.state.playerRecords).length > 0 && Number(this.state.highestGainedSLP.SLP) > 0) {
                 return (
                     <React.Fragment>
                         <MDBCol size="12" className="mb-3">
@@ -2197,7 +2228,7 @@ class Home extends React.Component {
     // Render Total Earnings of Manager, Scholar and Sponsor
     renderEarnings() {
         if ( this.state.isPlayerLoaded && this.state.isLoaded && !this.state.error ) {
-            if (this.state.isUser === CONSTANTS.MESSAGE.MANAGER) {
+            if (this.state.isUser === CONSTANTS.MESSAGE.MANAGER || this.state.isUserEmail) {
                 return (
                     <React.Fragment>
                         {/* Top MMR and SLP */}
@@ -2272,14 +2303,20 @@ class Home extends React.Component {
                         {/* Total Manager SLP */}
                         <MDBCol size="6" md="4" lg="2" className="my-2">
                             <MDBCard className="z-depth-2 player-details h-180px">
-                                <MDBCardBody className="black-text cursor-pointer d-flex-center" onClick={this.modalEarningToggle(CONSTANTS.MESSAGE.MANAGER_EARNING, CONSTANTS.MESSAGE.MANAGER, this.state.managerEarningDatatable)}>
+                                <MDBCardBody 
+                                    className={this.state.isUser === CONSTANTS.MESSAGE.MANAGER ? "black-text cursor-pointer d-flex-center" : "black-text d-flex-center"}
+                                    onClick={this.state.isUser === CONSTANTS.MESSAGE.MANAGER ? this.modalEarningToggle(CONSTANTS.MESSAGE.MANAGER_EARNING, CONSTANTS.MESSAGE.MANAGER, this.state.managerEarningDatatable) : () => {}} >
                                     <MDBBox tag="div" className="text-center">
                                         <MDBBox tag="span" className="d-block">{CONSTANTS.MESSAGE.TOTAL_MANAGERCLAIMABLE_SLP}</MDBBox>
                                         <MDBBox tag="span" className="d-block font-size-1pt3rem font-weight-bold">
                                             <img src="/assets/images/smooth-love-potion.png" className="w-24px mr-1 mt-0pt3rem-neg" alt="SLP" />
-                                            {this.numberWithCommas(this.state.totalManagerClaimableSLP)}
+                                            {
+                                                this.state.isUser === CONSTANTS.MESSAGE.MANAGER ? (
+                                                    this.numberWithCommas(this.state.totalManagerClaimableSLP)
+                                                ) : (0)
+                                            }
                                         </MDBBox>
-                                        <MDBBox tag="span" className="d-block font-size-1pt3rem font-weight-bold">&#8369; {this.numberWithCommas((this.state.totalManagerClaimableSLP * this.state.slpCurrentValue).toFixed(2))}</MDBBox>
+                                        <MDBBox tag="span" className="d-block font-size-1pt3rem font-weight-bold">&#8369; {this.state.isUser === CONSTANTS.MESSAGE.MANAGER ? (this.numberWithCommas((this.state.totalManagerClaimableSLP * this.state.slpCurrentValue).toFixed(2))) : ("0.00")}</MDBBox>
                                     </MDBBox>
                                 </MDBCardBody>
                             </MDBCard>
@@ -2353,7 +2390,7 @@ class Home extends React.Component {
                     <MDBModalHeader toggle={this.modalEarningToggle("", "", "")}>{this.state.modalEarningTitle}</MDBModalHeader>
                     <MDBModalBody>
                         {
-                            this.state.isViewMangerEarning === CONSTANTS.MESSAGE.VIEW_CURRENT_EARNINGS || this.state.isUser !== CONSTANTS.MESSAGE.MANAGER ? (
+                            this.state.isViewMangerEarning === CONSTANTS.MESSAGE.VIEW_CURRENT_EARNINGS ? (
                                 // Manager Current Earnings
                                 <React.Fragment>
                                     <MDBBox tag="u" className="d-block mb-2 cursor-pointer" onClick={this.onManagerEarningHandle.bind(this)}>{CONSTANTS.MESSAGE.VIEW_ALL_EARNINGS}</MDBBox> {/* Opposite label x for hide and show */}
@@ -2493,26 +2530,65 @@ class Home extends React.Component {
                                             </MDBBox>
                                         </MDBCol>
                                         {/* Ronin Address */}
-                                        <MDBCol size="12">
-                                            <MDBBox tag="span" className="d-block selectable-text">
-                                                {CONSTANTS.MESSAGE.RONIN}: {this.state.modalPlayerDetails[0].details.ADDRESS}
-                                            </MDBBox>
-                                        </MDBCol>
+                                            <MDBCol size="12">
+                                                <MDBBox tag="span" className="d-block selectable-text">
+                                                    {CONSTANTS.MESSAGE.RONIN}: {this.state.modalPlayerDetails[0].details.ADDRESS}
+                                                </MDBBox>
+                                            </MDBCol>
                                         {/* Email */}
-                                        <MDBCol size="12">
-                                            <MDBBox tag="span" className="d-block selectable-text">
-                                                {CONSTANTS.MESSAGE.EMAIL}: {this.state.modalPlayerDetails[0].details.EMAIL}
-                                            </MDBBox>
-                                        </MDBCol>
+                                        {
+                                            this.state.isUser === CONSTANTS.MESSAGE.MANAGER || (this.state.isUser).toLowerCase() === (this.state.modalPlayerDetails[0].details.EMAIL).toLowerCase() ? (
+                                                <MDBCol size="12">
+                                                    <MDBBox tag="span" className="d-block selectable-text">
+                                                        {CONSTANTS.MESSAGE.EMAIL}: {this.state.modalPlayerDetails[0].details.EMAIL}
+                                                    </MDBBox>
+                                                </MDBCol>
+                                            ) : ("")
+                                        }
                                     </MDBRow>
 
                                     {
                                         this.state.isViewSLPChart === CONSTANTS.MESSAGE.VIEW_GAINEDSLP_CHART ? (
                                             // View Gained SLP Chart
                                             <React.Fragment>
-                                                <MDBBox tag="u" className="d-block mb-2 cursor-pointer" onClick={this.onScholarEaningNChartHandle.bind(this)}>{CONSTANTS.MESSAGE.VIEW_EARNINGS}</MDBBox> {/* Opposite label x for hide and show */}
-                                                {/* Yesterday SLP Chart */}
                                                 {
+                                                    // Display only the view earnings for specific user
+                                                    this.state.isUser === CONSTANTS.MESSAGE.MANAGER || !this.state.isUserEmail || (this.state.isUser).toLowerCase() === (this.state.modalPlayerDetails[0].details.EMAIL).toLowerCase() ? (
+                                                        <MDBBox tag="u" className="d-block mb-2 cursor-pointer" onClick={this.onScholarEaningNChartHandle.bind(this)}>{CONSTANTS.MESSAGE.VIEW_EARNINGS}</MDBBox> // Opposite label x for hide and show
+                                                    ) : ("")
+                                                }
+                                                {
+                                                    // Arena Game Status
+                                                    this.state.isBattleLogEnable ? (
+                                                        <MDBTable scrollY maxHeight="70vh" small bordered striped responsive className="mt-2">
+                                                            <MDBTableBody>
+                                                                {/* <tr>
+                                                                    <td colSpan="4" className="text-center font-weight-bold rgba-teal-strong white-text">{CONSTANTS.MESSAGE.ARENAGAME_STATUS}</td>
+                                                                </tr> */}
+                                                                <tr className="text-center">
+                                                                    <td className="font-weight-bold text-uppercase table-gray-bg">{CONSTANTS.MESSAGE.WIN}</td>
+                                                                    <td className="font-weight-bold text-uppercase table-gray-bg">{CONSTANTS.MESSAGE.LOSE}</td>
+                                                                    <td className="font-weight-bold text-uppercase table-gray-bg">{CONSTANTS.MESSAGE.DRAW}</td>
+                                                                    <td className="font-weight-bold text-uppercase table-gray-bg">{CONSTANTS.MESSAGE.WIN_RATE}</td>
+                                                                </tr>
+                                                                {
+                                                                    Object.keys(this.state.modalPlayerDetails).length > 0 ? (
+                                                                        this.state.modalPlayerDetails.map(items => (
+                                                                            <tr key={items.client_id} className="text-center">
+                                                                                <td className="white-bg">{items.ranking.win_total}</td>
+                                                                                <td className="white-bg">{items.ranking.lose_total}</td>
+                                                                                <td className="white-bg">{items.ranking.draw_total}</td>
+                                                                                <td className="white-bg">{items.ranking.win_rate}%</td>
+                                                                            </tr>
+                                                                        ))
+                                                                    ) : ("")
+                                                                }
+                                                            </MDBTableBody>
+                                                        </MDBTable>
+                                                    ) : ("")
+                                                }
+                                                {
+                                                    // Yesterday SLP Chart
                                                     this.state.modalPlayerDetails[0].details.yesterdaySLPChart && this.state.modalPlayerDetails[0].details.yesterdaySLPChart.data[0].dataPoints.length > 1 ? (
                                                         <CanvasJSChart options ={this.state.modalPlayerDetails[0].details.yesterdaySLPChart} />
                                                     ) : ("")
@@ -2525,28 +2601,6 @@ class Home extends React.Component {
                                                 {/* Table Details */}
                                                 <MDBTable scrollY maxHeight="70vh" bordered striped responsive className="mt-2">
                                                     <MDBTableBody>
-                                                        {/* Arena Game Status */}
-                                                        <tr>
-                                                            <td colSpan="4" className="text-center font-weight-bold rgba-teal-strong white-text">{CONSTANTS.MESSAGE.ARENAGAME_STATUS}</td>
-                                                        </tr>
-                                                        <tr className="text-center">
-                                                            <td className="font-weight-bold text-uppercase table-gray-bg">{CONSTANTS.MESSAGE.WIN}</td>
-                                                            <td className="font-weight-bold text-uppercase table-gray-bg">{CONSTANTS.MESSAGE.LOSE}</td>
-                                                            <td className="font-weight-bold text-uppercase table-gray-bg">{CONSTANTS.MESSAGE.DRAW}</td>
-                                                            <td className="font-weight-bold text-uppercase table-gray-bg">{CONSTANTS.MESSAGE.WIN_RATE}</td>
-                                                        </tr>
-                                                        {
-                                                            Object.keys(this.state.modalPlayerDetails).length > 0 ? (
-                                                                this.state.modalPlayerDetails.map(items => (
-                                                                    <tr key={items.client_id} className="text-center">
-                                                                        <td className="white-bg">{items.ranking.win_total}</td>
-                                                                        <td className="white-bg">{items.ranking.lose_total}</td>
-                                                                        <td className="white-bg">{items.ranking.draw_total}</td>
-                                                                        <td className="white-bg">{items.ranking.win_rate}%</td>
-                                                                    </tr>
-                                                                ))
-                                                            ) : ("")
-                                                        }
                                                         {/* Total Income */}
                                                         <tr>
                                                             <td colSpan="4" className="text-center font-weight-bold rgba-teal-strong white-text">

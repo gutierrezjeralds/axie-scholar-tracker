@@ -25,7 +25,7 @@ class Login extends React.Component {
         event.preventDefault();
         const user = event.target.user.value;
         if (user && user !== undefined) {
-            if (user === "TeamLoki2021") {
+            if (user === "MLoki") {
                 // Display all details
                 Cookies.set("filter", CONSTANTS.MESSAGE.MANAGER)
                 // Reload page
@@ -33,7 +33,7 @@ class Login extends React.Component {
             } else {
                 // Get Record Data from table / json
                 $.ajax({
-                    url: "/api/userProfile",
+                    url: "/api/userProfile/login?credential=" + user.toUpperCase(),
                     type: "GET",
                     contentType: 'application/json',
                     cache: false,

@@ -22,6 +22,7 @@ const MESSAGE = {
     VIEW_SPONSOR_EARNING: "View Sponsor Earnings",
     MANAGER_EARNING: "Manager Earnings",
     SPONSOR_EARNING: "Sponsor Earnings",
+    SUBMANAGER: "SUBManager",
     MANAGER: "Manager",
     SPONSOR: "Sponsor",
     SCHOLAR: "Scholar",

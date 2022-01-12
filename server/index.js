@@ -87,7 +87,7 @@ const CONSTANTS = {
 }
 
 // Global console log
-const logger = (message, subMessage = "", addedMessage = "", isDevMode = false) => {
+const logger = (message, subMessage = "", addedMessage = "", isDevMode = true) => {
     if (isDevMode) {
         return console.log(message, subMessage, addedMessage);
     }
@@ -114,6 +114,44 @@ app.get("/api/userProfile", async (req, res) => {
 
         // Execute Query x JOIN table
         const query = `${CONSTANTS.QUERY.SELECT.USERPROFILE}`;
+        client.query(query, (error, result) => {
+            logger(CONSTANTS.MESSAGE.END_SELECTQUERY);
+            // End Connection
+            client.end();
+            if (error) {
+                return res.type("application/json").status(500).send({
+                    error: true,
+                    data: error
+                });
+            } else {
+                return res.type("application/json").status(200).send({
+                    error: false,
+                    data: result.rows
+                });
+            }
+        });
+    } catch (err) {
+        return res.type("application/json").status(500).send({
+            error: true,
+            data: err
+        });
+    }
+})
+
+// GET Method x Fetch User Profile x TB_USERPROFILE
+app.get("/api/userProfile/login", async (req, res) => {
+    try {
+        logger(CONSTANTS.MESSAGE.STARTED_SELECTQUERY);
+
+        // Conect to postgres
+        const client = new Client(pgConn);
+        client.connect();
+
+        // Param payload
+        const param = req.query;
+
+        // Execute Query x JOIN table
+        const query = `${CONSTANTS.QUERY.SELECT.USERPROFILE} WHERE UPPER("NAME") = '${param.credential}' OR UPPER("EMAIL") = '${param.credential}' OR UPPER("SPONSOR_NAME") = '${param.credential}'`;
         client.query(query, (error, result) => {
             logger(CONSTANTS.MESSAGE.END_SELECTQUERY);
             // End Connection

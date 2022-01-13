@@ -2537,7 +2537,7 @@ class Home extends React.Component {
                                             </MDBCol>
                                         {/* Email */}
                                         {
-                                            this.state.isUser === CONSTANTS.MESSAGE.MANAGER || (this.state.isUser).toLowerCase() === (this.state.modalPlayerDetails[0].details.EMAIL).toLowerCase() ? (
+                                            this.state.isUser === CONSTANTS.MESSAGE.MANAGER || !this.state.isUserEmail || (this.state.isUser).toLowerCase() === (this.state.modalPlayerDetails[0].details.EMAIL).toLowerCase() ? (
                                                 <MDBCol size="12">
                                                     <MDBBox tag="span" className="d-block selectable-text">
                                                         {CONSTANTS.MESSAGE.EMAIL}: {this.state.modalPlayerDetails[0].details.EMAIL}

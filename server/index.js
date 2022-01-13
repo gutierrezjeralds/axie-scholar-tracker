@@ -87,7 +87,7 @@ const CONSTANTS = {
 }
 
 // Global console log
-const logger = (message, subMessage = "", addedMessage = "", isDevMode = true) => {
+const logger = (message, subMessage = "", addedMessage = "", isDevMode = false) => {
     if (isDevMode) {
         return console.log(message, subMessage, addedMessage);
     }
@@ -149,25 +149,33 @@ app.get("/api/userProfile/login", async (req, res) => {
 
         // Param payload
         const param = req.query;
+        if (param.credential) {
+            const access = (decodeURI(param.credential)).replace(/\s+/g, '+'); // Decode URL x replace space from "+" into value of "+"
 
-        // Execute Query x JOIN table
-        const query = `${CONSTANTS.QUERY.SELECT.USERPROFILE} WHERE UPPER("NAME") = '${param.credential}' OR UPPER("EMAIL") = '${param.credential}' OR UPPER("SPONSOR_NAME") = '${param.credential}'`;
-        client.query(query, (error, result) => {
-            logger(CONSTANTS.MESSAGE.END_SELECTQUERY);
-            // End Connection
-            client.end();
-            if (error) {
-                return res.type("application/json").status(500).send({
-                    error: true,
-                    data: error
-                });
-            } else {
-                return res.type("application/json").status(200).send({
-                    error: false,
-                    data: result.rows
-                });
-            }
-        });
+            // Execute Query x JOIN table
+            const query = `${CONSTANTS.QUERY.SELECT.USERPROFILE} WHERE UPPER("NAME") = '${access}' OR UPPER("EMAIL") = '${access}' OR UPPER("SPONSOR_NAME") = '${access}'`;
+            client.query(query, (error, result) => {
+                logger(CONSTANTS.MESSAGE.END_SELECTQUERY);
+                // End Connection
+                client.end();
+                if (error) {
+                    return res.type("application/json").status(500).send({
+                        error: true,
+                        data: error
+                    });
+                } else {
+                    return res.type("application/json").status(200).send({
+                        error: false,
+                        data: result.rows
+                    });
+                }
+            });
+        } else {
+            return res.type("application/json").status(500).send({
+                error: true,
+                data: CONSTANTS.MESSAGE.ERROR_PROCEDURE
+            });
+        }
     } catch (err) {
         return res.type("application/json").status(500).send({
             error: true,

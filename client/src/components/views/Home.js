@@ -1916,7 +1916,13 @@ class Home extends React.Component {
                                                     }
                                                 </MDBBox>,
                             roninSLP: <MDBBox data-th={CONSTANTS.MESSAGE.RONIN_SLP} tag="span">{this.numberWithCommas(roninBalance)} <MDBBox tag="span" className="d-inline d-md-block d-lg-block red-text">{result.managerRoninClaimed ? "(" + this.numberWithCommas(playersStaticData.managerDebtClaimed) + ")" : ""}</MDBBox></MDBBox>,
-                            totalScholarEarningSLP: <MDBBox data-th={CONSTANTS.MESSAGE.TOTAL_SLP} tag="span">{this.numberWithCommas(result.totalScholarEarningSLP)}</MDBBox>,
+                            totalScholarEarningSLP: <MDBBox data-th={CONSTANTS.MESSAGE.TOTAL_SLP} tag="span">
+                                                        {
+                                                            this.state.isUser === CONSTANTS.MESSAGE.MANAGER || !this.state.isUserEmail || (this.state.isUser).toLowerCase() === (result.details.EMAIL).toLowerCase() ? (
+                                                                this.numberWithCommas(result.totalScholarEarningSLP)
+                                                            ) : (0) // If user is email x display 0 for other player
+                                                        }
+                                                    </MDBBox>,
                             totalScholarEarningPHP: <MDBBox data-th={CONSTANTS.MESSAGE.EARNINGS_PHP} tag="span">
                                                         {
                                                             this.state.isUser === CONSTANTS.MESSAGE.MANAGER || !this.state.isUserEmail || (this.state.isUser).toLowerCase() === (result.details.EMAIL).toLowerCase() ? (

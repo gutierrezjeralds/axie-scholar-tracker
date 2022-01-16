@@ -37,7 +37,7 @@ const guildImages = [
 
 const CanvasJSChart = CanvasJSReact.CanvasJSChart;
 
-const emailRegex = new RegExp(/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/);
+// const emailRegex = new RegExp(/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/);
 class Home extends React.Component {
     constructor(props) {
         super(props)
@@ -120,10 +120,13 @@ class Home extends React.Component {
         // this.getBinance();
         this.getRecord();
         // Check if the user is valid email x for checking for display all the player data
-        if (emailRegex.test(this.state.isUser)) {
-            this.setState({
-                isUserEmail: true
-            })
+        if (this.state.isUser) {
+            const emailSplit = this.state.isUser.split('@');
+            if (emailSplit.length >= 2) { // Is valid Email
+                this.setState({
+                    isUserEmail: true
+                })
+            }
         }
     }
 

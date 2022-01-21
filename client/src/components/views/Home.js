@@ -1105,15 +1105,16 @@ class Home extends React.Component {
                             let playerDataTableColums = [
                                 {label: CONSTANTS.MESSAGE.NAME, field: "name"},
                                 {label: CONSTANTS.MESSAGE.DAILYSLP, field: "dailySLP"},
+                                {label: CONSTANTS.MESSAGE.AVG_SLP_PERDAY, field: "averageSLP"},
                                 {label: CONSTANTS.MESSAGE.INGAME_SLP, field: "ingameSLP"},
                                 {label: CONSTANTS.MESSAGE.SHARED_SLP, field: "sharedScholarSLP"},
                                 {label: CONSTANTS.MESSAGE.RONIN_SLP, field: "roninSLP"},
                                 {label: CONSTANTS.MESSAGE.TOTAL_SLP, field: "totalScholarEarningSLP"},
                                 {label: CONSTANTS.MESSAGE.EARNINGS_PHP, field: "totalScholarEarningPHP"},
                                 {label: CONSTANTS.MESSAGE.CLAIMON, field: "claimOn"},
-                                {label: CONSTANTS.MESSAGE.PVP_ENERGY, field: "pvpEnergy"},
                                 {label: CONSTANTS.MESSAGE.MMR, field: "mmrRank"}
                             ];
+                            // {label: CONSTANTS.MESSAGE.PVP_ENERGY, field: "pvpEnergy"},
 
                             // Adding additional Column for Player Datatable x Reward Bonus SLP Column
                             if (this.state.isBonusSLPRewardOn && (this.state.isUser === CONSTANTS.MESSAGE.MANAGER || this.state.isUserEmail)) {

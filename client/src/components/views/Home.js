@@ -20,8 +20,10 @@ import playerStaticData from '../assets/json/players.json'
 
 // const moment = require('moment-timezone');
 const momentToday = moment().tz('Asia/Manila');
-console.log("Default", moments().format("YYYY-MM-DD HH:mm:ss"))
-console.log("Timezone", momentToday.format("YYYY-MM-DD HH:mm:ss"))
+const unixMomentToday = momentToday.unix();
+console.log("Default", moments().format("YYYY-MM-DD HH:mm:ss"));
+console.log("Timezone", momentToday.format("YYYY-MM-DD HH:mm:ss"));
+console.log("Unix", unixMomentToday);
 
 const guildImages = [
     '/assets/images/guides/buff_debuff.jpg',
@@ -1308,11 +1310,18 @@ class Home extends React.Component {
                         result.totalSLPRewards = 0;
                         result.totalPHPRewards = 0;
                         result.isBonusSLPReward = false; // Indicator to display the SLP Bonus Reward
+                        result.isClaimable = false;
 
                         // Set new value for Claim On (Days) x last_claimed_item_at_add - current date
-                        const lastClaimedDate = new Date(moment.unix(result.last_claimed_item_at)).getTime();
-                        if (currentTimeDate > lastClaimedDate) {
-                            result.claim_on_days = Math.round((currentTimeDate - lastClaimedDate) / (1000 * 3600 * 24)).toFixed(0);
+                        const lastClaimedTimeDate = new Date(moment.unix(result.last_claimed_item_at)).getTime();
+                        if (currentTimeDate > lastClaimedTimeDate) {
+                            result.claim_on_days = Math.round((currentTimeDate - lastClaimedTimeDate) / (1000 * 3600 * 24)).toFixed(0);
+                        }
+
+                        // Check if claimable
+                        const claimedTimeDate = new Date(moment.unix(result.last_claimed_item_at).add(this.state.daysClaimable, "days")).getTime();
+                        if (unixMomentToday >= claimedTimeDate) {
+                            result.isClaimable = true;
                         }
 
                         if (result.blockchain_related === null || result.blockchain_related.signature === null) {
@@ -1714,7 +1723,7 @@ class Home extends React.Component {
                                         };
                                     } else {
                                         // Update TODAY SLP based on computation of YESTERDAY SLP and INGAME SLP
-                                        if (Number(todaySLP) !== Number(details.TODAY)) {
+                                        if (Number(todaySLP) > Number(details.TODAY)) {
                                             // Update Daily SLP with new TODAY SLP
                                             result.dailySLP = {
                                                 ADDRESS: details.ADDRESS,
@@ -1824,7 +1833,7 @@ class Home extends React.Component {
                                     } else {
                                         // This will be the process of updating TODAY SLP only x not yet pass/overlap the 8AM reset
                                         // Update TODAY SLP based on computation of YESTERDAY SLP and INGAME SLP
-                                        if (Number(todaySLP) !== Number(details.TODAY)) {
+                                        if (Number(todaySLP) > Number(details.TODAY)) {
                                             // Update Daily SLP with new TODAY SLP
                                             result.dailySLP = {
                                                 ADDRESS: details.ADDRESS,
@@ -1934,7 +1943,12 @@ class Home extends React.Component {
                                                             ) : (0) // If user is email x display 0 for other player
                                                         }
                                                     </MDBBox>,
-                            claimOn: <MDBBox data-th={CONSTANTS.MESSAGE.CLAIMON} tag="span" className="d-block">{moment.unix(result.last_claimed_item_at).add(this.state.daysClaimable, "days").format("MMM DD, hh:mm A")} <MDBBox tag="span" className="d-block">{result.claim_on_days} {CONSTANTS.MESSAGE.DAYS}</MDBBox></MDBBox>,
+                            claimOn: <MDBBox data-th={CONSTANTS.MESSAGE.CLAIMON} tag="span" className={result.isClaimable ? "green-text d-block" : "d-block"}>
+                                        {moment.unix(result.last_claimed_item_at).add(this.state.daysClaimable, "days").format("MMM DD, hh:mm A")}
+                                        <MDBBox tag="span" className="d-block">
+                                            {result.claim_on_days} {CONSTANTS.MESSAGE.DAYS}
+                                        </MDBBox>
+                                    </MDBBox>,
                             mmr: <MDBBox data-th={CONSTANTS.MESSAGE.MMR} tag="span" className={ranking.textStyle}>{this.numberWithCommas(ranking.elo)}</MDBBox>,
                             rank: <MDBBox data-th={CONSTANTS.MESSAGE.RANK} tag="span">{this.numberWithCommas(ranking.rank)}</MDBBox>,
                             mmrRank: <MDBBox data-th={CONSTANTS.MESSAGE.MMR} tag="span"><MDBBox tag="span" className={ranking.textStyle}>{this.numberWithCommas(ranking.elo)}</MDBBox> <MDBBox tag="span" className="d-inline d-md-block d-lg-block">{ranking.rank > 0 ? ("(" + this.numberWithCommas(ranking.rank) + ")") : ("")}</MDBBox></MDBBox>,

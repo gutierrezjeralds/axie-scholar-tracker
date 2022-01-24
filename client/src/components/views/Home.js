@@ -23,7 +23,6 @@ const momentToday = moment().tz('Asia/Manila');
 const unixMomentToday = momentToday.unix();
 console.log("Default", moments().format("YYYY-MM-DD HH:mm:ss"));
 console.log("Timezone", momentToday.format("YYYY-MM-DD HH:mm:ss"));
-console.log("Unix", unixMomentToday);
 
 const guildImages = [
     '/assets/images/guides/buff_debuff.jpg',

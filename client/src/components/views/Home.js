@@ -52,6 +52,7 @@ class Home extends React.Component {
             isUserEmail: false,
             isSponsorName: "",
             daysClaimable: 14, // Default day set for allow slp claim
+            defaultDailyQuota: 75, // Default daily quota
             managerPHPInvestment: 370000, // Estimated Investment
             managerPHPROI: 0,
             managerPHPBreed: 0,
@@ -1310,6 +1311,10 @@ class Home extends React.Component {
                         result.totalPHPRewards = 0;
                         result.isBonusSLPReward = false; // Indicator to display the SLP Bonus Reward
                         result.isClaimable = false;
+                        result.dailyQuota = {
+                            quota: this.state.dailyQuota,
+                            textStyle: ""
+                        }
 
                         // Set new value for Claim On (Days) x last_claimed_item_at_add - current date
                         const lastClaimedTimeDate = new Date(moment.unix(result.last_claimed_item_at)).getTime();
@@ -1899,6 +1904,11 @@ class Home extends React.Component {
                             }
                         }
 
+                        // Adding color text for daily quota x red for less than average slp daily in quota
+                        if (Number(result.averageSLPDay) < Number(this.state.defaultDailyQuota)) {
+                            result.dailyQuota.textStyle = "red-text font-weight-bold";
+                        }
+
                         // Adding Player daily slp, details and ranking in result object
                         result.details = details;
                         result.ranking = ranking;
@@ -1912,7 +1922,7 @@ class Home extends React.Component {
                         // Update Player Datatable row details
                         const playerDataTableRes = {
                             name: result.name,
-                            averageSLP: <MDBBox data-th={CONSTANTS.MESSAGE.AVERAGE_SLP_PERDAY_V2} tag="span">{result.averageSLPDay}</MDBBox>,
+                            averageSLP: <MDBBox data-th={CONSTANTS.MESSAGE.AVERAGE_SLP_PERDAY_V2} tag="span" class={result.dailyQuota.textStyle}>{result.averageSLPDay}</MDBBox>,
                             dailySLP: <MDBBox data-th={CONSTANTS.MESSAGE.DAILYSLP} tag="span"><MDBBox tag="span" className={Number(result.dailySLP.YESTERDAYRES) > Number(result.dailySLP.TODAY) ? "green-text d-inline d-md-block d-lg-block" : "red-text d-inline d-md-block d-lg-block"}><strong>Y:</strong> {result.dailySLP.YESTERDAYRES}</MDBBox> <MDBBox tag="span" className={Number(result.dailySLP.YESTERDAYRES) > Number(result.dailySLP.TODAY) ? "red-text d-inline d-md-block d-lg-block" : "green-text d-inline d-md-block d-lg-block"}><strong>T:</strong> {result.dailySLP.TODAY}</MDBBox></MDBBox>,
                             ingameSLP: <MDBBox data-th={CONSTANTS.MESSAGE.INGAME_SLP} tag="span">{this.numberWithCommas(result.inGameSLP)}</MDBBox>,
                             sharedScholarSLP: <MDBBox data-th={CONSTANTS.MESSAGE.SHARED_SLP} tag="span" className="d-inline d-md-block d-lg-block">

@@ -1922,7 +1922,7 @@ class Home extends React.Component {
                         // Update Player Datatable row details
                         const playerDataTableRes = {
                             name: result.name,
-                            averageSLP: <MDBBox data-th={CONSTANTS.MESSAGE.AVERAGE_SLP_PERDAY_V2} tag="span" class={result.dailyQuota.textStyle}>{result.averageSLPDay}</MDBBox>,
+                            averageSLP: <MDBBox data-th={CONSTANTS.MESSAGE.AVERAGE_SLP_PERDAY_V2} tag="span" className={result.dailyQuota.textStyle}>{result.averageSLPDay}</MDBBox>,
                             dailySLP: <MDBBox data-th={CONSTANTS.MESSAGE.DAILYSLP} tag="span"><MDBBox tag="span" className={Number(result.dailySLP.YESTERDAYRES) > Number(result.dailySLP.TODAY) ? "green-text d-inline d-md-block d-lg-block" : "red-text d-inline d-md-block d-lg-block"}><strong>Y:</strong> {result.dailySLP.YESTERDAYRES}</MDBBox> <MDBBox tag="span" className={Number(result.dailySLP.YESTERDAYRES) > Number(result.dailySLP.TODAY) ? "red-text d-inline d-md-block d-lg-block" : "green-text d-inline d-md-block d-lg-block"}><strong>T:</strong> {result.dailySLP.TODAY}</MDBBox></MDBBox>,
                             ingameSLP: <MDBBox data-th={CONSTANTS.MESSAGE.INGAME_SLP} tag="span">{this.numberWithCommas(result.inGameSLP)}</MDBBox>,
                             sharedScholarSLP: <MDBBox data-th={CONSTANTS.MESSAGE.SHARED_SLP} tag="span" className="d-inline d-md-block d-lg-block">

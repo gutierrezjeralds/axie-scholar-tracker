@@ -20,7 +20,7 @@ import playerStaticData from '../assets/json/players.json'
 
 // const moment = require('moment-timezone');
 const momentToday = moment().tz('Asia/Manila');
-const unixMomentToday = momentToday.unix();
+const unixMomentToday = new Date(momentToday).getTime();
 console.log("Default", moments().format("YYYY-MM-DD HH:mm:ss"));
 console.log("Timezone", momentToday.format("YYYY-MM-DD HH:mm:ss"));
 
@@ -237,7 +237,7 @@ class Home extends React.Component {
     pageRefresh = (time) => {
         setTimeout( () => {
             if (!this.state.isModalIskoInputsOpen) { // Dont reload when other modal is open
-                 return window.location.reload();
+                //  return window.location.reload();
             }
             // Return
             return true;
@@ -1299,6 +1299,7 @@ class Home extends React.Component {
                         result.name = ranking.name ? ranking.name : "";
                         result.last_claimed_item_at_add = moment.unix(result.last_claimed_item_at).add(1, 'days');
                         result.claim_on_days = 0;
+                        result.claim_at = moment.unix(result.last_claimed_item_at).add(this.state.daysClaimable, "days").format("MMM DD, hh:mm A");
                         result.inGameSLP = result.total;
                         result.totalScholarEarningSLP = result.total;
                         result.averageSLPDay = 0;
@@ -1324,7 +1325,7 @@ class Home extends React.Component {
 
                         // Check if claimable
                         const claimedTimeDate = new Date(moment.unix(result.last_claimed_item_at).add(this.state.daysClaimable, "days")).getTime();
-                        if (unixMomentToday >= claimedTimeDate) {
+                        if (Number(unixMomentToday.toString()) >= Number(claimedTimeDate.toString())) {
                             result.isClaimable = true;
                         }
 
@@ -1953,7 +1954,7 @@ class Home extends React.Component {
                                                         }
                                                     </MDBBox>,
                             claimOn: <MDBBox data-th={CONSTANTS.MESSAGE.CLAIMON} tag="span" className={result.isClaimable ? "green-text d-block" : "d-block"}>
-                                        {moment.unix(result.last_claimed_item_at).add(this.state.daysClaimable, "days").format("MMM DD, hh:mm A")}
+                                        {result.claim_at}
                                         <MDBBox tag="span" className="d-block">
                                             {result.claim_on_days} {CONSTANTS.MESSAGE.DAYS}
                                         </MDBBox>

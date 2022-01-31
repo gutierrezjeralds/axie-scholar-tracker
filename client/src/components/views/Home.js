@@ -117,7 +117,7 @@ class Home extends React.Component {
     }
 
     componentDidMount() {
-        this.pageRefresh(120000); // Refresh in 2 minutes
+        this.pageRefresh(150000); // Refresh in 5 minutes
         this.getCoingecko();
         // this.getBinance();
         this.getRecord();
@@ -237,7 +237,7 @@ class Home extends React.Component {
     pageRefresh = (time) => {
         setTimeout( () => {
             if (!this.state.isModalIskoInputsOpen) { // Dont reload when other modal is open
-                //  return window.location.reload();
+                 return window.location.reload();
             }
             // Return
             return true;

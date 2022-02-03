@@ -1727,29 +1727,49 @@ class Home extends React.Component {
                                             ALLFIELDS: true // to be save, if all fields or not x if false, only TODAY
                                         };
                                     } else {
-                                        // Update TODAY SLP based on computation of YESTERDAY SLP and INGAME SLP
-                                        if (Number(todaySLP) > Number(details.TODAY)) {
-                                            // Update Daily SLP with new TODAY SLP
+                                        // Check if the YESTERDAY SLP is greather than InGame SLP
+                                        if (Number(details.YESTERDAY) > Number(result.inGameSLP)) {
+                                            // There's an error in Daily SLP x reset to 0 x YESTERDAYSLP must be less than to InGameSLP
                                             result.dailySLP = {
                                                 ADDRESS: details.ADDRESS,
-                                                YESTERDAY: details.YESTERDAY,
+                                                YESTERDAY: 0,
                                                 YESTERDAYRES: details.YESTERDAYRES,
                                                 YESTERDAYDATE: yesterdayDate,
-                                                TODAY: todaySLP,
-                                                TODATE: toDate,
+                                                TODAY: 0,
+                                                TODATE: todayDate,
                                                 ACTION: CONSTANTS.MESSAGE.UPDATE,
-                                                MESSAGE: "UPDATE from isSameTODate true",
+                                                MESSAGE: "UPDATE from energy reset and error in daily slp",
                                                 UPDATEDON: todayDate,
                                                 NAME: result.name,
                                                 MMR: ranking.elo,
                                                 MAXGAINSLP: this.state.maxGainSLP,
-                                                ALLFIELDS: false // to be save, if all fields or not x if false, only TODAY
+                                                ALLFIELDS: true // to be save, if all fields or not x if false, only TODAY
                                             };
                                         } else {
-                                            // Today SLP is same x no change required
-                                            playerDataDailySLPwillSave = false;
-                                            result.dailySLP = details;
-                                            result.dailySLP.noChange = "isSameTODate - true";
+                                            // Update TODAY SLP based on computation of YESTERDAY SLP and INGAME SLP
+                                            if (Number(todaySLP) > Number(details.TODAY)) {
+                                                // Update Daily SLP with new TODAY SLP
+                                                result.dailySLP = {
+                                                    ADDRESS: details.ADDRESS,
+                                                    YESTERDAY: details.YESTERDAY,
+                                                    YESTERDAYRES: details.YESTERDAYRES,
+                                                    YESTERDAYDATE: yesterdayDate,
+                                                    TODAY: todaySLP,
+                                                    TODATE: toDate,
+                                                    ACTION: CONSTANTS.MESSAGE.UPDATE,
+                                                    MESSAGE: "UPDATE from isSameTODate true",
+                                                    UPDATEDON: todayDate,
+                                                    NAME: result.name,
+                                                    MMR: ranking.elo,
+                                                    MAXGAINSLP: this.state.maxGainSLP,
+                                                    ALLFIELDS: false // to be save, if all fields or not x if false, only TODAY
+                                                };
+                                            } else {
+                                                // Today SLP is same x no change required
+                                                playerDataDailySLPwillSave = false;
+                                                result.dailySLP = details;
+                                                result.dailySLP.noChange = "isSameTODate - true";
+                                            }
                                         }
                                     }
                                 } else {

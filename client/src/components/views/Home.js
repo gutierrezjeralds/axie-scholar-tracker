@@ -107,6 +107,7 @@ class Home extends React.Component {
             isBonusSLPRewardOn: false, // Indicator if the display of SLP Rewards is vissible to other user
             isDeleted: false,
             isBattleLogEnable: true,
+            isBattleLogDailyEnable: false, // For daily slp object process
             maxGainSLP: 500,
             highestGainedSLP: { // Object for Highest SLP Gained
                 Name: "",
@@ -1111,23 +1112,22 @@ class Home extends React.Component {
                                 {label: CONSTANTS.MESSAGE.INGAME_SLP, field: "ingameSLP"},
                                 {label: CONSTANTS.MESSAGE.SHARED_SLP, field: "sharedScholarSLP"},
                                 {label: CONSTANTS.MESSAGE.RONIN_SLP, field: "roninSLP"},
-                                {label: CONSTANTS.MESSAGE.TOTAL_SLP, field: "totalScholarEarningSLP"},
-                                {label: CONSTANTS.MESSAGE.EARNINGS_PHP, field: "totalScholarEarningPHP"},
+                                {label: CONSTANTS.MESSAGE.TOTAL_SLP_PHP, field: "totalScholarEarningPHPSLP"},
                                 {label: CONSTANTS.MESSAGE.CLAIMON, field: "claimOn"},
+                                {label: CONSTANTS.MESSAGE.PVP_ENERGY, field: "pvpEnergy"},
                                 {label: CONSTANTS.MESSAGE.MMR, field: "mmrRank"}
                             ];
-                            // {label: CONSTANTS.MESSAGE.PVP_ENERGY, field: "pvpEnergy"},
 
                             // Adding additional Column for Player Datatable x Reward Bonus SLP Column
                             if (this.state.isBonusSLPRewardOn && (this.state.isUser === CONSTANTS.MESSAGE.MANAGER || this.state.isUserEmail)) {
                                 playerDataTableColums = [
                                     {label: CONSTANTS.MESSAGE.NAME, field: "name"},
                                     {label: CONSTANTS.MESSAGE.DAILYSLP, field: "dailySLP"},
+                                    {label: CONSTANTS.MESSAGE.AVG_SLP_PERDAY, field: "averageSLP"},
                                     {label: CONSTANTS.MESSAGE.INGAME_SLP, field: "ingameSLP"},
                                     {label: CONSTANTS.MESSAGE.SHARED_SLP, field: "sharedScholarSLP"},
                                     {label: CONSTANTS.MESSAGE.RONIN_SLP, field: "roninSLP"},
-                                    {label: CONSTANTS.MESSAGE.TOTAL_SLP, field: "totalScholarEarningSLP"},
-                                    {label: CONSTANTS.MESSAGE.EARNINGS_PHP, field: "totalScholarEarningPHP"},
+                                    {label: CONSTANTS.MESSAGE.TOTAL_SLP_PHP, field: "totalScholarEarningPHPSLP"},
                                     {label: CONSTANTS.MESSAGE.REWARDS_SLP, field: "rewardSLP"}, // Additional Column
                                     {label: CONSTANTS.MESSAGE.CLAIMON, field: "claimOn"},
                                     {label: CONSTANTS.MESSAGE.PVP_ENERGY, field: "pvpEnergy"},
@@ -1231,7 +1231,7 @@ class Home extends React.Component {
                         // Get Player battle log base on Game API Axie Technology
                         let battleLogs = undefined;
                         if (this.state.isBattleLogEnable) {
-                            // battleLogs = await this.getPlayerBattleLog(details.ADDRESS, ethAddress, this.state.PVPENERGY_DEFAULT);
+                            battleLogs = await this.getPlayerBattleLog(details.ADDRESS, ethAddress, this.state.PVPENERGY_DEFAULT);
                         }
 
                         if (ranking.error) {
@@ -1313,7 +1313,7 @@ class Home extends React.Component {
                         result.isBonusSLPReward = false; // Indicator to display the SLP Bonus Reward
                         result.isClaimable = false;
                         result.dailyQuota = {
-                            quota: this.state.dailyQuota,
+                            quota: this.state.defaultDailyQuota,
                             textStyle: ""
                         }
 
@@ -1780,7 +1780,7 @@ class Home extends React.Component {
                                     if (!isSameTODate && Number(result.claim_on_days) > 0 && Number(timeChecker) >= Number("080000")) { // isSameTODate must always false in this process to prevent to update in new data from game reset 8AM
                                         // This will be the process of updating the TODAY SLP, YESTERDAY SLP and TODATE into new value
                                         // Update YESTERDAY and TODAY SLP with TODATE by battle logs
-                                        if(this.state.isBattleLogEnable && (battleLogs !== undefined  && battleLogs.error === undefined)) {
+                                        if(this.state.isBattleLogDailyEnable && (battleLogs !== undefined  && battleLogs.error === undefined)) {
                                             if (Number(battleLogs.win_total) > 0) {
                                                 // Update YESTERDAY and TODAY SLP with TODATE by battle logs
                                                 // Multiple the gained slp reward based on MMR in win total
@@ -1973,6 +1973,18 @@ class Home extends React.Component {
                                                             ) : (0) // If user is email x display 0 for other player
                                                         }
                                                     </MDBBox>,
+                            totalScholarEarningPHPSLP: <MDBBox data-th={CONSTANTS.MESSAGE.TOTAL_SLP_PHP} tag="span">
+                                                        {
+                                                            this.state.isUser === CONSTANTS.MESSAGE.MANAGER || !this.state.isUserEmail || (this.state.isUser).toLowerCase() === (result.details.EMAIL).toLowerCase() ? (
+                                                                <React.Fragment>
+                                                                        {this.numberWithCommas(result.totalScholarEarningSLP)}
+                                                                        <MDBBox tag="span" className="d-block">
+                                                                            (&#8369; {this.numberWithCommas((result.totalScholarEarningPHP).toFixed(2))})
+                                                                        </MDBBox>
+                                                                </React.Fragment>
+                                                            ) : (0) // If user is email x display 0 for other player
+                                                        }
+                                                    </MDBBox>,
                             claimOn: <MDBBox data-th={CONSTANTS.MESSAGE.CLAIMON} tag="span" className={result.isClaimable ? "green-text d-block" : "d-block"}>
                                         {result.claim_at}
                                         <MDBBox tag="span" className="d-block">
@@ -2100,42 +2112,48 @@ class Home extends React.Component {
         return new Promise((resolve, reject) => {
             const setPvpEnergy = pvpEnergy !== undefined ? pvpEnergy : 20; // 20 is Default energy
             $.ajax({
-                url: "https://game-api.axie.technology/battlelog/" + roninAddress + "?limit=" + setPvpEnergy,
+                url: "https://game-api.axie.technology/logs/pvp/" + roninAddress + "?limit=" + setPvpEnergy,
                 dataType: "json",
                 cache: false
             })
             .then(
                 async (result) => {
-                    if (result.length > 0 && result[0].success && result[0].items.length > 0) {
+                    if (Object.keys(result).length > 0 && result.battles) {
                         // Get Today Battle log only
                         let winTotal = 0, loseTotal = 0, drawTotal = 0;
-                        let logsPromise = result[0].items.map(async function (logs) {
+                        let logsPromise = result.battles.map(async function (logs) {
                             // Get the Client id winner today
-                            const battleLogData = moment(logs.created_at).format('YYYY-MM-DD HH:mm');
-                            const todayDate = moment().utc().format('YYYY-MM-DD 00:00');
-                            // const gapData = moment().utc().add(24, "hours").format('YYYY-MM-DD HH:mm');
-                            // const battleLogDataUnix = moment(battleLogData).unix();
-                            // const todayDateUnix = moment(todayDate).unix();
-                            // const gapDataUnix = moment(gapData).unix();
-                            const isToday = moment(battleLogData).isSame(todayDate, 'date');
-                            if (isToday) {
-                                if (logs.winner === 0) {
-                                    // 0 = Winner 1
-                                    if (logs.first_client_id === ethAddress) {
+                            const battleLogDate = moment(logs.game_started).add(8, "hours").format('YYYY-MM-DD HH:mm:ss');
+                            const todayDate = moment().utc().add(8, "hours").format('YYYY-MM-DD HH:mm:ss');
+                            const battleTimeChecker = moment(battleLogDate).format('HHmmss');
+                            const todayTimeChecker = moment(todayDate).format('HHmmss');
+                            const isToday = moment(battleLogDate).isSame(todayDate, 'date');
+
+                            // Check if the time is today x greather than to reset mmr
+                            if (todayTimeChecker >= Number("080000")) {
+                                // Get the Battle log for today
+                                if (isToday && todayTimeChecker >= Number("080000")) {
+                                    if (logs.winner === ethAddress) {
                                         winTotal = winTotal + 1;
+                                    } else if ((logs.winner).toLowerCase() === (CONSTANTS.MESSAGE.DRAW).toLowerCase()) {
+                                        drawTotal = drawTotal + 1;
                                     } else {
                                         loseTotal = loseTotal + 1;
                                     }
-                                } else if (logs.winner === 1) {
-                                    // 1 = Winner 2
-                                    if (logs.second_client_id === ethAddress) {
+                                }
+                            } else {
+                                // Get the Battle log from Yesterday or not lapsed in today reseting of MMR
+                                const yesterdayDate = moment(todayDate).subtract(1, "days").format('YYYY-MM-DD HH:mm');
+                                const yesterdayTimeChecker = moment(todayDate).format('HHmmss');
+                                const isYesterday = moment(battleLogDate).isSame(yesterdayDate, 'date');
+                                if ((isYesterday && yesterdayTimeChecker >= Number("080000")) || (isToday && battleTimeChecker < Number("080000"))) {
+                                    if (logs.winner === ethAddress) {
                                         winTotal = winTotal + 1;
+                                    } else if ((logs.winner).toLowerCase() === (CONSTANTS.MESSAGE.DRAW).toLowerCase()) {
+                                        drawTotal = drawTotal + 1;
                                     } else {
                                         loseTotal = loseTotal + 1;
                                     }
-                                } else {
-                                    // 2 = Draw // if (logs.winner === 2)
-                                    drawTotal = drawTotal + 1;
                                 }
                             }
                             
@@ -2155,8 +2173,10 @@ class Home extends React.Component {
                             // Return
                             return resolve(battleLog);
                         });
+                    } else {
+                        // Return
+                        return reject({error: true})
                     }
-                    return resolve({error: true});
                 },
                 // Note: it's important to handle errors here
                 // instead of a catch() block so that we don't swallow
@@ -2738,7 +2758,15 @@ class Home extends React.Component {
                                                 <MDBBox tag="option" value="">{CONSTANTS.MESSAGE.ADDNEW_ISKO}</MDBBox>
                                                 {
                                                     Object.keys(this.state.playerRecords).length > 0 ? (
-                                                        this.state.playerRecords.sort((a, b) =>  b.inGameSLP - a.inGameSLP ).map((item) => (
+                                                        this.state.playerRecords.sort(function (a, b) {
+                                                            if (a.name > b.name) {
+                                                                return 1;
+                                                            } else if (a.name < b.name) {
+                                                                return -1;
+                                                            } else {
+                                                                return 0;
+                                                            }
+                                                        }).map((item) => (
                                                             <MDBBox tag="option" key={item.client_id} value={item.cliend_id}>
                                                                 {item.name}
                                                             </MDBBox>
@@ -2815,7 +2843,15 @@ class Home extends React.Component {
                                         <MDBBox tag="option" value="">{CONSTANTS.MESSAGE.SELECT_NAME}</MDBBox>
                                         {
                                             Object.keys(this.state.playerRecords).length > 0 ? (
-                                                this.state.playerRecords.sort((a, b) =>  b.inGameSLP - a.inGameSLP ).map((item) => (
+                                                this.state.playerRecords.sort(function (a, b) {
+                                                    if (a.name > b.name) {
+                                                        return 1;
+                                                    } else if (a.name < b.name) {
+                                                        return -1;
+                                                    } else {
+                                                        return 0;
+                                                    }
+                                                }).map((item) => (
                                                     <MDBBox tag="option" key={item.client_id} value={item.cliend_id}>
                                                         {item.name}
                                                     </MDBBox>

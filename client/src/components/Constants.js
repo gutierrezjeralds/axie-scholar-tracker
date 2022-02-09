@@ -88,6 +88,7 @@ const MESSAGE = {
     SHARED_SLP: "Shared SLP",
     RONIN_SLP: "Ronin SLP",
     TOTAL_SLP: "Total SLP",
+    TOTAL_SLP_PHP: "Total SLP/PHP",
     EARNINGS_PHP: "Earnings (PHP)",
     DETAIL: "Detail",
     DETAILS: "Details",

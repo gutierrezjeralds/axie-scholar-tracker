@@ -52,7 +52,7 @@ class Home extends React.Component {
             isUserEmail: false,
             isSponsorName: "",
             daysClaimable: 14, // Default day set for allow slp claim
-            defaultDailyQuota: 75, // Default daily quota
+            defaultDailyQuota: 30, // Default daily quota
             managerPHPInvestment: 370000, // Estimated Investment
             managerPHPROI: 0,
             managerPHPBreed: 0,

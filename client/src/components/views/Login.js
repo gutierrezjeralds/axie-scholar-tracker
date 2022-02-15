@@ -27,7 +27,8 @@ class Login extends React.Component {
         if (user && user !== undefined) {
             if (user === "MLoki") {
                 // Display all details
-                Cookies.set("filter", CONSTANTS.MESSAGE.MANAGER)
+                Cookies.set("filter", CONSTANTS.MESSAGE.MANAGER);
+                Cookies.set("isBattleLogEnable", "0");
                 // Reload page
                 window.location.reload();
             } else {
@@ -45,7 +46,8 @@ class Login extends React.Component {
                         const validSponsor = dataRecords.find(valid => valid.SPONSOR_NAME.toLowerCase() === user.toLowerCase());
                         if (validUser && validUser !== undefined && Object.keys(validUser).length > 0) {
                             // Display detail based on credential
-                            Cookies.set("filter", user)
+                            Cookies.set("filter", user);
+                            Cookies.set("isBattleLogEnable", "0");
                             // Reload page
                             window.location.reload();
                         } else {

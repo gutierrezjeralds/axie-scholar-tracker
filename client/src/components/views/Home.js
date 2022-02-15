@@ -106,7 +106,7 @@ class Home extends React.Component {
             isViewSLPChart: CONSTANTS.MESSAGE.VIEW_GAINEDSLP_CHART,
             isBonusSLPRewardOn: false, // Indicator if the display of SLP Rewards is vissible to other user
             isDeleted: false,
-            isBattleLogEnable: false,
+            isBattleLogEnable: Cookies.get("isBattleLogEnable") ? Cookies.get("isBattleLogEnable") === "1" ? true : false : false, // Indicator if the battle log display and logic is visable and functioning
             isBattleLogDailyEnable: false, // For daily slp object process
             maxGainSLP: 500,
             highestGainedSLP: { // Object for Highest SLP Gained
@@ -1114,12 +1114,11 @@ class Home extends React.Component {
                                 {label: CONSTANTS.MESSAGE.RONIN_SLP, field: "roninSLP"},
                                 {label: CONSTANTS.MESSAGE.TOTAL_SLP_PHP, field: "totalScholarEarningPHPSLP"},
                                 {label: CONSTANTS.MESSAGE.CLAIMON, field: "claimOn"},
-                                {label: CONSTANTS.MESSAGE.PVP_ENERGY, field: "pvpEnergy"},
                                 {label: CONSTANTS.MESSAGE.MMR, field: "mmrRank"}
                             ];
 
-                            // Adding additional Column for Player Datatable x Reward Bonus SLP Column
-                            if (this.state.isBonusSLPRewardOn && (this.state.isUser === CONSTANTS.MESSAGE.MANAGER || this.state.isUserEmail)) {
+                            // Adding additional Column for Player Datatable x Reward Bonus SLP Column x Battlelog and SLPBonusReward should not display both at the same time
+                            if (!this.state.isBattleLogEnable && this.state.isBonusSLPRewardOn && (this.state.isUser === CONSTANTS.MESSAGE.MANAGER || this.state.isUserEmail)) {
                                 playerDataTableColums = [
                                     {label: CONSTANTS.MESSAGE.NAME, field: "name"},
                                     {label: CONSTANTS.MESSAGE.DAILYSLP, field: "dailySLP"},
@@ -1129,6 +1128,21 @@ class Home extends React.Component {
                                     {label: CONSTANTS.MESSAGE.RONIN_SLP, field: "roninSLP"},
                                     {label: CONSTANTS.MESSAGE.TOTAL_SLP_PHP, field: "totalScholarEarningPHPSLP"},
                                     {label: CONSTANTS.MESSAGE.REWARDS_SLP, field: "rewardSLP"}, // Additional Column
+                                    {label: CONSTANTS.MESSAGE.CLAIMON, field: "claimOn"},
+                                    {label: CONSTANTS.MESSAGE.MMR, field: "mmrRank"}
+                                ];
+                            }
+                            
+                            // Adding PVP Energy Column when Battle log is enable x Battlelog and SLPBonusReward should not display both at the same time
+                            if (this.state.isBattleLogEnable && !this.state.isBonusSLPRewardOn) {
+                                playerDataTableColums = [
+                                    {label: CONSTANTS.MESSAGE.NAME, field: "name"},
+                                    {label: CONSTANTS.MESSAGE.DAILYSLP, field: "dailySLP"},
+                                    {label: CONSTANTS.MESSAGE.AVG_SLP_PERDAY, field: "averageSLP"},
+                                    {label: CONSTANTS.MESSAGE.INGAME_SLP, field: "ingameSLP"},
+                                    {label: CONSTANTS.MESSAGE.SHARED_SLP, field: "sharedScholarSLP"},
+                                    {label: CONSTANTS.MESSAGE.RONIN_SLP, field: "roninSLP"},
+                                    {label: CONSTANTS.MESSAGE.TOTAL_SLP_PHP, field: "totalScholarEarningPHPSLP"},
                                     {label: CONSTANTS.MESSAGE.CLAIMON, field: "claimOn"},
                                     {label: CONSTANTS.MESSAGE.PVP_ENERGY, field: "pvpEnergy"},
                                     {label: CONSTANTS.MESSAGE.MMR, field: "mmrRank"}

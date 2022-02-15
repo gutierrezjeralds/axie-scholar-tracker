@@ -106,7 +106,7 @@ class Home extends React.Component {
             isViewSLPChart: CONSTANTS.MESSAGE.VIEW_GAINEDSLP_CHART,
             isBonusSLPRewardOn: false, // Indicator if the display of SLP Rewards is vissible to other user
             isDeleted: false,
-            isBattleLogEnable: Cookies.get("isBattleLogEnable") ? Cookies.get("isBattleLogEnable") === "1" ? true : false : false, // Indicator if the battle log display and logic is visable and functioning
+            isBattleLogEnable: localStorage.getItem("isBattleLogEnable") ? localStorage.getItem("isBattleLogEnable") === "1" ? true : false : false, // Indicator if the battle log display and logic is visable and functioning
             isBattleLogDailyEnable: false, // For daily slp object process
             maxGainSLP: 500,
             highestGainedSLP: { // Object for Highest SLP Gained

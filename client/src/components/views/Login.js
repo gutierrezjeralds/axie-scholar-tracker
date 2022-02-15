@@ -28,7 +28,7 @@ class Login extends React.Component {
             if (user === "MLoki") {
                 // Display all details
                 Cookies.set("filter", CONSTANTS.MESSAGE.MANAGER);
-                Cookies.set("isBattleLogEnable", "0");
+                localStorage.setItem("isBattleLogEnable", "0");
                 // Reload page
                 window.location.reload();
             } else {
@@ -47,13 +47,14 @@ class Login extends React.Component {
                         if (validUser && validUser !== undefined && Object.keys(validUser).length > 0) {
                             // Display detail based on credential
                             Cookies.set("filter", user);
-                            Cookies.set("isBattleLogEnable", "0");
+                            localStorage.setItem("isBattleLogEnable", "0");
                             // Reload page
                             window.location.reload();
                         } else {
                             if (validSponsor && validSponsor !== undefined && Object.keys(validSponsor).length > 0) {
                                 // Display detail based on credential
                                 Cookies.set("filter", user)
+                                localStorage.setItem("isBattleLogEnable", "0");
                                 // Reload page
                                 window.location.reload();
                             } else {

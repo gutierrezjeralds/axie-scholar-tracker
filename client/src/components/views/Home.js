@@ -1303,33 +1303,17 @@ class Home extends React.Component {
 
                 if (ranking.error) {
                     if (isBasedCookie) {
-                        try {
-                            if (Number(result.ranking.rank) === 0) { // Check if the rank is equal to zero, if yes, set to default, if not retain the value from cookies
-                                // Default object for ranking
-                                ranking.name = "";
-                                ranking.elo = 0;
-                                ranking.rank = 0;
-                                ranking.win_total = 0;
-                                ranking.lose_total = 0;
-                                ranking.draw_total = 0;
-                                ranking.win_rate = 0;
-                                ranking.textStyle = "";
-                                ranking.eloStatus = "";
-                                ranking.slpReward = 0;
-                            }
-                        } catch (err) {
-                            // Default object for ranking
-                            ranking.name = "";
-                            ranking.elo = 0;
-                            ranking.rank = 0;
-                            ranking.win_total = 0;
-                            ranking.lose_total = 0;
-                            ranking.draw_total = 0;
-                            ranking.win_rate = 0;
-                            ranking.textStyle = "";
-                            ranking.eloStatus = "";
-                            ranking.slpReward = 0;
-                        }
+                        // Get data from cookies
+                        ranking.name = result.ranking.name;
+                        ranking.elo = result.ranking.elo;
+                        ranking.rank = result.ranking.rank;
+                        ranking.win_total = result.ranking.win_total;
+                        ranking.lose_total = result.ranking.lose_total;
+                        ranking.draw_total = result.ranking.draw_total;
+                        ranking.win_rate = result.ranking.win_rate;
+                        ranking.textStyle = result.ranking.textStyle;
+                        ranking.eloStatus = result.ranking.eloStatus;
+                        ranking.slpReward = result.ranking.slpReward;
                     } else {
                         // Default object for ranking
                         ranking.name = "";

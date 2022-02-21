@@ -1240,15 +1240,84 @@ class Home extends React.Component {
             .then(
                 async (result) => {
                     if (Object.keys(result).length > 0) { // Has player details
-                        // Get Player ranking base on Sky Mavis API
-                        const ranking = await this.getPlayerRanking(ethAddress);
-                        // Get Player battle log base on Game API Axie Technology
-                        let battleLogs = undefined;
-                        if (this.state.isBattleLogEnable) {
-                            battleLogs = await this.getPlayerBattleLog(details.ADDRESS, ethAddress, this.state.PVPENERGY_DEFAULT);
+                        const detailProcess = await this.processPlayerDetails(result, details, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned, dataYesterdaySLP, playersStaticData);
+                        return resolve(detailProcess);
+                    } else {
+                        return reject({error: true});
+                    }
+                },
+                // Note: it's important to handle errors here
+                // instead of a catch() block so that we don't swallow
+                // exceptions from actual bugs in components.
+                async (error) => {
+                    // Get Cookies data based on eth address
+                    const detailCookies = localStorage.getItem(ethAddress);
+                    if (detailCookies) {
+                        const result = JSON.parse(detailCookies); // Parse the Cookie
+                        if (Object.keys(result).length > 0) { // Has player details
+                            const detailProcess = await this.processPlayerDetails(result, details, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned, dataYesterdaySLP, playersStaticData, true);
+                            return resolve(detailProcess);
+                        } else {
+                            return reject({error: true});
                         }
+                    } else {
+                        console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, error)
+                        return reject({error: true});
+                    }
+                }
+            )
+            .catch(
+                async (err) => {
+                    const detailCookies = localStorage.getItem(ethAddress);
+                    if (detailCookies) {
+                        const result = JSON.parse(detailCookies); // Parse the Cookie
+                        if (Object.keys(result).length > 0) { // Has player details
+                            const detailProcess = await this.processPlayerDetails(result, details, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned, dataYesterdaySLP, playersStaticData, true);
+                            return resolve(detailProcess);
+                        } else {
+                            return reject({error: true});
+                        }
+                    } else {
+                        console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
+                        return reject({error: true});
+                    }
+                }
+            )
+        }).catch(err => {
+            console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
+            return err;
+        });
+    }
 
-                        if (ranking.error) {
+    // Process for Player Details result
+    processPlayerDetails = async (result, details, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned, dataYesterdaySLP, playersStaticData, isBasedCookie = false) => {
+        return new Promise(async (resolve, reject) => {
+            if (Object.keys(result).length > 0) { // Has player details
+                // Get Player ranking base on Sky Mavis API
+                const ranking = await this.getPlayerRanking(ethAddress);
+                // Get Player battle log base on Game API Axie Technology
+                let battleLogs = undefined;
+                if (this.state.isBattleLogEnable) {
+                    battleLogs = await this.getPlayerBattleLog(details.ADDRESS, ethAddress, this.state.PVPENERGY_DEFAULT);
+                }
+
+                if (ranking.error) {
+                    if (isBasedCookie) {
+                        try {
+                            if (Number(result.ranking.rank) === 0) { // Check if the rank is equal to zero, if yes, set to default, if not retain the value from cookies
+                                // Default object for ranking
+                                ranking.name = "";
+                                ranking.elo = 0;
+                                ranking.rank = 0;
+                                ranking.win_total = 0;
+                                ranking.lose_total = 0;
+                                ranking.draw_total = 0;
+                                ranking.win_rate = 0;
+                                ranking.textStyle = "";
+                                ranking.eloStatus = "";
+                                ranking.slpReward = 0;
+                            }
+                        } catch (err) {
                             // Default object for ranking
                             ranking.name = "";
                             ranking.elo = 0;
@@ -1260,816 +1329,818 @@ class Home extends React.Component {
                             ranking.textStyle = "";
                             ranking.eloStatus = "";
                             ranking.slpReward = 0;
+                        }
+                    } else {
+                        // Default object for ranking
+                        ranking.name = "";
+                        ranking.elo = 0;
+                        ranking.rank = 0;
+                        ranking.win_total = 0;
+                        ranking.lose_total = 0;
+                        ranking.draw_total = 0;
+                        ranking.win_rate = 0;
+                        ranking.textStyle = "";
+                        ranking.eloStatus = "";
+                        ranking.slpReward = 0;
+                    }
+                } else {
+                    // Adding text color of MMR based on MMR level
+                    if (ranking.elo < 1300 && ranking.elo >= 1100) {
+                        // Estimated SLP gain on this MRR (6SLP) x Set as warning need to up
+                        ranking.textStyle = "orange-text";
+                        ranking.eloStatus = "warning";
+                        ranking.slpReward = 6;
+                    } else if (ranking.elo < 1200) {
+                        // Estimated SLP gain on this MRR (3SLP, 1SLP or NOSLP) x Set as warning need to up
+                        ranking.textStyle = "red-text font-weight-bold";
+                        ranking.eloStatus = "danger";
+                        if (ranking.elo < 800 && ranking.elo > 1000) {
+                            // 1000 - 800 x 1 SLP
+                            ranking.slpReward = 1;
+                        } else if (ranking.elo <= 800) {
+                            // 800 below x 0 SLP
+                            ranking.slpReward = 0;
                         } else {
-                            // Adding text color of MMR based on MMR level
-                            if (ranking.elo < 1300 && ranking.elo >= 1100) {
-                                // Estimated SLP gain on this MRR (6SLP) x Set as warning need to up
-                                ranking.textStyle = "orange-text";
-                                ranking.eloStatus = "warning";
-                                ranking.slpReward = 6;
-                            } else if (ranking.elo < 1200) {
-                                // Estimated SLP gain on this MRR (3SLP, 1SLP or NOSLP) x Set as warning need to up
-                                ranking.textStyle = "red-text font-weight-bold";
-                                ranking.eloStatus = "danger";
-                                if (ranking.elo < 800 && ranking.elo > 1000) {
-                                    // 1000 - 800 x 1 SLP
-                                    ranking.slpReward = 1;
-                                } else if (ranking.elo <= 800) {
-                                    // 800 below x 0 SLP
-                                    ranking.slpReward = 0;
-                                } else {
-                                    // 1200 - 1000 x 3 SLP
-                                    ranking.slpReward = 3;
-                                }
+                            // 1200 - 1000 x 3 SLP
+                            ranking.slpReward = 3;
+                        }
+                    } else {
+                        // Great MMR x Can earn more SLP
+                        ranking.textStyle = "green-text";
+                        ranking.eloStatus = "success";
+                        if (ranking.elo >= 1300 && ranking.elo < 1500) {
+                            // 1300 - 1499 x 9 SLP
+                            ranking.slpReward = 9;
+                        } else if (ranking.elo >= 1500 && ranking.elo < 1800) {
+                            // 1500 - 1799 x 12 SLP
+                            ranking.slpReward = 12;
+                        } else if (ranking.elo >= 1800 && ranking.elo < 2000) {
+                            // 1800 - 1999 x 15 SLP
+                            ranking.slpReward = 15;
+                        } else if (ranking.elo >= 2000 && ranking.elo < 2200) {
+                            // 2000 - 2199 x 18 SLP
+                            ranking.slpReward = 18;
+                        } else if (ranking.elo >= 2200) {
+                            // 2000 up x 21 SLP x can be gained more SLP
+                            ranking.slpReward = 21;
+                        }
+                    }
+                }
+
+                // Creating object
+                let roninBalance = 0, managerSLPClaimed = 0;
+                let isAlreadyClaimed = false;
+                let playerDataDailySLPwillSave = true // For checking if has data data to be save x true or false x true need to save / false no data to be save
+                const todayDate = momentToday.format("YYYY-MM-DD HH:mm:ss");
+                const currentTimeDate = new Date().getTime();
+                result.name = ranking.name ? ranking.name : "";
+                result.last_claimed_item_at_add = moment.unix(result.last_claimed_item_at).add(1, 'days');
+                result.claim_on_days = 0;
+                result.claim_at = moment.unix(result.last_claimed_item_at).add(this.state.daysClaimable, "days").format("MMM DD, hh:mm A");
+                result.inGameSLP = result.total;
+                result.totalScholarEarningSLP = result.total;
+                result.averageSLPDay = 0;
+                result.sharedManagerSLP = 0;
+                result.sharedSponsorSLP = 0;
+                result.pvp_energy = this.state.PVPENERGY_DEFAULT !== undefined ? this.state.PVPENERGY_DEFAULT + "/" + this.state.PVPENERGY_DEFAULT : "20/20"; // 20 is Default energy
+                result.managerRoninClaimed = false;
+                result.totalSLPManagerClaim = 0; // This portion is for the event of bonus slp reward x totalSLPRewards and totalPHPRewards
+                result.totalSLPRewards = 0;
+                result.totalPHPRewards = 0;
+                result.isBonusSLPReward = false; // Indicator to display the SLP Bonus Reward
+                result.isClaimable = false;
+                result.dailyQuota = {
+                    quota: this.state.defaultDailyQuota,
+                    textStyle: ""
+                }
+
+                // Set new value for Claim On (Days) x last_claimed_item_at_add - current date
+                const lastClaimedTimeDate = new Date(moment.unix(result.last_claimed_item_at)).getTime();
+                if (currentTimeDate > lastClaimedTimeDate) {
+                    result.claim_on_days = Math.round((currentTimeDate - lastClaimedTimeDate) / (1000 * 3600 * 24)).toFixed(0);
+                }
+
+                // Check if claimable
+                const claimedTimeDate = new Date(moment.unix(result.last_claimed_item_at).add(this.state.daysClaimable, "days")).getTime();
+                if (Number(unixMomentToday.toString()) >= Number(claimedTimeDate.toString())) {
+                    result.isClaimable = true;
+                }
+
+                if (result.blockchain_related === null || result.blockchain_related.signature === null) {
+                    // Adding empty object
+                    result.blockchain_related.signature = {
+                        amount: 0,
+                        timestamp: ""
+                    }
+                }
+
+                result.sharedScholarSLP = result.inGameSLP; // Default value x can be change in process below
+                result.scholarSLP = result.inGameSLP; // Default value x can be change in process below
+                if (Object.keys(details).length > 0) {
+                    result.name = details.NAME ? details.NAME : result.name ? result.name : ethAddress; // Update name if the orig name is empty
+                    result.slpClaimed = { // Default Object for Claimed SLP
+                        ADDRESS: details.ADDRESS,
+                        SLP_CLAIMED: details.SLP_CLAIMED
+                    };
+
+                    // Check if has balance in Ronin x Set new value for total in game slp
+                    if (result.blockchain_related.balance !== null && result.blockchain_related.balance > 0) {
+                        roninBalance = result.blockchain_related.balance;
+                        result.inGameSLP = result.total - roninBalance;
+                    }
+                    
+                    // Update USER_PROFILE data for SLP_CLAIMED x already claimed x slp from daily slp
+                    //This process is when the response in Axie API is delay
+                    // Check if the player is just started today
+                    const startedOnRes = moment(details.STARTED_ON);
+                    const startedGetTimeDate = new Date(startedOnRes.tz('Asia/Manila').format("YYYY-MM-DD HH:mm:ss")).getTime();
+                    const isNewCanClaim = (Math.round((currentTimeDate - startedGetTimeDate) / (1000 * 3600 * 24)).toFixed(0)) - 1; // Variable for checking if new added player is if can claim now
+                    if (isNewCanClaim >= this.state.daysClaimable && Number(result.inGameSLP) !== 0 && Number(result.claim_on_days) === 0) { // If not equal to 0 the inGameSLP x delay receive slkp total from axie API
+                        // Get Total SLP based on Daily SLP API
+                        const totalSLPClaimed = Number(details.YESTERDAY) + Number(details.TODAY);
+                        if (Number(details.SLP_CLAIMED) === 0 || Number(details.YESTERDAY) > 0) { // details.YESTERDAY is 0 x automatically reset in below condition
+                            // Create Object for sending data in Update API
+                            result.slpClaimed.SLP_CLAIMED = totalSLPClaimed + Number(details.SLP_CLAIMED)
+                            // Flag for update the data
+                            isAlreadyClaimed = true;
+                        }
+                    } else {
+                        // Reset the SLP Claimed flag if the inGameSLP is already correct the response from Axie API
+                        if (Number(details.SLP_CLAIMED) !== 0 && (Number(result.inGameSLP) < Number(details.SLP_CLAIMED))) {
+                            // Create Object for sending data in Update API
+                            result.slpClaimed.SLP_CLAIMED = 0;
+                            // Flag for update the data
+                            isAlreadyClaimed = true;
+                        }
+                    }
+
+                    // Check if alreay claimed x delay response from Axie API x details.SLP_CLAIMED default value is 0
+                    // No worries about this process, its always return positive value if the result.inGameSLP is greater than in details.SLP_CLAIMED
+                    // Already reset the value of details.SLP_CLAIMED if the result.inGameSLP is less than in details.SLP_CLAIMED x check on the above logic
+                    if (Number(result.inGameSLP) >= Number(result.slpClaimed.SLP_CLAIMED)) {
+                        result.inGameSLP = Number(result.inGameSLP) - Number(result.slpClaimed.SLP_CLAIMED);
+                    }
+
+                    if ((details.SHR_MANAGER).toString() === "100" || details.SHR_MANAGER > 0) { // Condition for Manager Share
+                        // Set new Shared SLP
+                        const managerShare = (details.SHR_MANAGER).toString() === "100" ? 1 : "0." + details.SHR_MANAGER;
+                        result.sharedManagerSLP = Math.ceil(result.inGameSLP * managerShare);
+
+                        if ((details.SHR_MANAGER).toString() === "100") {
+                            // Set new Shared SLP
+                            result.scholarSLP = 0;
+                            result.sharedScholarSLP = result.inGameSLP;
+
+                            // Adding ronin balance in total Manage SLP x // Set new Total Manager's Earning
+                            this.setState({
+                                totalManagerSLP: this.state.totalManagerSLP + result.sharedManagerSLP
+                            })
+
+                            // Set new Total Manager Claimable SLP
+                            if (Number(result.claim_on_days) >= this.state.daysClaimable) {
+                                this.setState({
+                                    totalManagerClaimableSLP: this.state.totalManagerClaimableSLP + result.sharedManagerSLP + roninBalance
+                                })
                             } else {
-                                // Great MMR x Can earn more SLP
-                                ranking.textStyle = "green-text";
-                                ranking.eloStatus = "success";
-                                if (ranking.elo >= 1300 && ranking.elo < 1500) {
-                                    // 1300 - 1499 x 9 SLP
-                                    ranking.slpReward = 9;
-                                } else if (ranking.elo >= 1500 && ranking.elo < 1800) {
-                                    // 1500 - 1799 x 12 SLP
-                                    ranking.slpReward = 12;
-                                } else if (ranking.elo >= 1800 && ranking.elo < 2000) {
-                                    // 1800 - 1999 x 15 SLP
-                                    ranking.slpReward = 15;
-                                } else if (ranking.elo >= 2000 && ranking.elo < 2200) {
-                                    // 2000 - 2199 x 18 SLP
-                                    ranking.slpReward = 18;
-                                } else if (ranking.elo >= 2200) {
-                                    // 2000 up x 21 SLP x can be gained more SLP
-                                    ranking.slpReward = 21;
+                                this.setState({
+                                    totalManagerClaimableSLP: this.state.totalManagerClaimableSLP + roninBalance
+                                })
+                            }
+                        } else {
+                            // Set new Total Manager's Earning
+                            if (playersStaticData !== undefined) {
+                                if (playersStaticData.managerDebtClaimed === undefined || playersStaticData.managerDebtClaimed <= 0) {
+                                    this.setState({
+                                        totalManagerSLP: this.state.totalManagerSLP + result.sharedManagerSLP
+                                    })
                                 }
-                            }
-                        }
-
-                        // Creating object
-                        let roninBalance = 0, managerSLPClaimed = 0;
-                        let isAlreadyClaimed = false;
-                        let playerDataDailySLPwillSave = true // For checking if has data data to be save x true or false x true need to save / false no data to be save
-                        const todayDate = momentToday.format("YYYY-MM-DD HH:mm:ss");
-                        const currentTimeDate = new Date().getTime();
-                        result.name = ranking.name ? ranking.name : "";
-                        result.last_claimed_item_at_add = moment.unix(result.last_claimed_item_at).add(1, 'days');
-                        result.claim_on_days = 0;
-                        result.claim_at = moment.unix(result.last_claimed_item_at).add(this.state.daysClaimable, "days").format("MMM DD, hh:mm A");
-                        result.inGameSLP = result.total;
-                        result.totalScholarEarningSLP = result.total;
-                        result.averageSLPDay = 0;
-                        result.sharedManagerSLP = 0;
-                        result.sharedSponsorSLP = 0;
-                        result.pvp_energy = this.state.PVPENERGY_DEFAULT !== undefined ? this.state.PVPENERGY_DEFAULT + "/" + this.state.PVPENERGY_DEFAULT : "20/20"; // 20 is Default energy
-                        result.managerRoninClaimed = false;
-                        result.totalSLPManagerClaim = 0; // This portion is for the event of bonus slp reward x totalSLPRewards and totalPHPRewards
-                        result.totalSLPRewards = 0;
-                        result.totalPHPRewards = 0;
-                        result.isBonusSLPReward = false; // Indicator to display the SLP Bonus Reward
-                        result.isClaimable = false;
-                        result.dailyQuota = {
-                            quota: this.state.defaultDailyQuota,
-                            textStyle: ""
-                        }
-
-                        // Set new value for Claim On (Days) x last_claimed_item_at_add - current date
-                        const lastClaimedTimeDate = new Date(moment.unix(result.last_claimed_item_at)).getTime();
-                        if (currentTimeDate > lastClaimedTimeDate) {
-                            result.claim_on_days = Math.round((currentTimeDate - lastClaimedTimeDate) / (1000 * 3600 * 24)).toFixed(0);
-                        }
-
-                        // Check if claimable
-                        const claimedTimeDate = new Date(moment.unix(result.last_claimed_item_at).add(this.state.daysClaimable, "days")).getTime();
-                        if (Number(unixMomentToday.toString()) >= Number(claimedTimeDate.toString())) {
-                            result.isClaimable = true;
-                        }
-
-                        if (result.blockchain_related === null || result.blockchain_related.signature === null) {
-                            // Adding empty object
-                            result.blockchain_related.signature = {
-                                amount: 0,
-                                timestamp: ""
-                            }
-                        }
-
-                        result.sharedScholarSLP = result.inGameSLP; // Default value x can be change in process below
-                        result.scholarSLP = result.inGameSLP; // Default value x can be change in process below
-                        if (Object.keys(details).length > 0) {
-                            result.name = details.NAME ? details.NAME : result.name ? result.name : ethAddress; // Update name if the orig name is empty
-                            result.slpClaimed = { // Default Object for Claimed SLP
-                                ADDRESS: details.ADDRESS,
-                                SLP_CLAIMED: details.SLP_CLAIMED
-                            };
-
-                            // Check if has balance in Ronin x Set new value for total in game slp
-                            if (result.blockchain_related.balance !== null && result.blockchain_related.balance > 0) {
-                                roninBalance = result.blockchain_related.balance;
-                                result.inGameSLP = result.total - roninBalance;
                             }
                             
-                            // Update USER_PROFILE data for SLP_CLAIMED x already claimed x slp from daily slp
-                            //This process is when the response in Axie API is delay
-                            // Check if the player is just started today
-                            const startedOnRes = moment(details.STARTED_ON);
-                            const startedGetTimeDate = new Date(startedOnRes.tz('Asia/Manila').format("YYYY-MM-DD HH:mm:ss")).getTime();
-                            const isNewCanClaim = (Math.round((currentTimeDate - startedGetTimeDate) / (1000 * 3600 * 24)).toFixed(0)) - 1; // Variable for checking if new added player is if can claim now
-                            if (isNewCanClaim >= this.state.daysClaimable && Number(result.inGameSLP) !== 0 && Number(result.claim_on_days) === 0) { // If not equal to 0 the inGameSLP x delay receive slkp total from axie API
-                                // Get Total SLP based on Daily SLP API
-                                const totalSLPClaimed = Number(details.YESTERDAY) + Number(details.TODAY);
-                                if (Number(details.SLP_CLAIMED) === 0 || Number(details.YESTERDAY) > 0) { // details.YESTERDAY is 0 x automatically reset in below condition
-                                    // Create Object for sending data in Update API
-                                    result.slpClaimed.SLP_CLAIMED = totalSLPClaimed + Number(details.SLP_CLAIMED)
-                                    // Flag for update the data
-                                    isAlreadyClaimed = true;
-                                }
-                            } else {
-                                // Reset the SLP Claimed flag if the inGameSLP is already correct the response from Axie API
-                                if (Number(details.SLP_CLAIMED) !== 0 && (Number(result.inGameSLP) < Number(details.SLP_CLAIMED))) {
-                                    // Create Object for sending data in Update API
-                                    result.slpClaimed.SLP_CLAIMED = 0;
-                                    // Flag for update the data
-                                    isAlreadyClaimed = true;
+                            // Set new Total Manager Claimable SLP
+                            if (Number(result.claim_on_days) >= this.state.daysClaimable) {
+                                this.setState({
+                                    totalManagerClaimableSLP: this.state.totalManagerClaimableSLP + result.sharedManagerSLP
+                                })
+                            }
+                        }
+                    }
+
+                    if ((details.SHR_SPONSOR).toString() !== "0" || details.SHR_SPONSOR > 0) { // Condition for Sponsor
+                        // Set new Shared SLP
+                        const sponsorShare = "0." + details.SHR_SPONSOR;
+                        result.sharedSponsorSLP = Math.floor(result.inGameSLP * sponsorShare);
+
+                        // Set new Total Sponsor's Earning
+                        this.setState({
+                            totalSponsorSLP: this.state.totalSponsorSLP + result.sharedSponsorSLP
+                        })
+                    }
+
+                    if ((details.SHR_SCHOLAR).toString() !== "0" || details.SHR_SCHOLAR > 0) { // Condition for Scholar Players
+                        // Set new Shared SLP
+                        const iskoShare = (details.SHR_SCHOLAR).toString() === "100" ? 1 : "0." + details.SHR_SCHOLAR;
+                        result.sharedScholarSLP = Math.floor(result.inGameSLP * iskoShare);
+                        result.scholarSLP = Math.floor(result.inGameSLP * iskoShare);
+                    }
+
+                    // Set new value for Team Total Income and Total Earning per withdraw
+                    details.withdrawEarning = []; // Default value of withdraw earning
+                    details.totalIncome = 0; // Default value of Total Income
+                    if (dataWithdraw !== undefined && dataWithdraw.length > 0) {
+                        // Get specific data based on ronin address in dataWithdraw
+                        dataWithdraw.filter(item => item.ADDRESS === details.ADDRESS).map(data => {
+                            const createObj = {}; // Create Temp Obeject
+                            createObj.slp = (details.SHR_MANAGER).toString() === "100" ? data.SHR_MANAGER : data.SHR_SCHOLAR;
+                            createObj.slpPrice = data.SLPCURRENCY;
+                            createObj.date = data.WITHDRAW_ON;
+                            createObj.earning = Number(createObj.slp) * Number(createObj.slpPrice);
+                            // Update Total Income
+                            details.totalIncome = details.totalIncome + createObj.earning;
+                            // Push data
+                            let tempObject = Object.assign({}, createObj);
+                            details.withdrawEarning.push(tempObject);
+
+                            // Return
+                            return true;
+
+                        });
+                    }
+
+                    // Set new value for Manager All Income and Set value for Total Earning per claimed
+                    details.managerEarning = []; // Default value of marnegr earning
+                    if ((details.SHR_MANAGER).toString() === "100" && (dataManagerEarned !== undefined && dataManagerEarned.length > 0)) {
+                        details.roi = 0;
+                        details.income = 0;
+                        details.breed = 0;
+                        details.buy = 0;
+                        details.reachedRoi = false; // For validation if ROI is completed
+                        dataManagerEarned.map(data => {
+                            const createObj = {}; // Create Temp Obeject
+                            createObj.slp = data.SLPTOTAL;
+                            createObj.slpPrice = data.SLPCURRENCY;
+                            createObj.date = data.EARNED_ON;
+                            createObj.earning = Number(createObj.slp) * Number(createObj.slpPrice);
+                            // Update Total Income and SLP
+                            this.setState({
+                                totalManagerAllSLP: this.state.totalManagerAllSLP + Number(createObj.slp),
+                                totalManagerAllPHP: this.state.totalManagerAllPHP + createObj.earning
+                            })
+
+                            if (data.CATEGORY && (data.CATEGORY.toLowerCase()) === "withdraw") {
+                                if (!this.state.managerPHPReachedROI) {
+                                    // Adding Return of Investment
+                                    this.setState({
+                                        managerPHPROI: this.state.managerPHPROI + createObj.earning
+                                    })
+
+                                    // Reached the ROI
+                                    if (this.state.managerPHPROI >= this.state.managerPHPInvestment) {
+                                        this.setState({
+                                            managerPHPReachedROI: true
+                                        })
+                                    }
+                                } else {
+                                    // Adding total of Income
+                                    this.setState({
+                                        managerPHPIncome: this.state.managerPHPIncome + createObj.earning
+                                    })
                                 }
                             }
 
-                            // Check if alreay claimed x delay response from Axie API x details.SLP_CLAIMED default value is 0
-                            // No worries about this process, its always return positive value if the result.inGameSLP is greater than in details.SLP_CLAIMED
-                            // Already reset the value of details.SLP_CLAIMED if the result.inGameSLP is less than in details.SLP_CLAIMED x check on the above logic
-                            if (Number(result.inGameSLP) >= Number(result.slpClaimed.SLP_CLAIMED)) {
-                                result.inGameSLP = Number(result.inGameSLP) - Number(result.slpClaimed.SLP_CLAIMED);
+                            if (data.CATEGORY && (data.CATEGORY.toLowerCase()) === "breed") {
+                                // Adding total cost for breeding
+                                this.setState({
+                                    managerPHPBreed: this.state.managerPHPBreed + createObj.earning
+                                })
+                                details.breed = details.breed + createObj.earning;
                             }
 
-                            if ((details.SHR_MANAGER).toString() === "100" || details.SHR_MANAGER > 0) { // Condition for Manager Share
-                                // Set new Shared SLP
-                                const managerShare = (details.SHR_MANAGER).toString() === "100" ? 1 : "0." + details.SHR_MANAGER;
-                                result.sharedManagerSLP = Math.ceil(result.inGameSLP * managerShare);
+                            if (data.CATEGORY && (data.CATEGORY.toLowerCase()) === "buy") {
+                                // Adding total cost for buying axie
+                                this.setState({
+                                    managerPHPBuy: this.state.managerPHPBuy + createObj.earning
+                                })
+                            }
 
-                                if ((details.SHR_MANAGER).toString() === "100") {
-                                    // Set new Shared SLP
-                                    result.scholarSLP = 0;
-                                    result.sharedScholarSLP = result.inGameSLP;
+                            // Push data
+                            let tempObject = Object.assign({}, createObj);
+                            details.managerEarning.push(tempObject);
 
+                            // Return
+                            return true;
+                        })
+
+                        // Update Data for Manager All Earning
+                        this.setState({
+                            modalManagerAllEarning: details.managerEarning
+                        })
+                    }
+
+                    // Has InGame SLP
+                    if (result.inGameSLP > 0) {
+                        if (playersStaticData !== undefined) {
+                            // Minus the total InGame SLP and add in ronin if has Manager SLP Claimed x Manager Ronin Claimed
+                            if (playersStaticData.managerDebtClaimed !== undefined && playersStaticData.managerDebtClaimed > 0) {
+                                managerSLPClaimed = playersStaticData.managerDebtClaimed;
+                                result.managerRoninClaimed = true; // Indicator for Manager Claimed
+                                // Minus the InGame SLP
+                                if (result.inGameSLP > playersStaticData.managerDebtClaimed) {
+                                    result.inGameSLP = result.inGameSLP - playersStaticData.managerDebtClaimed;
+                                } else {
+                                    result.inGameSLP = playersStaticData.managerDebtClaimed - result.inGameSLP;
+                                }
+
+                                // Update Manager Shared
+                                if (result.inGameSLP > playersStaticData.managerDebtClaimed) {
+                                    const managerShare = (details.SHR_MANAGER).toString() === "100" ? 1 : "0." + details.SHR_MANAGER;
+                                    const currentInGameSLP = result.inGameSLP - playersStaticData.managerDebtClaimed; // Minus again for computation of Manager Shared SLP
+                                    result.sharedManagerSLP = Math.ceil(currentInGameSLP * managerShare);
                                     // Adding ronin balance in total Manage SLP x // Set new Total Manager's Earning
                                     this.setState({
                                         totalManagerSLP: this.state.totalManagerSLP + result.sharedManagerSLP
                                     })
-
-                                    // Set new Total Manager Claimable SLP
-                                    if (Number(result.claim_on_days) >= this.state.daysClaimable) {
-                                        this.setState({
-                                            totalManagerClaimableSLP: this.state.totalManagerClaimableSLP + result.sharedManagerSLP + roninBalance
-                                        })
-                                    } else {
-                                        this.setState({
-                                            totalManagerClaimableSLP: this.state.totalManagerClaimableSLP + roninBalance
-                                        })
-                                    }
                                 } else {
-                                    // Set new Total Manager's Earning
-                                    if (playersStaticData !== undefined) {
-                                        if (playersStaticData.managerDebtClaimed === undefined || playersStaticData.managerDebtClaimed <= 0) {
-                                            this.setState({
-                                                totalManagerSLP: this.state.totalManagerSLP + result.sharedManagerSLP
-                                            })
-                                        }
-                                    }
-                                    
-                                    // Set new Total Manager Claimable SLP
-                                    if (Number(result.claim_on_days) >= this.state.daysClaimable) {
-                                        this.setState({
-                                            totalManagerClaimableSLP: this.state.totalManagerClaimableSLP + result.sharedManagerSLP
-                                        })
-                                    }
+                                    // Zero manager shared
+                                    result.sharedManagerSLP = 0;
                                 }
                             }
 
-                            if ((details.SHR_SPONSOR).toString() !== "0" || details.SHR_SPONSOR > 0) { // Condition for Sponsor
-                                // Set new Shared SLP
-                                const sponsorShare = "0." + details.SHR_SPONSOR;
-                                result.sharedSponsorSLP = Math.floor(result.inGameSLP * sponsorShare);
-
-                                // Set new Total Sponsor's Earning
-                                this.setState({
-                                    totalSponsorSLP: this.state.totalSponsorSLP + result.sharedSponsorSLP
-                                })
-                            }
-
-                            if ((details.SHR_SCHOLAR).toString() !== "0" || details.SHR_SCHOLAR > 0) { // Condition for Scholar Players
-                                // Set new Shared SLP
-                                const iskoShare = (details.SHR_SCHOLAR).toString() === "100" ? 1 : "0." + details.SHR_SCHOLAR;
-                                result.sharedScholarSLP = Math.floor(result.inGameSLP * iskoShare);
-                                result.scholarSLP = Math.floor(result.inGameSLP * iskoShare);
-                            }
-
-                            // Set new value for Team Total Income and Total Earning per withdraw
-                            details.withdrawEarning = []; // Default value of withdraw earning
-                            details.totalIncome = 0; // Default value of Total Income
-                            if (dataWithdraw !== undefined && dataWithdraw.length > 0) {
-                                // Get specific data based on ronin address in dataWithdraw
-                                dataWithdraw.filter(item => item.ADDRESS === details.ADDRESS).map(data => {
-                                    const createObj = {}; // Create Temp Obeject
-                                    createObj.slp = (details.SHR_MANAGER).toString() === "100" ? data.SHR_MANAGER : data.SHR_SCHOLAR;
-                                    createObj.slpPrice = data.SLPCURRENCY;
-                                    createObj.date = data.WITHDRAW_ON;
-                                    createObj.earning = Number(createObj.slp) * Number(createObj.slpPrice);
-                                    // Update Total Income
-                                    details.totalIncome = details.totalIncome + createObj.earning;
-                                    // Push data
-                                    let tempObject = Object.assign({}, createObj);
-                                    details.withdrawEarning.push(tempObject);
-
-                                    // Return
-                                    return true;
-
-                                });
-                            }
-
-                            // Set new value for Manager All Income and Set value for Total Earning per claimed
-                            details.managerEarning = []; // Default value of marnegr earning
-                            if ((details.SHR_MANAGER).toString() === "100" && (dataManagerEarned !== undefined && dataManagerEarned.length > 0)) {
-                                details.roi = 0;
-                                details.income = 0;
-                                details.breed = 0;
-                                details.buy = 0;
-                                details.reachedRoi = false; // For validation if ROI is completed
-                                dataManagerEarned.map(data => {
-                                    const createObj = {}; // Create Temp Obeject
-                                    createObj.slp = data.SLPTOTAL;
-                                    createObj.slpPrice = data.SLPCURRENCY;
-                                    createObj.date = data.EARNED_ON;
-                                    createObj.earning = Number(createObj.slp) * Number(createObj.slpPrice);
-                                    // Update Total Income and SLP
-                                    this.setState({
-                                        totalManagerAllSLP: this.state.totalManagerAllSLP + Number(createObj.slp),
-                                        totalManagerAllPHP: this.state.totalManagerAllPHP + createObj.earning
-                                    })
-
-                                    if (data.CATEGORY && (data.CATEGORY.toLowerCase()) === "withdraw") {
-                                        if (!this.state.managerPHPReachedROI) {
-                                            // Adding Return of Investment
-                                            this.setState({
-                                                managerPHPROI: this.state.managerPHPROI + createObj.earning
-                                            })
-
-                                            // Reached the ROI
-                                            if (this.state.managerPHPROI >= this.state.managerPHPInvestment) {
-                                                this.setState({
-                                                    managerPHPReachedROI: true
-                                                })
-                                            }
-                                        } else {
-                                            // Adding total of Income
-                                            this.setState({
-                                                managerPHPIncome: this.state.managerPHPIncome + createObj.earning
-                                            })
-                                        }
-                                    }
-
-                                    if (data.CATEGORY && (data.CATEGORY.toLowerCase()) === "breed") {
-                                        // Adding total cost for breeding
-                                        this.setState({
-                                            managerPHPBreed: this.state.managerPHPBreed + createObj.earning
-                                        })
-                                        details.breed = details.breed + createObj.earning;
-                                    }
-
-                                    if (data.CATEGORY && (data.CATEGORY.toLowerCase()) === "buy") {
-                                        // Adding total cost for buying axie
-                                        this.setState({
-                                            managerPHPBuy: this.state.managerPHPBuy + createObj.earning
-                                        })
-                                    }
-
-                                    // Push data
-                                    let tempObject = Object.assign({}, createObj);
-                                    details.managerEarning.push(tempObject);
-
-                                    // Return
-                                    return true;
-                                })
-
-                                // Update Data for Manager All Earning
-                                this.setState({
-                                    modalManagerAllEarning: details.managerEarning
-                                })
-                            }
-
-                            // Has InGame SLP
-                            if (result.inGameSLP > 0) {
-                                if (playersStaticData !== undefined) {
-                                    // Minus the total InGame SLP and add in ronin if has Manager SLP Claimed x Manager Ronin Claimed
-                                    if (playersStaticData.managerDebtClaimed !== undefined && playersStaticData.managerDebtClaimed > 0) {
-                                        managerSLPClaimed = playersStaticData.managerDebtClaimed;
-                                        result.managerRoninClaimed = true; // Indicator for Manager Claimed
-                                        // Minus the InGame SLP
-                                        if (result.inGameSLP > playersStaticData.managerDebtClaimed) {
-                                            result.inGameSLP = result.inGameSLP - playersStaticData.managerDebtClaimed;
-                                        } else {
-                                            result.inGameSLP = playersStaticData.managerDebtClaimed - result.inGameSLP;
-                                        }
-    
-                                        // Update Manager Shared
-                                        if (result.inGameSLP > playersStaticData.managerDebtClaimed) {
-                                            const managerShare = (details.SHR_MANAGER).toString() === "100" ? 1 : "0." + details.SHR_MANAGER;
-                                            const currentInGameSLP = result.inGameSLP - playersStaticData.managerDebtClaimed; // Minus again for computation of Manager Shared SLP
-                                            result.sharedManagerSLP = Math.ceil(currentInGameSLP * managerShare);
-                                            // Adding ronin balance in total Manage SLP x // Set new Total Manager's Earning
-                                            this.setState({
-                                                totalManagerSLP: this.state.totalManagerSLP + result.sharedManagerSLP
-                                            })
-                                        } else {
-                                            // Zero manager shared
-                                            result.sharedManagerSLP = 0;
-                                        }
-                                    }
-
-                                    // Set the bonus reward of Scholar
-                                    // playersStaticData.managerSLPClaimed is amount of Manager Claimable Only
-                                    // Minus the amount of Manager Claimable to inGameSLP and Plus to ronin SLP (if any) = Total SLP Claimable of Scholar
-                                    if (this.state.isBonusSLPRewardOn) {
-                                        if (playersStaticData.managerSLPClaimed !== undefined && playersStaticData.managerSLPClaimed > 0) {
-                                            result.isBonusSLPReward = true;
-                                            result.totalSLPManagerClaim = playersStaticData.managerSLPClaimed;
-                                            result.totalSLPRewards = (result.inGameSLP - playersStaticData.managerSLPClaimed) + roninBalance;
-                                            result.totalPHPRewards = result.totalSLPRewards * this.state.slpCurrentValue;
-                                        }
-                                    }
-                                }
-
-                                // Update Total InGame and Scholar SLP
-                                this.setState({
-                                    totalInGameSLP: this.state.totalInGameSLP + result.inGameSLP, // Set Total InGame SLP
-                                    totalScholarSLP: this.state.totalScholarSLP + result.scholarSLP // Set Total Scholar SLP
-                                })
-
-                                // Set Average SLP per Day
-                                if (result.claim_on_days > 0) {
-                                    result.averageSLPDay = Math.floor(result.inGameSLP / result.claim_on_days);
-                                    this.setState({
-                                        totalAverageSLP: this.state.totalAverageSLP + result.averageSLPDay
-                                    })
+                            // Set the bonus reward of Scholar
+                            // playersStaticData.managerSLPClaimed is amount of Manager Claimable Only
+                            // Minus the amount of Manager Claimable to inGameSLP and Plus to ronin SLP (if any) = Total SLP Claimable of Scholar
+                            if (this.state.isBonusSLPRewardOn) {
+                                if (playersStaticData.managerSLPClaimed !== undefined && playersStaticData.managerSLPClaimed > 0) {
+                                    result.isBonusSLPReward = true;
+                                    result.totalSLPManagerClaim = playersStaticData.managerSLPClaimed;
+                                    result.totalSLPRewards = (result.inGameSLP - playersStaticData.managerSLPClaimed) + roninBalance;
+                                    result.totalPHPRewards = result.totalSLPRewards * this.state.slpCurrentValue;
                                 }
                             }
+                        }
 
-                            // Send Email if the MMR is low x for Scholar's only x send if user is manager
-                            if (this.state.isUser === CONSTANTS.MESSAGE.MANAGER) {
-                                if (ranking.eloStatus === "danger") {
-                                    // Send an Email due to Lower MMR
-                                    // this.sendMMRMessage(result.name, details.EMAIL, ranking.elo, CONSTANTS.MESSAGE.EMAIL_LOWMMR_MESSAGE);
+                        // Update Total InGame and Scholar SLP
+                        this.setState({
+                            totalInGameSLP: this.state.totalInGameSLP + result.inGameSLP, // Set Total InGame SLP
+                            totalScholarSLP: this.state.totalScholarSLP + result.scholarSLP // Set Total Scholar SLP
+                        })
+
+                        // Set Average SLP per Day
+                        if (result.claim_on_days > 0) {
+                            result.averageSLPDay = Math.floor(result.inGameSLP / result.claim_on_days);
+                            this.setState({
+                                totalAverageSLP: this.state.totalAverageSLP + result.averageSLPDay
+                            })
+                        }
+                    }
+
+                    // Send Email if the MMR is low x for Scholar's only x send if user is manager
+                    if (this.state.isUser === CONSTANTS.MESSAGE.MANAGER) {
+                        if (ranking.eloStatus === "danger") {
+                            // Send an Email due to Lower MMR
+                            // this.sendMMRMessage(result.name, details.EMAIL, ranking.elo, CONSTANTS.MESSAGE.EMAIL_LOWMMR_MESSAGE);
+                        }
+
+                        if (ranking.eloStatus === "warning") {
+                            // Send an Email due to Warning MMR
+                            // this.sendMMRMessage(result.name, details.EMAIL, ranking.elo, CONSTANTS.MESSAGE.EMAIL_WARNINGMMR_MESSAGE);
+                        }
+                    }
+
+                    // Generate canvas chart option/data
+                    result.deleteYesterdaySLP = false;
+                    details.yesterdaySLPChart = false;
+                    if (dataYesterdaySLP !== undefined  && dataYesterdaySLP.length > 0) {
+                        // Get the specific data of Yesrterday SLP by Ronin Address
+                        const dataYesterdaySLPSet = dataYesterdaySLP.filter(item => item.ADDRESS === details.ADDRESS); // Filter valid data
+                        if (dataYesterdaySLPSet.length > 0) {
+                            let datas = [];
+                            dataYesterdaySLPSet.sort((a, b) => moment(a.DATE_ON).unix() - moment(b.DATE_ON).unix()).map(items => {
+                                const tempObj = {
+                                    x: new Date(items.DATE_ON),
+                                    y: Number(items.YESTERDAY),
+                                    z: this.numberWithCommas(items.MMR)
                                 }
-
-                                if (ranking.eloStatus === "warning") {
-                                    // Send an Email due to Warning MMR
-                                    // this.sendMMRMessage(result.name, details.EMAIL, ranking.elo, CONSTANTS.MESSAGE.EMAIL_WARNINGMMR_MESSAGE);
-                                }
-                            }
-
-                            // Generate canvas chart option/data
-                            result.deleteYesterdaySLP = false;
-                            details.yesterdaySLPChart = false;
-                            if (dataYesterdaySLP !== undefined  && dataYesterdaySLP.length > 0) {
-                                // Get the specific data of Yesrterday SLP by Ronin Address
-                                const dataYesterdaySLPSet = dataYesterdaySLP.filter(item => item.ADDRESS === details.ADDRESS); // Filter valid data
-                                if (dataYesterdaySLPSet.length > 0) {
-                                    let datas = [];
-                                    dataYesterdaySLPSet.sort((a, b) => moment(a.DATE_ON).unix() - moment(b.DATE_ON).unix()).map(items => {
-                                        const tempObj = {
-                                            x: new Date(items.DATE_ON),
-                                            y: Number(items.YESTERDAY),
-                                            z: this.numberWithCommas(items.MMR)
+                                // Push data object
+                                let tempObject = Object.assign({}, tempObj);
+                                datas.push(tempObject);
+                                // Return
+                                return true; 
+                            })
+                            // Chart Options with data
+                            details.yesterdaySLPChart = {
+                                animationEnabled: true,
+                                axisX: { valueFormatString: "MMM DD" },
+                                toolTip:{   
+                                    // content: "{x}: SLP {y} / MMR {z}"
+                                    contentFormatter: function (e) {
+                                        var content = " ";
+                                        for (var i = 0; i < e.entries.length; i++) {
+                                            content += "<b class='primary'>" + moment(e.entries[i].dataPoint.x).format('MMM DD') + "</b>";
+                                            content += "<br/>";
+                                            content += CONSTANTS.MESSAGE.SLP + ": " + e.entries[i].dataPoint.y;
+                                            content += "<br/>";
+                                            content += CONSTANTS.MESSAGE.MMR + ": " + e.entries[i].dataPoint.z;
                                         }
-                                        // Push data object
-                                        let tempObject = Object.assign({}, tempObj);
-                                        datas.push(tempObject);
-                                        // Return
-                                        return true; 
-                                    })
-                                    // Chart Options with data
-                                    details.yesterdaySLPChart = {
-                                        animationEnabled: true,
-                                        axisX: { valueFormatString: "MMM DD" },
-                                        toolTip:{   
-                                            // content: "{x}: SLP {y} / MMR {z}"
-                                            contentFormatter: function (e) {
-                                                var content = " ";
-                                                for (var i = 0; i < e.entries.length; i++) {
-                                                    content += "<b class='primary'>" + moment(e.entries[i].dataPoint.x).format('MMM DD') + "</b>";
-                                                    content += "<br/>";
-                                                    content += CONSTANTS.MESSAGE.SLP + ": " + e.entries[i].dataPoint.y;
-                                                    content += "<br/>";
-                                                    content += CONSTANTS.MESSAGE.MMR + ": " + e.entries[i].dataPoint.z;
-                                                }
-                                                return content;
-                                            }
-                                        },
-                                        data: [{
-                                            yValueFormatString: "#,###",
-                                            xValueFormatString: "MMM DD",
-                                            type: "spline",
-                                            dataPoints: datas
-                                        }]
+                                        return content;
+                                    }
+                                },
+                                data: [{
+                                    yValueFormatString: "#,###",
+                                    xValueFormatString: "MMM DD",
+                                    type: "spline",
+                                    dataPoints: datas
+                                }]
+                            }
+                        }
+
+                        // Generate DELETE YESTERDAY Object if the data is more than in set days, must be the data in database is daysClaimable length per player
+                        if (dataYesterdaySLPSet.length > this.state.daysClaimable) {
+                            // Create object to remove the first row or first date in data
+                            dataYesterdaySLPSet.sort((a, b) =>  moment(a.DATE_ON).unix() - moment(b.DATE_ON).unix() ).map((yesterdayItem, index) => {
+                                if (index === 0) {
+                                    result.deleteYesterdaySLP = {
+                                        ADDRESS: details.ADDRESS,
+                                        ID: yesterdayItem.ID
                                     }
                                 }
+                                // Return
+                                return true;
+                            });
+                        }
+                    }
 
-                                // Generate DELETE YESTERDAY Object if the data is more than in set days, must be the data in database is daysClaimable length per player
-                                if (dataYesterdaySLPSet.length > this.state.daysClaimable) {
-                                    // Create object to remove the first row or first date in data
-                                    dataYesterdaySLPSet.sort((a, b) =>  moment(a.DATE_ON).unix() - moment(b.DATE_ON).unix() ).map((yesterdayItem, index) => {
-                                        if (index === 0) {
-                                            result.deleteYesterdaySLP = {
-                                                ADDRESS: details.ADDRESS,
-                                                ID: yesterdayItem.ID
-                                            }
-                                        }
-                                        // Return
-                                        return true;
-                                    });
-                                }
-                            }
+                    // Set new total SLP x computed base on Shared SLP plus total SLP
+                    result.totalScholarEarningSLP = roninBalance + result.sharedScholarSLP + managerSLPClaimed;
+                    // Set new total PHP x computed base on totalScholarEarningSLP multiply slpCurrentValue
+                    result.totalScholarEarningPHP = result.totalScholarEarningSLP * this.state.slpCurrentValue;
+                    // Set new total Manager SLP Earning x computed base on sharedManagerSLP multiply slpCurrentValue
+                    result.totalManagerEarningPHP = result.sharedManagerSLP * this.state.slpCurrentValue;
+                    // Set new total Sponsor SLP Earning x computed base on sharedSponsorSLP multiply slpCurrentValue
+                    result.totalSponsorEarningPHP = result.sharedSponsorSLP * this.state.slpCurrentValue;
 
-                            // Set new total SLP x computed base on Shared SLP plus total SLP
-                            result.totalScholarEarningSLP = roninBalance + result.sharedScholarSLP + managerSLPClaimed;
-                            // Set new total PHP x computed base on totalScholarEarningSLP multiply slpCurrentValue
-                            result.totalScholarEarningPHP = result.totalScholarEarningSLP * this.state.slpCurrentValue;
-                            // Set new total Manager SLP Earning x computed base on sharedManagerSLP multiply slpCurrentValue
-                            result.totalManagerEarningPHP = result.sharedManagerSLP * this.state.slpCurrentValue;
-                            // Set new total Sponsor SLP Earning x computed base on sharedSponsorSLP multiply slpCurrentValue
-                            result.totalSponsorEarningPHP = result.sharedSponsorSLP * this.state.slpCurrentValue;
+                    // Update value of win, lose, draw and win rate based in Battle Log
+                    if(this.state.isBattleLogEnable && (battleLogs !== undefined  && battleLogs.error === undefined)) {
+                        ranking.win_total = battleLogs.win_total;
+                        ranking.lose_total = battleLogs.lose_total;
+                        ranking.draw_total = battleLogs.draw_total;
+                        ranking.win_rate = battleLogs.win_rate;
+                        // Update PVP Energy left
+                        result.pvp_energy = battleLogs.pvp_energy;
+                    }
 
-                            // Update value of win, lose, draw and win rate based in Battle Log
-                            if(this.state.isBattleLogEnable && (battleLogs !== undefined  && battleLogs.error === undefined)) {
-                                ranking.win_total = battleLogs.win_total;
-                                ranking.lose_total = battleLogs.lose_total;
-                                ranking.draw_total = battleLogs.draw_total;
-                                ranking.win_rate = battleLogs.win_rate;
-                                // Update PVP Energy left
-                                result.pvp_energy = battleLogs.pvp_energy;
-                            }
-
-                            // Generate Daily SLP Data
-                            try {
-                                // Get TODAY SLP x Subtraction of InGameSLP and YESTERDAY
-                                let todaySLP = Number(result.inGameSLP) - Number(details.YESTERDAY);
+                    // Generate Daily SLP Data
+                    try {
+                        // Get TODAY SLP x Subtraction of InGameSLP and YESTERDAY
+                        let todaySLP = Number(result.inGameSLP) - Number(details.YESTERDAY);
+                        if (Number(details.YESTERDAY) > Number(result.inGameSLP)) {
+                            // 0 ingameslp, already claimed
+                            todaySLP = result.inGameSLP; // retain old data for newly claimed, must be update on the next day
+                        }
+                        // Check if the data from fetch is same date as date today
+                        const toDateRes = moment(details.TODATE);
+                        const toDate = toDateRes.tz('Asia/Manila').format("YYYY-MM-DD HH:mm:ss");
+                        const yesterdayDate = moment().tz('Asia/Manila').subtract(1, "days").format("YYYY-MM-DD HH:mm:ss");
+                        const isSameTODate = moment(toDate).isSame(todayDate, 'date');
+                        if (isSameTODate) {
+                            // Same date from tb TODATE and CURRENT DATE
+                            // This will be the process of updating the TODAY SLP, YESTERDAY SLP and TODATE into new value
+                            if ((Number(result.inGameSLP) === 0 && Number(details.TODAY) > 0) || (Number(result.inGameSLP) === 0 && Number(result.claim_on_days) === 0)) {
+                                // First operator - If player claimed after the quest/grind x Second operator - If player claimed before starting the quest/grind
+                                // Checker for already claimed SLP x this will be the process for reset into 0 the data
+                                // const yesterdySLP = Number(result.inGameSLP) > 0 ? result.inGameSLP : 0;
+                                result.dailySLP = {
+                                    ADDRESS: details.ADDRESS,
+                                    YESTERDAY: 0,
+                                    YESTERDAYRES: details.YESTERDAYRES,
+                                    YESTERDAYDATE: yesterdayDate,
+                                    TODAY: 0,
+                                    TODATE: todayDate,
+                                    ACTION: CONSTANTS.MESSAGE.UPDATE,
+                                    MESSAGE: "UPDATE from energy reset and was claimed - true",
+                                    UPDATEDON: todayDate,
+                                    NAME: result.name,
+                                    MMR: ranking.elo,
+                                    MAXGAINSLP: this.state.maxGainSLP,
+                                    ALLFIELDS: true // to be save, if all fields or not x if false, only TODAY
+                                };
+                            } else {
+                                // Check if the YESTERDAY SLP is greather than InGame SLP
                                 if (Number(details.YESTERDAY) > Number(result.inGameSLP)) {
-                                    // 0 ingameslp, already claimed
-                                    todaySLP = result.inGameSLP; // retain old data for newly claimed, must be update on the next day
-                                }
-                                // Check if the data from fetch is same date as date today
-                                const toDateRes = moment(details.TODATE);
-                                const toDate = toDateRes.tz('Asia/Manila').format("YYYY-MM-DD HH:mm:ss");
-                                const yesterdayDate = moment().tz('Asia/Manila').subtract(1, "days").format("YYYY-MM-DD HH:mm:ss");
-                                const isSameTODate = moment(toDate).isSame(todayDate, 'date');
-                                if (isSameTODate) {
-                                    // Same date from tb TODATE and CURRENT DATE
-                                    // This will be the process of updating the TODAY SLP, YESTERDAY SLP and TODATE into new value
-                                    if ((Number(result.inGameSLP) === 0 && Number(details.TODAY) > 0) || (Number(result.inGameSLP) === 0 && Number(result.claim_on_days) === 0)) {
-                                        // First operator - If player claimed after the quest/grind x Second operator - If player claimed before starting the quest/grind
-                                        // Checker for already claimed SLP x this will be the process for reset into 0 the data
-                                        // const yesterdySLP = Number(result.inGameSLP) > 0 ? result.inGameSLP : 0;
+                                    // There's an error in Daily SLP x reset to 0 x YESTERDAYSLP must be less than to InGameSLP
+                                    result.dailySLP = {
+                                        ADDRESS: details.ADDRESS,
+                                        YESTERDAY: 0,
+                                        YESTERDAYRES: details.YESTERDAYRES,
+                                        YESTERDAYDATE: yesterdayDate,
+                                        TODAY: 0,
+                                        TODATE: todayDate,
+                                        ACTION: CONSTANTS.MESSAGE.UPDATE,
+                                        MESSAGE: "UPDATE from energy reset and error in daily slp",
+                                        UPDATEDON: todayDate,
+                                        NAME: result.name,
+                                        MMR: ranking.elo,
+                                        MAXGAINSLP: this.state.maxGainSLP,
+                                        ALLFIELDS: true // to be save, if all fields or not x if false, only TODAY
+                                    };
+                                } else {
+                                    // Update TODAY SLP based on computation of YESTERDAY SLP and INGAME SLP
+                                    if (Number(todaySLP) > Number(details.TODAY)) {
+                                        // Update Daily SLP with new TODAY SLP
                                         result.dailySLP = {
                                             ADDRESS: details.ADDRESS,
-                                            YESTERDAY: 0,
+                                            YESTERDAY: details.YESTERDAY,
                                             YESTERDAYRES: details.YESTERDAYRES,
                                             YESTERDAYDATE: yesterdayDate,
-                                            TODAY: 0,
-                                            TODATE: todayDate,
+                                            TODAY: todaySLP,
+                                            TODATE: toDate,
                                             ACTION: CONSTANTS.MESSAGE.UPDATE,
-                                            MESSAGE: "UPDATE from energy reset and was claimed - true",
+                                            MESSAGE: "UPDATE from isSameTODate true",
                                             UPDATEDON: todayDate,
                                             NAME: result.name,
                                             MMR: ranking.elo,
                                             MAXGAINSLP: this.state.maxGainSLP,
-                                            ALLFIELDS: true // to be save, if all fields or not x if false, only TODAY
+                                            ALLFIELDS: false // to be save, if all fields or not x if false, only TODAY
                                         };
                                     } else {
-                                        // Check if the YESTERDAY SLP is greather than InGame SLP
-                                        if (Number(details.YESTERDAY) > Number(result.inGameSLP)) {
-                                            // There's an error in Daily SLP x reset to 0 x YESTERDAYSLP must be less than to InGameSLP
-                                            result.dailySLP = {
-                                                ADDRESS: details.ADDRESS,
-                                                YESTERDAY: 0,
-                                                YESTERDAYRES: details.YESTERDAYRES,
-                                                YESTERDAYDATE: yesterdayDate,
-                                                TODAY: 0,
-                                                TODATE: todayDate,
-                                                ACTION: CONSTANTS.MESSAGE.UPDATE,
-                                                MESSAGE: "UPDATE from energy reset and error in daily slp",
-                                                UPDATEDON: todayDate,
-                                                NAME: result.name,
-                                                MMR: ranking.elo,
-                                                MAXGAINSLP: this.state.maxGainSLP,
-                                                ALLFIELDS: true // to be save, if all fields or not x if false, only TODAY
-                                            };
-                                        } else {
-                                            // Update TODAY SLP based on computation of YESTERDAY SLP and INGAME SLP
-                                            if (Number(todaySLP) > Number(details.TODAY)) {
-                                                // Update Daily SLP with new TODAY SLP
-                                                result.dailySLP = {
-                                                    ADDRESS: details.ADDRESS,
-                                                    YESTERDAY: details.YESTERDAY,
-                                                    YESTERDAYRES: details.YESTERDAYRES,
-                                                    YESTERDAYDATE: yesterdayDate,
-                                                    TODAY: todaySLP,
-                                                    TODATE: toDate,
-                                                    ACTION: CONSTANTS.MESSAGE.UPDATE,
-                                                    MESSAGE: "UPDATE from isSameTODate true",
-                                                    UPDATEDON: todayDate,
-                                                    NAME: result.name,
-                                                    MMR: ranking.elo,
-                                                    MAXGAINSLP: this.state.maxGainSLP,
-                                                    ALLFIELDS: false // to be save, if all fields or not x if false, only TODAY
-                                                };
-                                            } else {
-                                                // Today SLP is same x no change required
-                                                playerDataDailySLPwillSave = false;
-                                                result.dailySLP = details;
-                                                result.dailySLP.noChange = "isSameTODate - true";
-                                            }
-                                        }
+                                        // Today SLP is same x no change required
+                                        playerDataDailySLPwillSave = false;
+                                        result.dailySLP = details;
+                                        result.dailySLP.noChange = "isSameTODate - true";
+                                    }
+                                }
+                            }
+                        } else {
+                            // Not same date from tb TODATE and CURRENT DATE
+                            // Update TODAY SLP based on computation of YESTERDAY SLP and INGAME SLP
+                            // Update TODATE if teh date today is already passed the 8AM game reset
+                            const timeChecker = moment(todayDate).format('HHmmss');
+                            if (!isSameTODate && Number(result.claim_on_days) > 0 && Number(timeChecker) >= Number("080000")) { // isSameTODate must always false in this process to prevent to update in new data from game reset 8AM
+                                // This will be the process of updating the TODAY SLP, YESTERDAY SLP and TODATE into new value
+                                // Update YESTERDAY and TODAY SLP with TODATE by battle logs
+                                if(this.state.isBattleLogDailyEnable && (battleLogs !== undefined  && battleLogs.error === undefined)) {
+                                    if (Number(battleLogs.win_total) > 0) {
+                                        // Update YESTERDAY and TODAY SLP with TODATE by battle logs
+                                        // Multiple the gained slp reward based on MMR in win total
+                                        // Add the total gained slp reward based from win total in YESTERDAYSLP
+                                        // Minus the total gained slp reward based from win total in inGameSLP x TODAYSLP
+                                        const gainedSLPReward = Number(ranking.slpReward) * Number(battleLogs.win_total);
+                                        const yesterdySLP = Number(details.YESTERDAY) + Number(details.TODAY) + Number(gainedSLPReward);
+                                        const yesterdyResSLP = Number(details.TODAY) + Number(gainedSLPReward);
+                                        const todaysSLP = (Number(result.inGameSLP) - Number(gainedSLPReward)) - Number(yesterdySLP);
+                                        // Update daily slp with new date
+                                        result.dailySLP = {
+                                            ADDRESS: details.ADDRESS,
+                                            YESTERDAY: yesterdySLP,
+                                            YESTERDAYRES: yesterdyResSLP,
+                                            YESTERDAYDATE: yesterdayDate,
+                                            TODAY: todaysSLP,
+                                            TODATE: todayDate,
+                                            ACTION: CONSTANTS.MESSAGE.UPDATE,
+                                            MESSAGE: "UPDATE from energy reset - with battle logs - has already start the game",
+                                            UPDATEDON: todayDate,
+                                            NAME: result.name,
+                                            MMR: ranking.elo,
+                                            MAXGAINSLP: this.state.maxGainSLP,
+                                            ALLFIELDS: true, // to be save, if all fields or not x if false, only TODAY
+                                            TBINSERTYESTERDAY: true // insert the yesterday slp table for display in chart x get the yesterdayres property value
+                                        };
+                                    } else {
+                                        // Default process for updating YESTERDAY and TODAY SLP with TODATE
+                                        // Get YESTERDAY SLP base on YESTERDAY and TODAY SLP
+                                        const yesterdySLP = Number(details.YESTERDAY) + Number(details.TODAY);
+                                        // Get TODAY SLP base on InGameSLP and YESTERDAY SLP
+                                        const todaysSLP = Number(result.inGameSLP) - Number(yesterdySLP);
+                                        // Update daily slp with new date
+                                        result.dailySLP = {
+                                            ADDRESS: details.ADDRESS,
+                                            YESTERDAY: yesterdySLP,
+                                            YESTERDAYRES: details.TODAY,
+                                            YESTERDAYDATE: yesterdayDate,
+                                            TODAY: todaysSLP,
+                                            TODATE: todayDate,
+                                            ACTION: CONSTANTS.MESSAGE.UPDATE,
+                                            MESSAGE: "UPDATE from energy reset - with battle logs",
+                                            UPDATEDON: todayDate,
+                                            NAME: result.name,
+                                            MMR: ranking.elo,
+                                            MAXGAINSLP: this.state.maxGainSLP,
+                                            ALLFIELDS: true, // to be save, if all fields or not x if false, only TODAY
+                                            TBINSERTYESTERDAY: true // insert the yesterday slp table for display in chart x get the yesterdayres property value
+                                        };
                                     }
                                 } else {
-                                    // Not same date from tb TODATE and CURRENT DATE
-                                    // Update TODAY SLP based on computation of YESTERDAY SLP and INGAME SLP
-                                    // Update TODATE if teh date today is already passed the 8AM game reset
-                                    const timeChecker = moment(todayDate).format('HHmmss');
-                                    if (!isSameTODate && Number(result.claim_on_days) > 0 && Number(timeChecker) >= Number("080000")) { // isSameTODate must always false in this process to prevent to update in new data from game reset 8AM
-                                        // This will be the process of updating the TODAY SLP, YESTERDAY SLP and TODATE into new value
-                                        // Update YESTERDAY and TODAY SLP with TODATE by battle logs
-                                        if(this.state.isBattleLogDailyEnable && (battleLogs !== undefined  && battleLogs.error === undefined)) {
-                                            if (Number(battleLogs.win_total) > 0) {
-                                                // Update YESTERDAY and TODAY SLP with TODATE by battle logs
-                                                // Multiple the gained slp reward based on MMR in win total
-                                                // Add the total gained slp reward based from win total in YESTERDAYSLP
-                                                // Minus the total gained slp reward based from win total in inGameSLP x TODAYSLP
-                                                const gainedSLPReward = Number(ranking.slpReward) * Number(battleLogs.win_total);
-                                                const yesterdySLP = Number(details.YESTERDAY) + Number(details.TODAY) + Number(gainedSLPReward);
-                                                const yesterdyResSLP = Number(details.TODAY) + Number(gainedSLPReward);
-                                                const todaysSLP = (Number(result.inGameSLP) - Number(gainedSLPReward)) - Number(yesterdySLP);
-                                                // Update daily slp with new date
-                                                result.dailySLP = {
-                                                    ADDRESS: details.ADDRESS,
-                                                    YESTERDAY: yesterdySLP,
-                                                    YESTERDAYRES: yesterdyResSLP,
-                                                    YESTERDAYDATE: yesterdayDate,
-                                                    TODAY: todaysSLP,
-                                                    TODATE: todayDate,
-                                                    ACTION: CONSTANTS.MESSAGE.UPDATE,
-                                                    MESSAGE: "UPDATE from energy reset - with battle logs - has already start the game",
-                                                    UPDATEDON: todayDate,
-                                                    NAME: result.name,
-                                                    MMR: ranking.elo,
-                                                    MAXGAINSLP: this.state.maxGainSLP,
-                                                    ALLFIELDS: true, // to be save, if all fields or not x if false, only TODAY
-                                                    TBINSERTYESTERDAY: true // insert the yesterday slp table for display in chart x get the yesterdayres property value
-                                                };
-                                            } else {
-                                                // Default process for updating YESTERDAY and TODAY SLP with TODATE
-                                                // Get YESTERDAY SLP base on YESTERDAY and TODAY SLP
-                                                const yesterdySLP = Number(details.YESTERDAY) + Number(details.TODAY);
-                                                // Get TODAY SLP base on InGameSLP and YESTERDAY SLP
-                                                const todaysSLP = Number(result.inGameSLP) - Number(yesterdySLP);
-                                                // Update daily slp with new date
-                                                result.dailySLP = {
-                                                    ADDRESS: details.ADDRESS,
-                                                    YESTERDAY: yesterdySLP,
-                                                    YESTERDAYRES: details.TODAY,
-                                                    YESTERDAYDATE: yesterdayDate,
-                                                    TODAY: todaysSLP,
-                                                    TODATE: todayDate,
-                                                    ACTION: CONSTANTS.MESSAGE.UPDATE,
-                                                    MESSAGE: "UPDATE from energy reset - with battle logs",
-                                                    UPDATEDON: todayDate,
-                                                    NAME: result.name,
-                                                    MMR: ranking.elo,
-                                                    MAXGAINSLP: this.state.maxGainSLP,
-                                                    ALLFIELDS: true, // to be save, if all fields or not x if false, only TODAY
-                                                    TBINSERTYESTERDAY: true // insert the yesterday slp table for display in chart x get the yesterdayres property value
-                                                };
-                                            }
-                                        } else {
-                                            // Default process for updating YESTERDAY and TODAY SLP with TODATE
-                                            // Get YESTERDAY SLP base on YESTERDAY and TODAY SLP
-                                            const yesterdySLP = Number(details.YESTERDAY) + Number(details.TODAY);
-                                            // Get TODAY SLP base on InGameSLP and YESTERDAY SLP
-                                            const todaysSLP = Number(result.inGameSLP) - Number(yesterdySLP);
-                                            // Update daily slp with new date
-                                            result.dailySLP = {
-                                                ADDRESS: details.ADDRESS,
-                                                YESTERDAY: yesterdySLP,
-                                                YESTERDAYRES: details.TODAY,
-                                                YESTERDAYDATE: yesterdayDate,
-                                                TODAY: todaysSLP,
-                                                TODATE: todayDate,
-                                                ACTION: CONSTANTS.MESSAGE.UPDATE,
-                                                MESSAGE: "UPDATE from energy reset",
-                                                UPDATEDON: todayDate,
-                                                NAME: result.name,
-                                                MMR: ranking.elo,
-                                                MAXGAINSLP: this.state.maxGainSLP,
-                                                ALLFIELDS: true, // to be save, if all fields or not x if false, only TODAY
-                                                TBINSERTYESTERDAY: true // insert the yesterday slp table for display in chart x get the yesterdayres property value
-                                            };
-                                        }
-                                    } else {
-                                        // This will be the process of updating TODAY SLP only x not yet pass/overlap the 8AM reset
-                                        // Update TODAY SLP based on computation of YESTERDAY SLP and INGAME SLP
-                                        if (Number(todaySLP) > Number(details.TODAY)) {
-                                            // Update Daily SLP with new TODAY SLP
-                                            result.dailySLP = {
-                                                ADDRESS: details.ADDRESS,
-                                                YESTERDAY: details.YESTERDAY,
-                                                YESTERDAYRES: details.YESTERDAYRES,
-                                                YESTERDAYDATE: yesterdayDate,
-                                                TODAY: todaySLP,
-                                                TODATE: toDate,
-                                                ACTION: CONSTANTS.MESSAGE.UPDATE,
-                                                MESSAGE: "UPDATE from isSameTODate false",
-                                                UPDATEDON: todayDate,
-                                                NAME: result.name,
-                                                MMR: ranking.elo,
-                                                MAXGAINSLP: this.state.maxGainSLP,
-                                                ALLFIELDS: false // to be save, if all fields or not x if false, only TODAY
-                                            };
-                                        } else {
-                                            // Today SLP is same x no change required
-                                            playerDataDailySLPwillSave = false;
-                                            result.dailySLP = details;
-                                            result.dailySLP.noChange = "isSameTODate - false";
-                                        }
-                                    }
+                                    // Default process for updating YESTERDAY and TODAY SLP with TODATE
+                                    // Get YESTERDAY SLP base on YESTERDAY and TODAY SLP
+                                    const yesterdySLP = Number(details.YESTERDAY) + Number(details.TODAY);
+                                    // Get TODAY SLP base on InGameSLP and YESTERDAY SLP
+                                    const todaysSLP = Number(result.inGameSLP) - Number(yesterdySLP);
+                                    // Update daily slp with new date
+                                    result.dailySLP = {
+                                        ADDRESS: details.ADDRESS,
+                                        YESTERDAY: yesterdySLP,
+                                        YESTERDAYRES: details.TODAY,
+                                        YESTERDAYDATE: yesterdayDate,
+                                        TODAY: todaysSLP,
+                                        TODATE: todayDate,
+                                        ACTION: CONSTANTS.MESSAGE.UPDATE,
+                                        MESSAGE: "UPDATE from energy reset",
+                                        UPDATEDON: todayDate,
+                                        NAME: result.name,
+                                        MMR: ranking.elo,
+                                        MAXGAINSLP: this.state.maxGainSLP,
+                                        ALLFIELDS: true, // to be save, if all fields or not x if false, only TODAY
+                                        TBINSERTYESTERDAY: true // insert the yesterday slp table for display in chart x get the yesterdayres property value
+                                    };
                                 }
-                            } catch (err) {
-                                // Has error in generate daily slp x used default data for display in table
-                                playerDataDailySLPwillSave = false;
-                                result.dailySLP = {
-                                    ADDRESS: details.ADDRESS,
-                                    YESTERDAY: 0,
-                                    YESTERDAYRES: 0,
-                                    TODAY: 0,
-                                    ERROR: err
+                            } else {
+                                // This will be the process of updating TODAY SLP only x not yet pass/overlap the 8AM reset
+                                // Update TODAY SLP based on computation of YESTERDAY SLP and INGAME SLP
+                                if (Number(todaySLP) > Number(details.TODAY)) {
+                                    // Update Daily SLP with new TODAY SLP
+                                    result.dailySLP = {
+                                        ADDRESS: details.ADDRESS,
+                                        YESTERDAY: details.YESTERDAY,
+                                        YESTERDAYRES: details.YESTERDAYRES,
+                                        YESTERDAYDATE: yesterdayDate,
+                                        TODAY: todaySLP,
+                                        TODATE: toDate,
+                                        ACTION: CONSTANTS.MESSAGE.UPDATE,
+                                        MESSAGE: "UPDATE from isSameTODate false",
+                                        UPDATEDON: todayDate,
+                                        NAME: result.name,
+                                        MMR: ranking.elo,
+                                        MAXGAINSLP: this.state.maxGainSLP,
+                                        ALLFIELDS: false // to be save, if all fields or not x if false, only TODAY
+                                    };
+                                } else {
+                                    // Today SLP is same x no change required
+                                    playerDataDailySLPwillSave = false;
+                                    result.dailySLP = details;
+                                    result.dailySLP.noChange = "isSameTODate - false";
                                 }
                             }
-
-                            // Generate Highest SLP Gained
-                            if (Number(result.dailySLP.TODAY) <= Number(this.state.maxGainSLP) && Number(result.dailySLP.TODAY) > Number(details.HIGH_SLP_GAIN)) {
-                                let todayGainDate = todayDate;
-                                const timeChecker = moment(todayDate).format('HHmmss');
-                                if (Number(timeChecker) < Number("080000")) {
-                                    // Check if the date is not yet reset, get the previous date for setting up the Highest SLP Gained Date
-                                    todayGainDate = moment().tz('Asia/Manila').subtract(1, "days").format("YYYY-MM-DD HH:mm:ss");
-                                }
-
-                                // Insert New Object of Highest SLP Gained by each player in Daily SLP
-                                result.dailySLP.TBUPDATEHIGHSLP = true;
-                                result.dailySLP.HIGHSLPGAIN = result.dailySLP.TODAY;
-                                result.dailySLP.HIGHSLPDATE = todayGainDate;
-                                // Set new High SLP in object of player details
-                                details.HIGH_SLP_GAIN = result.dailySLP.TODAY;
-                                details.HIGH_SLP_DATE = todayGainDate;
-                            }
-
-                            // Check which SLP Gained is Highest from all player
-                            if (Number(details.HIGH_SLP_GAIN) > Number(this.state.highestGainedSLP.SLP)) {
-                                this.setState({
-                                    highestGainedSLP: {
-                                        Name: result.name,
-                                        SLP: details.HIGH_SLP_GAIN,
-                                        Date: details.HIGH_SLP_DATE
-                                    }
-                                })
-                            }
                         }
-
-                        // Adding color text for daily quota x red for less than average slp daily in quota
-                        if (Number(result.averageSLPDay) < Number(this.state.defaultDailyQuota)) {
-                            result.dailyQuota.textStyle = "red-text font-weight-bold";
+                    } catch (err) {
+                        // Has error in generate daily slp x used default data for display in table
+                        playerDataDailySLPwillSave = false;
+                        result.dailySLP = {
+                            ADDRESS: details.ADDRESS,
+                            YESTERDAY: 0,
+                            YESTERDAYRES: 0,
+                            TODAY: 0,
+                            ERROR: err
                         }
-
-                        // Adding Player daily slp, details and ranking in result object
-                        result.details = details;
-                        result.ranking = ranking;
-
-                        // Adding property of delete
-                        result.isDeleted = details.DELETEIND ? details.DELETEIND : "";
-
-                        // Get all ETH Address x for other display x MMR Ranking x etc
-                        this.state.playerRecords.push(result);
-
-                        // Update Player Datatable row details
-                        const playerDataTableRes = {
-                            name: result.name,
-                            averageSLP: <MDBBox data-th={CONSTANTS.MESSAGE.AVERAGE_SLP_PERDAY_V2} tag="span" className={result.dailyQuota.textStyle}>{result.averageSLPDay}</MDBBox>,
-                            dailySLP: <MDBBox data-th={CONSTANTS.MESSAGE.DAILYSLP} tag="span"><MDBBox tag="span" className={Number(result.dailySLP.YESTERDAYRES) > Number(result.dailySLP.TODAY) ? "green-text d-inline d-md-block d-lg-block" : "red-text d-inline d-md-block d-lg-block"}><strong>Y:</strong> {result.dailySLP.YESTERDAYRES}</MDBBox> <MDBBox tag="span" className={Number(result.dailySLP.YESTERDAYRES) > Number(result.dailySLP.TODAY) ? "red-text d-inline d-md-block d-lg-block" : "green-text d-inline d-md-block d-lg-block"}><strong>T:</strong> {result.dailySLP.TODAY}</MDBBox></MDBBox>,
-                            ingameSLP: <MDBBox data-th={CONSTANTS.MESSAGE.INGAME_SLP} tag="span">{this.numberWithCommas(result.inGameSLP)}</MDBBox>,
-                            sharedScholarSLP: <MDBBox data-th={CONSTANTS.MESSAGE.SHARED_SLP} tag="span" className="d-inline d-md-block d-lg-block">
-                                                    {
-                                                        this.state.isUser === CONSTANTS.MESSAGE.MANAGER || !this.state.isUserEmail || (this.state.isUser).toLowerCase() === (result.details.EMAIL).toLowerCase() ? (
-                                                            <React.Fragment>
-                                                                {this.numberWithCommas(result.sharedScholarSLP)}
-                                                                <MDBBox tag="span" className="d-inline d-md-block d-lg-block">
-                                                                    ({(details.SHR_MANAGER).toString() === "100" ? details.SHR_MANAGER : details.SHR_SCHOLAR}%)
-                                                                </MDBBox>
-                                                            </React.Fragment>
-                                                        ) : (0) // If user is email x display 0 for other player
-                                                    }
-                                                </MDBBox>,
-                            roninSLP: <MDBBox data-th={CONSTANTS.MESSAGE.RONIN_SLP} tag="span">{this.numberWithCommas(roninBalance)} <MDBBox tag="span" className="d-inline d-md-block d-lg-block red-text">{result.managerRoninClaimed ? "(" + this.numberWithCommas(playersStaticData.managerDebtClaimed) + ")" : ""}</MDBBox></MDBBox>,
-                            totalScholarEarningSLP: <MDBBox data-th={CONSTANTS.MESSAGE.TOTAL_SLP} tag="span">
-                                                        {
-                                                            this.state.isUser === CONSTANTS.MESSAGE.MANAGER || !this.state.isUserEmail || (this.state.isUser).toLowerCase() === (result.details.EMAIL).toLowerCase() ? (
-                                                                this.numberWithCommas(result.totalScholarEarningSLP)
-                                                            ) : (0) // If user is email x display 0 for other player
-                                                        }
-                                                    </MDBBox>,
-                            totalScholarEarningPHP: <MDBBox data-th={CONSTANTS.MESSAGE.EARNINGS_PHP} tag="span">
-                                                        {
-                                                            this.state.isUser === CONSTANTS.MESSAGE.MANAGER || !this.state.isUserEmail || (this.state.isUser).toLowerCase() === (result.details.EMAIL).toLowerCase() ? (
-                                                                this.numberWithCommas((result.totalScholarEarningPHP).toFixed(2))
-                                                            ) : (0) // If user is email x display 0 for other player
-                                                        }
-                                                    </MDBBox>,
-                            totalScholarEarningPHPSLP: <MDBBox data-th={CONSTANTS.MESSAGE.TOTAL_SLP_PHP} tag="span">
-                                                        {
-                                                            this.state.isUser === CONSTANTS.MESSAGE.MANAGER || !this.state.isUserEmail || (this.state.isUser).toLowerCase() === (result.details.EMAIL).toLowerCase() ? (
-                                                                <React.Fragment>
-                                                                        {this.numberWithCommas(result.totalScholarEarningSLP)}
-                                                                        <MDBBox tag="span" className="d-block">
-                                                                            (&#8369; {this.numberWithCommas((result.totalScholarEarningPHP).toFixed(2))})
-                                                                        </MDBBox>
-                                                                </React.Fragment>
-                                                            ) : (0) // If user is email x display 0 for other player
-                                                        }
-                                                    </MDBBox>,
-                            claimOn: <MDBBox data-th={CONSTANTS.MESSAGE.CLAIMON} tag="span" className={result.isClaimable ? "green-text d-block" : "d-block"}>
-                                        {result.claim_at}
-                                        <MDBBox tag="span" className="d-block">
-                                            {result.claim_on_days} {CONSTANTS.MESSAGE.DAYS}
-                                        </MDBBox>
-                                    </MDBBox>,
-                            mmr: <MDBBox data-th={CONSTANTS.MESSAGE.MMR} tag="span" className={ranking.textStyle}>{this.numberWithCommas(ranking.elo)}</MDBBox>,
-                            rank: <MDBBox data-th={CONSTANTS.MESSAGE.RANK} tag="span">{this.numberWithCommas(ranking.rank)}</MDBBox>,
-                            mmrRank: <MDBBox data-th={CONSTANTS.MESSAGE.MMR} tag="span"><MDBBox tag="span" className={ranking.textStyle}>{this.numberWithCommas(ranking.elo)}</MDBBox> <MDBBox tag="span" className="d-inline d-md-block d-lg-block">{ranking.rank > 0 ? ("(" + this.numberWithCommas(ranking.rank) + ")") : ("")}</MDBBox></MDBBox>,
-                            sharedManagerSLP: <MDBBox data-th={CONSTANTS.MESSAGE.SHARED_SLP} tag="span">{this.numberWithCommas(result.sharedManagerSLP)}</MDBBox>,
-                            managerEarningsPHP: <MDBBox data-th={CONSTANTS.MESSAGE.EARNINGS_PHP} tag="span">{this.numberWithCommas((result.totalManagerEarningPHP).toFixed(2))}</MDBBox>,
-                            sharedSponsorSLP: <MDBBox data-th={CONSTANTS.MESSAGE.SHARED_SLP} tag="span">{this.numberWithCommas(result.sharedSponsorSLP)}</MDBBox>,
-                            sponsorEarningsPHP: <MDBBox data-th={CONSTANTS.MESSAGE.EARNINGS_PHP} tag="span">{this.numberWithCommas((result.totalSponsorEarningPHP).toFixed(2))}</MDBBox>,
-                            nameMmr: `${result.name} (${ranking.elo})`,
-                            nameInGameSLP: `${result.name} (${result.inGameSLP})`,
-                            pvpEnergy: <MDBBox data-th={CONSTANTS.MESSAGE.PVP_ENERGY} tag="span">{result.pvp_energy}</MDBBox>,
-                            rewardSLP: <MDBBox data-th={CONSTANTS.MESSAGE.REWARDS_SLP} tag="span">
-                                            {result.isBonusSLPReward ? 
-                                                <React.Fragment>
-                                                    <MDBBox tag="span" className="d-block">{CONSTANTS.MESSAGE.MGR}: {this.numberWithCommas(result.totalSLPManagerClaim)}</MDBBox>
-                                                    <MDBBox tag="span" className="d-block">{CONSTANTS.MESSAGE.SCH}: {this.numberWithCommas(result.totalSLPRewards)}</MDBBox>
-                                                    <MDBBox tag="span" className="d-block">&#8369; {this.numberWithCommas((result.totalPHPRewards).toFixed(2))}</MDBBox>
-                                                </React.Fragment>
-                                            : 0}
-                                        </MDBBox>,
-                            clickEvent: this.modalPlayerDetailsToggle(result.client_id, [result])
-                        };
-
-                        // Create Excel data
-                        const playerDataTableExport = {
-                            Name: result.name,
-                            InGameSLP: result.inGameSLP,
-                            ManagerSLP: result.sharedManagerSLP,
-                            SponsorSLP: result.sharedSponsorSLP,
-                            ScholarSLP: result.totalScholarEarningSLP,
-                            ClaimOn: moment.unix(result.last_claimed_item_at).add(this.state.daysClaimable, "days").format("MMM DD, hh:mm A")
-                        }
-                        
-                        // Success return
-                        return resolve({
-                            error: false,
-                            data: playerDataTableRes,
-                            slp: result.inGameSLP,
-                            rank: ranking.rank,
-                            eth: userEthAddress,
-                            export: playerDataTableExport,
-                            dailySLP: result.dailySLP,
-                            dailySLPwillSave: playerDataDailySLPwillSave,
-                            isSLPClaimed: isAlreadyClaimed,
-                            isSlpCLaimedData: result.slpClaimed,
-                            delYDASLPData: result.deleteYesterdaySLP, // Delete yesterday slp data
-                            isDelete: result.isDeleted
-                        });
-                    } else {
-                        return reject({error: true});
                     }
-                },
-                // Note: it's important to handle errors here
-                // instead of a catch() block so that we don't swallow
-                // exceptions from actual bugs in components.
-                (error) => {
-                    console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, error)
-                    return reject({error: true});
+
+                    // Generate Highest SLP Gained
+                    if (Number(result.dailySLP.TODAY) <= Number(this.state.maxGainSLP) && Number(result.dailySLP.TODAY) > Number(details.HIGH_SLP_GAIN)) {
+                        let todayGainDate = todayDate;
+                        const timeChecker = moment(todayDate).format('HHmmss');
+                        if (Number(timeChecker) < Number("080000")) {
+                            // Check if the date is not yet reset, get the previous date for setting up the Highest SLP Gained Date
+                            todayGainDate = moment().tz('Asia/Manila').subtract(1, "days").format("YYYY-MM-DD HH:mm:ss");
+                        }
+
+                        // Insert New Object of Highest SLP Gained by each player in Daily SLP
+                        result.dailySLP.TBUPDATEHIGHSLP = true;
+                        result.dailySLP.HIGHSLPGAIN = result.dailySLP.TODAY;
+                        result.dailySLP.HIGHSLPDATE = todayGainDate;
+                        // Set new High SLP in object of player details
+                        details.HIGH_SLP_GAIN = result.dailySLP.TODAY;
+                        details.HIGH_SLP_DATE = todayGainDate;
+                    }
+
+                    // Check which SLP Gained is Highest from all player
+                    if (Number(details.HIGH_SLP_GAIN) > Number(this.state.highestGainedSLP.SLP)) {
+                        this.setState({
+                            highestGainedSLP: {
+                                Name: result.name,
+                                SLP: details.HIGH_SLP_GAIN,
+                                Date: details.HIGH_SLP_DATE
+                            }
+                        })
+                    }
                 }
-            )
-            .catch(
-                (err) => {
-                    console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
-                    return reject({error: true});
+
+                // Adding color text for daily quota x red for less than average slp daily in quota
+                if (Number(result.averageSLPDay) < Number(this.state.defaultDailyQuota)) {
+                    result.dailyQuota.textStyle = "red-text font-weight-bold";
                 }
-            )
+
+                // Adding Player daily slp, details and ranking in result object
+                result.details = details;
+                result.ranking = ranking;
+
+                // Adding property of delete
+                result.isDeleted = details.DELETEIND ? details.DELETEIND : "";
+
+                // Get all ETH Address x for other display x MMR Ranking x etc
+                this.state.playerRecords.push(result);
+
+                // Update Player Datatable row details
+                const playerDataTableRes = {
+                    name: result.name,
+                    averageSLP: <MDBBox data-th={CONSTANTS.MESSAGE.AVERAGE_SLP_PERDAY_V2} tag="span" className={result.dailyQuota.textStyle}>{result.averageSLPDay}</MDBBox>,
+                    dailySLP: <MDBBox data-th={CONSTANTS.MESSAGE.DAILYSLP} tag="span"><MDBBox tag="span" className={Number(result.dailySLP.YESTERDAYRES) > Number(result.dailySLP.TODAY) ? "green-text d-inline d-md-block d-lg-block" : "red-text d-inline d-md-block d-lg-block"}><strong>Y:</strong> {result.dailySLP.YESTERDAYRES}</MDBBox> <MDBBox tag="span" className={Number(result.dailySLP.YESTERDAYRES) > Number(result.dailySLP.TODAY) ? "red-text d-inline d-md-block d-lg-block" : "green-text d-inline d-md-block d-lg-block"}><strong>T:</strong> {result.dailySLP.TODAY}</MDBBox></MDBBox>,
+                    ingameSLP: <MDBBox data-th={CONSTANTS.MESSAGE.INGAME_SLP} tag="span">{this.numberWithCommas(result.inGameSLP)}</MDBBox>,
+                    sharedScholarSLP: <MDBBox data-th={CONSTANTS.MESSAGE.SHARED_SLP} tag="span" className="d-inline d-md-block d-lg-block">
+                                            {
+                                                this.state.isUser === CONSTANTS.MESSAGE.MANAGER || !this.state.isUserEmail || (this.state.isUser).toLowerCase() === (result.details.EMAIL).toLowerCase() ? (
+                                                    <React.Fragment>
+                                                        {this.numberWithCommas(result.sharedScholarSLP)}
+                                                        <MDBBox tag="span" className="d-inline d-md-block d-lg-block">
+                                                            ({(details.SHR_MANAGER).toString() === "100" ? details.SHR_MANAGER : details.SHR_SCHOLAR}%)
+                                                        </MDBBox>
+                                                    </React.Fragment>
+                                                ) : (0) // If user is email x display 0 for other player
+                                            }
+                                        </MDBBox>,
+                    roninSLP: <MDBBox data-th={CONSTANTS.MESSAGE.RONIN_SLP} tag="span">{this.numberWithCommas(roninBalance)} <MDBBox tag="span" className="d-inline d-md-block d-lg-block red-text">{result.managerRoninClaimed ? "(" + this.numberWithCommas(playersStaticData.managerDebtClaimed) + ")" : ""}</MDBBox></MDBBox>,
+                    totalScholarEarningSLP: <MDBBox data-th={CONSTANTS.MESSAGE.TOTAL_SLP} tag="span">
+                                                {
+                                                    this.state.isUser === CONSTANTS.MESSAGE.MANAGER || !this.state.isUserEmail || (this.state.isUser).toLowerCase() === (result.details.EMAIL).toLowerCase() ? (
+                                                        this.numberWithCommas(result.totalScholarEarningSLP)
+                                                    ) : (0) // If user is email x display 0 for other player
+                                                }
+                                            </MDBBox>,
+                    totalScholarEarningPHP: <MDBBox data-th={CONSTANTS.MESSAGE.EARNINGS_PHP} tag="span">
+                                                {
+                                                    this.state.isUser === CONSTANTS.MESSAGE.MANAGER || !this.state.isUserEmail || (this.state.isUser).toLowerCase() === (result.details.EMAIL).toLowerCase() ? (
+                                                        this.numberWithCommas((result.totalScholarEarningPHP).toFixed(2))
+                                                    ) : (0) // If user is email x display 0 for other player
+                                                }
+                                            </MDBBox>,
+                    totalScholarEarningPHPSLP: <MDBBox data-th={CONSTANTS.MESSAGE.TOTAL_SLP_PHP} tag="span">
+                                                {
+                                                    this.state.isUser === CONSTANTS.MESSAGE.MANAGER || !this.state.isUserEmail || (this.state.isUser).toLowerCase() === (result.details.EMAIL).toLowerCase() ? (
+                                                        <React.Fragment>
+                                                                {this.numberWithCommas(result.totalScholarEarningSLP)}
+                                                                <MDBBox tag="span" className="d-block">
+                                                                    (&#8369; {this.numberWithCommas((result.totalScholarEarningPHP).toFixed(2))})
+                                                                </MDBBox>
+                                                        </React.Fragment>
+                                                    ) : (0) // If user is email x display 0 for other player
+                                                }
+                                            </MDBBox>,
+                    claimOn: <MDBBox data-th={CONSTANTS.MESSAGE.CLAIMON} tag="span" className={result.isClaimable ? "green-text d-block" : "d-block"}>
+                                {result.claim_at}
+                                <MDBBox tag="span" className="d-block">
+                                    {result.claim_on_days} {CONSTANTS.MESSAGE.DAYS}
+                                </MDBBox>
+                            </MDBBox>,
+                    mmr: <MDBBox data-th={CONSTANTS.MESSAGE.MMR} tag="span" className={ranking.textStyle}>{this.numberWithCommas(ranking.elo)}</MDBBox>,
+                    rank: <MDBBox data-th={CONSTANTS.MESSAGE.RANK} tag="span">{this.numberWithCommas(ranking.rank)}</MDBBox>,
+                    mmrRank: <MDBBox data-th={CONSTANTS.MESSAGE.MMR} tag="span"><MDBBox tag="span" className={ranking.textStyle}>{this.numberWithCommas(ranking.elo)}</MDBBox> <MDBBox tag="span" className="d-inline d-md-block d-lg-block">{ranking.rank > 0 ? ("(" + this.numberWithCommas(ranking.rank) + ")") : ("")}</MDBBox></MDBBox>,
+                    sharedManagerSLP: <MDBBox data-th={CONSTANTS.MESSAGE.SHARED_SLP} tag="span">{this.numberWithCommas(result.sharedManagerSLP)}</MDBBox>,
+                    managerEarningsPHP: <MDBBox data-th={CONSTANTS.MESSAGE.EARNINGS_PHP} tag="span">{this.numberWithCommas((result.totalManagerEarningPHP).toFixed(2))}</MDBBox>,
+                    sharedSponsorSLP: <MDBBox data-th={CONSTANTS.MESSAGE.SHARED_SLP} tag="span">{this.numberWithCommas(result.sharedSponsorSLP)}</MDBBox>,
+                    sponsorEarningsPHP: <MDBBox data-th={CONSTANTS.MESSAGE.EARNINGS_PHP} tag="span">{this.numberWithCommas((result.totalSponsorEarningPHP).toFixed(2))}</MDBBox>,
+                    nameMmr: `${result.name} (${ranking.elo})`,
+                    nameInGameSLP: `${result.name} (${result.inGameSLP})`,
+                    pvpEnergy: <MDBBox data-th={CONSTANTS.MESSAGE.PVP_ENERGY} tag="span">{result.pvp_energy}</MDBBox>,
+                    rewardSLP: <MDBBox data-th={CONSTANTS.MESSAGE.REWARDS_SLP} tag="span">
+                                    {result.isBonusSLPReward ? 
+                                        <React.Fragment>
+                                            <MDBBox tag="span" className="d-block">{CONSTANTS.MESSAGE.MGR}: {this.numberWithCommas(result.totalSLPManagerClaim)}</MDBBox>
+                                            <MDBBox tag="span" className="d-block">{CONSTANTS.MESSAGE.SCH}: {this.numberWithCommas(result.totalSLPRewards)}</MDBBox>
+                                            <MDBBox tag="span" className="d-block">&#8369; {this.numberWithCommas((result.totalPHPRewards).toFixed(2))}</MDBBox>
+                                        </React.Fragment>
+                                    : 0}
+                                </MDBBox>,
+                    clickEvent: this.modalPlayerDetailsToggle(result.client_id, [result])
+                };
+
+                // Create Excel data
+                const playerDataTableExport = {
+                    Name: result.name,
+                    InGameSLP: result.inGameSLP,
+                    ManagerSLP: result.sharedManagerSLP,
+                    SponsorSLP: result.sharedSponsorSLP,
+                    ScholarSLP: result.totalScholarEarningSLP,
+                    ClaimOn: moment.unix(result.last_claimed_item_at).add(this.state.daysClaimable, "days").format("MMM DD, hh:mm A")
+                }
+
+                // Set Player Details in Cookies
+                localStorage.setItem(ethAddress, JSON.stringify(result));
+                
+                // Success return
+                return resolve({
+                    error: false,
+                    data: playerDataTableRes,
+                    slp: result.inGameSLP,
+                    rank: ranking.rank,
+                    eth: userEthAddress,
+                    export: playerDataTableExport,
+                    dailySLP: result.dailySLP,
+                    dailySLPwillSave: playerDataDailySLPwillSave,
+                    isSLPClaimed: isAlreadyClaimed,
+                    isSlpCLaimedData: result.slpClaimed,
+                    delYDASLPData: result.deleteYesterdaySLP, // Delete yesterday slp data
+                    isDelete: result.isDeleted
+                });
+            } else {
+                return reject({error: true});
+            }
         }).catch(err => {
             console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
             return err;

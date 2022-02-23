@@ -29,6 +29,7 @@ class Login extends React.Component {
                 // Display all details
                 Cookies.set("filter", CONSTANTS.MESSAGE.MANAGER);
                 localStorage.setItem("isBattleLogEnable", "0");
+                localStorage.setItem("isLeaderboardEnable", "1");
                 // Reload page
                 window.location.reload();
             } else {
@@ -48,6 +49,7 @@ class Login extends React.Component {
                             // Display detail based on credential
                             Cookies.set("filter", user);
                             localStorage.setItem("isBattleLogEnable", "0");
+                            localStorage.setItem("isLeaderboardEnable", "1");
                             // Reload page
                             window.location.reload();
                         } else {
@@ -55,6 +57,7 @@ class Login extends React.Component {
                                 // Display detail based on credential
                                 Cookies.set("filter", user)
                                 localStorage.setItem("isBattleLogEnable", "0");
+                                localStorage.setItem("isLeaderboardEnable", "1");
                                 // Reload page
                                 window.location.reload();
                             } else {

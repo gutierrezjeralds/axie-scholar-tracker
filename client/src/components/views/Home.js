@@ -108,6 +108,7 @@ class Home extends React.Component {
             isDeleted: false,
             isBattleLogEnable: localStorage.getItem("isBattleLogEnable") ? localStorage.getItem("isBattleLogEnable") === "1" ? true : false : false, // Indicator if the battle log display and logic is visable and functioning
             isBattleLogDailyEnable: false, // For daily slp object process
+            isLeaderboardEnable: localStorage.getItem("isLeaderboardEnable") ? localStorage.getItem("isLeaderboardEnable") === "1" ? true : false : false, // Indicator if the leaderboard api si enable
             maxGainSLP: 500,
             highestGainedSLP: { // Object for Highest SLP Gained
                 Name: "",
@@ -1293,8 +1294,11 @@ class Home extends React.Component {
     processPlayerDetails = async (result, details, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned, dataYesterdaySLP, playersStaticData, isBasedCookie = false) => {
         return new Promise(async (resolve, reject) => {
             if (Object.keys(result).length > 0) { // Has player details
-                // Get Player ranking base on Sky Mavis API
-                const ranking = await this.getPlayerRanking(ethAddress);
+                let ranking = {error: true};
+                if (isLeaderboardEnable) {
+                    // Get Player ranking base on Sky Mavis API
+                    ranking = await this.getPlayerRanking(ethAddress);
+                }
                 // Get Player battle log base on Game API Axie Technology
                 let battleLogs = undefined;
                 if (this.state.isBattleLogEnable) {

@@ -1295,7 +1295,7 @@ class Home extends React.Component {
         return new Promise(async (resolve, reject) => {
             if (Object.keys(result).length > 0) { // Has player details
                 let ranking = {error: true};
-                if (isLeaderboardEnable) {
+                if (this.state.isLeaderboardEnable) {
                     // Get Player ranking base on Sky Mavis API
                     ranking = await this.getPlayerRanking(ethAddress);
                 }

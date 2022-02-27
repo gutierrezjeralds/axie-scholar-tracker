@@ -1778,43 +1778,25 @@ class Home extends React.Component {
 
                     // Generate Daily SLP Data
                     try {
-                        // Get TODAY SLP x Subtraction of InGameSLP and YESTERDAY
-                        let todaySLP = Number(result.inGameSLP) - Number(details.YESTERDAY);
-                        if (Number(details.YESTERDAY) > Number(result.inGameSLP)) {
-                            // 0 ingameslp, already claimed
-                            todaySLP = result.inGameSLP; // retain old data for newly claimed, must be update on the next day
-                        }
-                        // Check if the data from fetch is same date as date today
-                        const toDateRes = moment(details.TODATE);
-                        const toDate = toDateRes.tz('Asia/Manila').format("YYYY-MM-DD HH:mm:ss");
-                        const yesterdayDate = moment().tz('Asia/Manila').subtract(1, "days").format("YYYY-MM-DD HH:mm:ss");
-                        const isSameTODate = moment(toDate).isSame(todayDate, 'date');
-                        if (isSameTODate) {
-                            // Same date from tb TODATE and CURRENT DATE
-                            // This will be the process of updating the TODAY SLP, YESTERDAY SLP and TODATE into new value
-                            if ((Number(result.inGameSLP) === 0 && Number(details.TODAY) > 0) || (Number(result.inGameSLP) === 0 && Number(result.claim_on_days) === 0)) {
-                                // First operator - If player claimed after the quest/grind x Second operator - If player claimed before starting the quest/grind
-                                // Checker for already claimed SLP x this will be the process for reset into 0 the data
-                                // const yesterdySLP = Number(result.inGameSLP) > 0 ? result.inGameSLP : 0;
-                                result.dailySLP = {
-                                    ADDRESS: details.ADDRESS,
-                                    YESTERDAY: 0,
-                                    YESTERDAYRES: details.YESTERDAYRES,
-                                    YESTERDAYDATE: yesterdayDate,
-                                    TODAY: 0,
-                                    TODATE: todayDate,
-                                    ACTION: CONSTANTS.MESSAGE.UPDATE,
-                                    MESSAGE: "UPDATE from energy reset and was claimed - true",
-                                    UPDATEDON: todayDate,
-                                    NAME: result.name,
-                                    MMR: ranking.elo,
-                                    MAXGAINSLP: this.state.maxGainSLP,
-                                    ALLFIELDS: true // to be save, if all fields or not x if false, only TODAY
-                                };
-                            } else {
-                                // Check if the YESTERDAY SLP is greather than InGame SLP
-                                if (Number(details.YESTERDAY) > Number(result.inGameSLP)) {
-                                    // There's an error in Daily SLP x reset to 0 x YESTERDAYSLP must be less than to InGameSLP
+                        if (!isBasedCookie) { // Run Daily SLP process object if the data is not based on Cookies/LocalStorage x resolved issue in unwanted data in daily SLP
+                            // Get TODAY SLP x Subtraction of InGameSLP and YESTERDAY
+                            let todaySLP = Number(result.inGameSLP) - Number(details.YESTERDAY);
+                            if (Number(details.YESTERDAY) > Number(result.inGameSLP)) {
+                                // 0 ingameslp, already claimed
+                                todaySLP = result.inGameSLP; // retain old data for newly claimed, must be update on the next day
+                            }
+                            // Check if the data from fetch is same date as date today
+                            const toDateRes = moment(details.TODATE);
+                            const toDate = toDateRes.tz('Asia/Manila').format("YYYY-MM-DD HH:mm:ss");
+                            const yesterdayDate = moment().tz('Asia/Manila').subtract(1, "days").format("YYYY-MM-DD HH:mm:ss");
+                            const isSameTODate = moment(toDate).isSame(todayDate, 'date');
+                            if (isSameTODate) {
+                                // Same date from tb TODATE and CURRENT DATE
+                                // This will be the process of updating the TODAY SLP, YESTERDAY SLP and TODATE into new value
+                                if ((Number(result.inGameSLP) === 0 && Number(details.TODAY) > 0) || (Number(result.inGameSLP) === 0 && Number(result.claim_on_days) === 0)) {
+                                    // First operator - If player claimed after the quest/grind x Second operator - If player claimed before starting the quest/grind
+                                    // Checker for already claimed SLP x this will be the process for reset into 0 the data
+                                    // const yesterdySLP = Number(result.inGameSLP) > 0 ? result.inGameSLP : 0;
                                     result.dailySLP = {
                                         ADDRESS: details.ADDRESS,
                                         YESTERDAY: 0,
@@ -1823,7 +1805,7 @@ class Home extends React.Component {
                                         TODAY: 0,
                                         TODATE: todayDate,
                                         ACTION: CONSTANTS.MESSAGE.UPDATE,
-                                        MESSAGE: "UPDATE from energy reset and error in daily slp",
+                                        MESSAGE: "UPDATE from energy reset and was claimed - true",
                                         UPDATEDON: todayDate,
                                         NAME: result.name,
                                         MMR: ranking.elo,
@@ -1831,67 +1813,110 @@ class Home extends React.Component {
                                         ALLFIELDS: true // to be save, if all fields or not x if false, only TODAY
                                     };
                                 } else {
-                                    // Update TODAY SLP based on computation of YESTERDAY SLP and INGAME SLP
-                                    if (Number(todaySLP) > Number(details.TODAY)) {
-                                        // Update Daily SLP with new TODAY SLP
+                                    // Check if the YESTERDAY SLP is greather than InGame SLP
+                                    if (Number(details.YESTERDAY) > Number(result.inGameSLP)) {
+                                        // There's an error in Daily SLP x reset to 0 x YESTERDAYSLP must be less than to InGameSLP
                                         result.dailySLP = {
                                             ADDRESS: details.ADDRESS,
-                                            YESTERDAY: details.YESTERDAY,
+                                            YESTERDAY: 0,
                                             YESTERDAYRES: details.YESTERDAYRES,
                                             YESTERDAYDATE: yesterdayDate,
-                                            TODAY: todaySLP,
-                                            TODATE: toDate,
-                                            ACTION: CONSTANTS.MESSAGE.UPDATE,
-                                            MESSAGE: "UPDATE from isSameTODate true",
-                                            UPDATEDON: todayDate,
-                                            NAME: result.name,
-                                            MMR: ranking.elo,
-                                            MAXGAINSLP: this.state.maxGainSLP,
-                                            ALLFIELDS: false // to be save, if all fields or not x if false, only TODAY
-                                        };
-                                    } else {
-                                        // Today SLP is same x no change required
-                                        playerDataDailySLPwillSave = false;
-                                        result.dailySLP = details;
-                                        result.dailySLP.noChange = "isSameTODate - true";
-                                    }
-                                }
-                            }
-                        } else {
-                            // Not same date from tb TODATE and CURRENT DATE
-                            // Update TODAY SLP based on computation of YESTERDAY SLP and INGAME SLP
-                            // Update TODATE if teh date today is already passed the 8AM game reset
-                            const timeChecker = moment(todayDate).format('HHmmss');
-                            if (!isSameTODate && Number(result.claim_on_days) > 0 && Number(timeChecker) >= Number("080000")) { // isSameTODate must always false in this process to prevent to update in new data from game reset 8AM
-                                // This will be the process of updating the TODAY SLP, YESTERDAY SLP and TODATE into new value
-                                // Update YESTERDAY and TODAY SLP with TODATE by battle logs
-                                if(this.state.isBattleLogDailyEnable && (battleLogs !== undefined  && battleLogs.error === undefined)) {
-                                    if (Number(battleLogs.win_total) > 0) {
-                                        // Update YESTERDAY and TODAY SLP with TODATE by battle logs
-                                        // Multiple the gained slp reward based on MMR in win total
-                                        // Add the total gained slp reward based from win total in YESTERDAYSLP
-                                        // Minus the total gained slp reward based from win total in inGameSLP x TODAYSLP
-                                        const gainedSLPReward = Number(ranking.slpReward) * Number(battleLogs.win_total);
-                                        const yesterdySLP = Number(details.YESTERDAY) + Number(details.TODAY) + Number(gainedSLPReward);
-                                        const yesterdyResSLP = Number(details.TODAY) + Number(gainedSLPReward);
-                                        const todaysSLP = (Number(result.inGameSLP) - Number(gainedSLPReward)) - Number(yesterdySLP);
-                                        // Update daily slp with new date
-                                        result.dailySLP = {
-                                            ADDRESS: details.ADDRESS,
-                                            YESTERDAY: yesterdySLP,
-                                            YESTERDAYRES: yesterdyResSLP,
-                                            YESTERDAYDATE: yesterdayDate,
-                                            TODAY: todaysSLP,
+                                            TODAY: 0,
                                             TODATE: todayDate,
                                             ACTION: CONSTANTS.MESSAGE.UPDATE,
-                                            MESSAGE: "UPDATE from energy reset - with battle logs - has already start the game",
+                                            MESSAGE: "UPDATE from energy reset and error in daily slp",
                                             UPDATEDON: todayDate,
                                             NAME: result.name,
                                             MMR: ranking.elo,
                                             MAXGAINSLP: this.state.maxGainSLP,
-                                            ALLFIELDS: true, // to be save, if all fields or not x if false, only TODAY
-                                            TBINSERTYESTERDAY: true // insert the yesterday slp table for display in chart x get the yesterdayres property value
+                                            ALLFIELDS: true // to be save, if all fields or not x if false, only TODAY
                                         };
+                                    } else {
+                                        // Update TODAY SLP based on computation of YESTERDAY SLP and INGAME SLP
+                                        if (Number(todaySLP) > Number(details.TODAY)) {
+                                            // Update Daily SLP with new TODAY SLP
+                                            result.dailySLP = {
+                                                ADDRESS: details.ADDRESS,
+                                                YESTERDAY: details.YESTERDAY,
+                                                YESTERDAYRES: details.YESTERDAYRES,
+                                                YESTERDAYDATE: yesterdayDate,
+                                                TODAY: todaySLP,
+                                                TODATE: toDate,
+                                                ACTION: CONSTANTS.MESSAGE.UPDATE,
+                                                MESSAGE: "UPDATE from isSameTODate true",
+                                                UPDATEDON: todayDate,
+                                                NAME: result.name,
+                                                MMR: ranking.elo,
+                                                MAXGAINSLP: this.state.maxGainSLP,
+                                                ALLFIELDS: false // to be save, if all fields or not x if false, only TODAY
+                                            };
+                                        } else {
+                                            // Today SLP is same x no change required
+                                            playerDataDailySLPwillSave = false;
+                                            result.dailySLP = details;
+                                            result.dailySLP.noChange = "isSameTODate - true";
+                                        }
+                                    }
+                                }
+                            } else {
+                                // Not same date from tb TODATE and CURRENT DATE
+                                // Update TODAY SLP based on computation of YESTERDAY SLP and INGAME SLP
+                                // Update TODATE if teh date today is already passed the 8AM game reset
+                                const timeChecker = moment(todayDate).format('HHmmss');
+                                if (!isSameTODate && Number(result.claim_on_days) > 0 && Number(timeChecker) >= Number("080000")) { // isSameTODate must always false in this process to prevent to update in new data from game reset 8AM
+                                    // This will be the process of updating the TODAY SLP, YESTERDAY SLP and TODATE into new value
+                                    // Update YESTERDAY and TODAY SLP with TODATE by battle logs
+                                    if(this.state.isBattleLogDailyEnable && (battleLogs !== undefined  && battleLogs.error === undefined)) {
+                                        if (Number(battleLogs.win_total) > 0) {
+                                            // Update YESTERDAY and TODAY SLP with TODATE by battle logs
+                                            // Multiple the gained slp reward based on MMR in win total
+                                            // Add the total gained slp reward based from win total in YESTERDAYSLP
+                                            // Minus the total gained slp reward based from win total in inGameSLP x TODAYSLP
+                                            const gainedSLPReward = Number(ranking.slpReward) * Number(battleLogs.win_total);
+                                            const yesterdySLP = Number(details.YESTERDAY) + Number(details.TODAY) + Number(gainedSLPReward);
+                                            const yesterdyResSLP = Number(details.TODAY) + Number(gainedSLPReward);
+                                            const todaysSLP = (Number(result.inGameSLP) - Number(gainedSLPReward)) - Number(yesterdySLP);
+                                            // Update daily slp with new date
+                                            result.dailySLP = {
+                                                ADDRESS: details.ADDRESS,
+                                                YESTERDAY: yesterdySLP,
+                                                YESTERDAYRES: yesterdyResSLP,
+                                                YESTERDAYDATE: yesterdayDate,
+                                                TODAY: todaysSLP,
+                                                TODATE: todayDate,
+                                                ACTION: CONSTANTS.MESSAGE.UPDATE,
+                                                MESSAGE: "UPDATE from energy reset - with battle logs - has already start the game",
+                                                UPDATEDON: todayDate,
+                                                NAME: result.name,
+                                                MMR: ranking.elo,
+                                                MAXGAINSLP: this.state.maxGainSLP,
+                                                ALLFIELDS: true, // to be save, if all fields or not x if false, only TODAY
+                                                TBINSERTYESTERDAY: true // insert the yesterday slp table for display in chart x get the yesterdayres property value
+                                            };
+                                        } else {
+                                            // Default process for updating YESTERDAY and TODAY SLP with TODATE
+                                            // Get YESTERDAY SLP base on YESTERDAY and TODAY SLP
+                                            const yesterdySLP = Number(details.YESTERDAY) + Number(details.TODAY);
+                                            // Get TODAY SLP base on InGameSLP and YESTERDAY SLP
+                                            const todaysSLP = Number(result.inGameSLP) - Number(yesterdySLP);
+                                            // Update daily slp with new date
+                                            result.dailySLP = {
+                                                ADDRESS: details.ADDRESS,
+                                                YESTERDAY: yesterdySLP,
+                                                YESTERDAYRES: details.TODAY,
+                                                YESTERDAYDATE: yesterdayDate,
+                                                TODAY: todaysSLP,
+                                                TODATE: todayDate,
+                                                ACTION: CONSTANTS.MESSAGE.UPDATE,
+                                                MESSAGE: "UPDATE from energy reset - with battle logs",
+                                                UPDATEDON: todayDate,
+                                                NAME: result.name,
+                                                MMR: ranking.elo,
+                                                MAXGAINSLP: this.state.maxGainSLP,
+                                                ALLFIELDS: true, // to be save, if all fields or not x if false, only TODAY
+                                                TBINSERTYESTERDAY: true // insert the yesterday slp table for display in chart x get the yesterdayres property value
+                                            };
+                                        }
                                     } else {
                                         // Default process for updating YESTERDAY and TODAY SLP with TODATE
                                         // Get YESTERDAY SLP base on YESTERDAY and TODAY SLP
@@ -1907,7 +1932,7 @@ class Home extends React.Component {
                                             TODAY: todaysSLP,
                                             TODATE: todayDate,
                                             ACTION: CONSTANTS.MESSAGE.UPDATE,
-                                            MESSAGE: "UPDATE from energy reset - with battle logs",
+                                            MESSAGE: "UPDATE from energy reset",
                                             UPDATEDON: todayDate,
                                             NAME: result.name,
                                             MMR: ranking.elo,
@@ -1917,55 +1942,42 @@ class Home extends React.Component {
                                         };
                                     }
                                 } else {
-                                    // Default process for updating YESTERDAY and TODAY SLP with TODATE
-                                    // Get YESTERDAY SLP base on YESTERDAY and TODAY SLP
-                                    const yesterdySLP = Number(details.YESTERDAY) + Number(details.TODAY);
-                                    // Get TODAY SLP base on InGameSLP and YESTERDAY SLP
-                                    const todaysSLP = Number(result.inGameSLP) - Number(yesterdySLP);
-                                    // Update daily slp with new date
-                                    result.dailySLP = {
-                                        ADDRESS: details.ADDRESS,
-                                        YESTERDAY: yesterdySLP,
-                                        YESTERDAYRES: details.TODAY,
-                                        YESTERDAYDATE: yesterdayDate,
-                                        TODAY: todaysSLP,
-                                        TODATE: todayDate,
-                                        ACTION: CONSTANTS.MESSAGE.UPDATE,
-                                        MESSAGE: "UPDATE from energy reset",
-                                        UPDATEDON: todayDate,
-                                        NAME: result.name,
-                                        MMR: ranking.elo,
-                                        MAXGAINSLP: this.state.maxGainSLP,
-                                        ALLFIELDS: true, // to be save, if all fields or not x if false, only TODAY
-                                        TBINSERTYESTERDAY: true // insert the yesterday slp table for display in chart x get the yesterdayres property value
-                                    };
+                                    // This will be the process of updating TODAY SLP only x not yet pass/overlap the 8AM reset
+                                    // Update TODAY SLP based on computation of YESTERDAY SLP and INGAME SLP
+                                    if (Number(todaySLP) > Number(details.TODAY)) {
+                                        // Update Daily SLP with new TODAY SLP
+                                        result.dailySLP = {
+                                            ADDRESS: details.ADDRESS,
+                                            YESTERDAY: details.YESTERDAY,
+                                            YESTERDAYRES: details.YESTERDAYRES,
+                                            YESTERDAYDATE: yesterdayDate,
+                                            TODAY: todaySLP,
+                                            TODATE: toDate,
+                                            ACTION: CONSTANTS.MESSAGE.UPDATE,
+                                            MESSAGE: "UPDATE from isSameTODate false",
+                                            UPDATEDON: todayDate,
+                                            NAME: result.name,
+                                            MMR: ranking.elo,
+                                            MAXGAINSLP: this.state.maxGainSLP,
+                                            ALLFIELDS: false // to be save, if all fields or not x if false, only TODAY
+                                        };
+                                    } else {
+                                        // Today SLP is same x no change required
+                                        playerDataDailySLPwillSave = false;
+                                        result.dailySLP = details;
+                                        result.dailySLP.noChange = "isSameTODate - false";
+                                    }
                                 }
-                            } else {
-                                // This will be the process of updating TODAY SLP only x not yet pass/overlap the 8AM reset
-                                // Update TODAY SLP based on computation of YESTERDAY SLP and INGAME SLP
-                                if (Number(todaySLP) > Number(details.TODAY)) {
-                                    // Update Daily SLP with new TODAY SLP
-                                    result.dailySLP = {
-                                        ADDRESS: details.ADDRESS,
-                                        YESTERDAY: details.YESTERDAY,
-                                        YESTERDAYRES: details.YESTERDAYRES,
-                                        YESTERDAYDATE: yesterdayDate,
-                                        TODAY: todaySLP,
-                                        TODATE: toDate,
-                                        ACTION: CONSTANTS.MESSAGE.UPDATE,
-                                        MESSAGE: "UPDATE from isSameTODate false",
-                                        UPDATEDON: todayDate,
-                                        NAME: result.name,
-                                        MMR: ranking.elo,
-                                        MAXGAINSLP: this.state.maxGainSLP,
-                                        ALLFIELDS: false // to be save, if all fields or not x if false, only TODAY
-                                    };
-                                } else {
-                                    // Today SLP is same x no change required
-                                    playerDataDailySLPwillSave = false;
-                                    result.dailySLP = details;
-                                    result.dailySLP.noChange = "isSameTODate - false";
-                                }
+                            }
+                        } else {
+                            // used default data for display in table
+                            playerDataDailySLPwillSave = false;
+                            result.dailySLP = {
+                                ADDRESS: details.ADDRESS,
+                                YESTERDAY: 0,
+                                YESTERDAYRES: 0,
+                                TODAY: 0,
+                                noChange: "data from Cookies/LocalStorage x det by default"
                             }
                         }
                     } catch (err) {

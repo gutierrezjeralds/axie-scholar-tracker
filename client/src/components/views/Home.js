@@ -1974,10 +1974,13 @@ class Home extends React.Component {
                             playerDataDailySLPwillSave = false;
                             result.dailySLP = {
                                 ADDRESS: details.ADDRESS,
-                                YESTERDAY: 0,
-                                YESTERDAYRES: 0,
-                                TODAY: 0,
-                                noChange: "data from Cookies/LocalStorage x det by default"
+                                YESTERDAY: details.YESTERDAY,
+                                YESTERDAYRES: details.YESTERDAYRES,
+                                TODAY: details.TODAY,
+                                NAME: result.name,
+                                MMR: ranking.elo,
+                                MAXGAINSLP: this.state.maxGainSLP,
+                                noChange: "data from Cookies/LocalStorage x set by default"
                             }
                         }
                     } catch (err) {

@@ -1319,17 +1319,47 @@ class Home extends React.Component {
                         ranking.eloStatus = result.ranking.eloStatus;
                         ranking.slpReward = result.ranking.slpReward;
                     } else {
-                        // Default object for ranking
-                        ranking.name = "";
-                        ranking.elo = 0;
-                        ranking.rank = 0;
-                        ranking.win_total = 0;
-                        ranking.lose_total = 0;
-                        ranking.draw_total = 0;
-                        ranking.win_rate = 0;
-                        ranking.textStyle = "";
-                        ranking.eloStatus = "";
-                        ranking.slpReward = 0;
+                        // Get data from cookies
+                        const detailRankCookies = localStorage.getItem(ethAddress);
+                        if (detailRankCookies) {
+                            const detailRank = JSON.parse(detailRankCookies); // Parse the Cookie
+                            if (Object.keys(detailRank).length > 0) { // Has player details
+                                ranking.name = detailRank.ranking.name;
+                                ranking.elo = detailRank.ranking.elo;
+                                ranking.rank = detailRank.ranking.rank;
+                                ranking.win_total = detailRank.ranking.win_total;
+                                ranking.lose_total = detailRank.ranking.lose_total;
+                                ranking.draw_total = detailRank.ranking.draw_total;
+                                ranking.win_rate = detailRank.ranking.win_rate;
+                                ranking.textStyle = detailRank.ranking.textStyle;
+                                ranking.eloStatus = detailRank.ranking.eloStatus;
+                                ranking.slpReward = detailRank.ranking.slpReward;
+                            } else {
+                                // Default object for ranking
+                                ranking.name = "";
+                                ranking.elo = 0;
+                                ranking.rank = 0;
+                                ranking.win_total = 0;
+                                ranking.lose_total = 0;
+                                ranking.draw_total = 0;
+                                ranking.win_rate = 0;
+                                ranking.textStyle = "";
+                                ranking.eloStatus = "";
+                                ranking.slpReward = 0;
+                            }
+                        } else {
+                            // Default object for ranking
+                            ranking.name = "";
+                            ranking.elo = 0;
+                            ranking.rank = 0;
+                            ranking.win_total = 0;
+                            ranking.lose_total = 0;
+                            ranking.draw_total = 0;
+                            ranking.win_rate = 0;
+                            ranking.textStyle = "";
+                            ranking.eloStatus = "";
+                            ranking.slpReward = 0;
+                        }
                     }
                 } else {
                     // Adding text color of MMR based on MMR level

@@ -1006,15 +1006,18 @@ class Home extends React.Component {
                                 }
                               }).map((dataItem, index) => {
                                 const indexCount = index + 1; // Global index count
-                                const dataName = dataItem.data.name; // Global name
                                 dataItem.data.order = indexCount; // Adding ordered number
-                                dataItem.data.nameSub = indexCount + ". " + dataName; // Update Name with combination of index counter x for display in data table
 
                                 // Get Top MMR Player
-                                if (dataItem.data.order === 1) {
+                                if (indexCount === 1) {
                                     this.setState({
                                         topUserMMR: dataItem.data.nameMmr ? dataItem.data.nameMmr : ""
                                     })
+                                }
+
+                                // Update Name with combination of index counter x for display in data table x display for next page
+                                if (indexCount > 5) {
+                                    dataItem.data.nameSub = indexCount + ". " + dataItem.data.name;
                                 }
     
                                 // Display data

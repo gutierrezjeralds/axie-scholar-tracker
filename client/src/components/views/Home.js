@@ -1005,7 +1005,10 @@ class Home extends React.Component {
                                     return a.rank < b.rank ? -1 : 1;
                                 }
                               }).map((dataItem, index) => {
-                                dataItem.data.order = index + 1; // Adding ordered number
+                                const indexCount = index + 1; // Global index count
+                                const dataName = dataItem.data.name; // Global name
+                                dataItem.data.order = indexCount; // Adding ordered number
+                                dataItem.data.nameSub = indexCount + ". " + dataName; // Update Name with combination of index counter x for display in data table
 
                                 // Get Top MMR Player
                                 if (dataItem.data.order === 1) {
@@ -1107,7 +1110,7 @@ class Home extends React.Component {
 
                             // Default Columns for Player Datatable
                             let playerDataTableColums = [
-                                {label: CONSTANTS.MESSAGE.NAME, field: "name"},
+                                {label: CONSTANTS.MESSAGE.NAME, field: "nameSub"},
                                 {label: CONSTANTS.MESSAGE.DAILYSLP, field: "dailySLP"},
                                 {label: CONSTANTS.MESSAGE.AVG_SLP_PERDAY, field: "averageSLP"},
                                 {label: CONSTANTS.MESSAGE.INGAME_SLP, field: "ingameSLP"},
@@ -1121,7 +1124,7 @@ class Home extends React.Component {
                             // Adding additional Column for Player Datatable x Reward Bonus SLP Column x Battlelog and SLPBonusReward should not display both at the same time
                             if (!this.state.isBattleLogEnable && this.state.isBonusSLPRewardOn && (this.state.isUser === CONSTANTS.MESSAGE.MANAGER || this.state.isUserEmail)) {
                                 playerDataTableColums = [
-                                    {label: CONSTANTS.MESSAGE.NAME, field: "name"},
+                                    {label: CONSTANTS.MESSAGE.NAME, field: "nameSub"},
                                     {label: CONSTANTS.MESSAGE.DAILYSLP, field: "dailySLP"},
                                     {label: CONSTANTS.MESSAGE.AVG_SLP_PERDAY, field: "averageSLP"},
                                     {label: CONSTANTS.MESSAGE.INGAME_SLP, field: "ingameSLP"},
@@ -1137,7 +1140,7 @@ class Home extends React.Component {
                             // Adding PVP Energy Column when Battle log is enable x Battlelog and SLPBonusReward should not display both at the same time
                             if (this.state.isBattleLogEnable && !this.state.isBonusSLPRewardOn) {
                                 playerDataTableColums = [
-                                    {label: CONSTANTS.MESSAGE.NAME, field: "name"},
+                                    {label: CONSTANTS.MESSAGE.NAME, field: "nameSub"},
                                     {label: CONSTANTS.MESSAGE.DAILYSLP, field: "dailySLP"},
                                     {label: CONSTANTS.MESSAGE.AVG_SLP_PERDAY, field: "averageSLP"},
                                     {label: CONSTANTS.MESSAGE.INGAME_SLP, field: "ingameSLP"},
@@ -2073,6 +2076,7 @@ class Home extends React.Component {
                 // Update Player Datatable row details
                 const playerDataTableRes = {
                     name: result.name,
+                    nameSub: result.name,
                     averageSLP: <MDBBox data-th={CONSTANTS.MESSAGE.AVERAGE_SLP_PERDAY_V2} tag="span" className={result.dailyQuota.textStyle}>{result.averageSLPDay}</MDBBox>,
                     dailySLP: <MDBBox data-th={CONSTANTS.MESSAGE.DAILYSLP} tag="span"><MDBBox tag="span" className={Number(result.dailySLP.YESTERDAYRES) > Number(result.dailySLP.TODAY) ? "green-text d-inline d-md-block d-lg-block" : "red-text d-inline d-md-block d-lg-block"}><strong>Y:</strong> {result.dailySLP.YESTERDAYRES}</MDBBox> <MDBBox tag="span" className={Number(result.dailySLP.YESTERDAYRES) > Number(result.dailySLP.TODAY) ? "red-text d-inline d-md-block d-lg-block" : "green-text d-inline d-md-block d-lg-block"}><strong>T:</strong> {result.dailySLP.TODAY}</MDBBox></MDBBox>,
                     ingameSLP: <MDBBox data-th={CONSTANTS.MESSAGE.INGAME_SLP} tag="span">{this.numberWithCommas(result.inGameSLP)}</MDBBox>,

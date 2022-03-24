@@ -2066,12 +2066,25 @@ class Home extends React.Component {
                     result.dailyQuota.textStyle = "red-text font-weight-bold";
                 }
 
+                // Adding property of delete
+                result.isDeleted = details.DELETEIND ? details.DELETEIND : "";
+
+                // Set to default object for ranking if the data is deleted
+                if (result.isDeleted) {
+                    ranking.elo = 0;
+                    ranking.rank = 0;
+                    ranking.win_total = 0;
+                    ranking.lose_total = 0;
+                    ranking.draw_total = 0;
+                    ranking.win_rate = 0;
+                    ranking.textStyle = "";
+                    ranking.eloStatus = "";
+                    ranking.slpReward = 0;
+                }
+
                 // Adding Player daily slp, details and ranking in result object
                 result.details = details;
                 result.ranking = ranking;
-
-                // Adding property of delete
-                result.isDeleted = details.DELETEIND ? details.DELETEIND : "";
 
                 // Get all ETH Address x for other display x MMR Ranking x etc
                 this.state.playerRecords.push(result);

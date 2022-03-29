@@ -1303,7 +1303,7 @@ class Home extends React.Component {
                 let ranking = {error: true};
                 if (this.state.isLeaderboardEnable) {
                     // Get Player ranking base on Sky Mavis API
-                    ranking = await this.getPlayerRanking(ethAddress);
+                    ranking = await this.getPlayerRanking(details, ethAddress);
                 }
                 // Get Player battle log base on Game API Axie Technology
                 let battleLogs = undefined;
@@ -2201,26 +2201,31 @@ class Home extends React.Component {
     }
 
     // Get Player ranking base on Sky Mavis API
-    getPlayerRanking = async (ethAddress) => {
+    getPlayerRanking = async (details, ethAddress) => {
         return new Promise((resolve, reject) => {
+            // url: "https://game-api.skymavis.com/game-api/leaderboard?client_id=" + ethAddress
             $.ajax({
-                url: "https://game-api.skymavis.com/game-api/leaderboard?client_id=" + ethAddress,
+                url: "https://game-api.axie.technology/mmr/" + details.ADDRESS,
                 dataType: "json",
                 cache: false
             })
             .then(
                 (result) => {
-                    if (result.success && result.items.length > 0) {
-                        const player = result.items.find(client => client.client_id === ethAddress);
-                        if (Object.keys(player).length > 0) {
-                            // Adding Win Rate
-                            player.win_rate = 0;
-                            if (player.win_total > 0 || player.lose_total > 0 || player.draw_total > 0) {
-                                const winRate = ( (player.win_total / (player.win_total + player.lose_total + player.draw_total)) * 100 ).toFixed(2);
-                                player.win_rate = !isNaN(winRate) ? winRate.toString() === "100.00" ? "100" : winRate : "0.00"
+                    if (result.length > 0) {
+                        if (result[0].items.length > 0) {
+                            const player = result[0].items.find(client => client.client_id === ethAddress);
+                            if (Object.keys(player).length > 0) {
+                                if ("win_total" in player) {
+                                    // Adding Win Rate
+                                    player.win_rate = 0;
+                                    if (player.win_total > 0 || player.lose_total > 0 || player.draw_total > 0) {
+                                        const winRate = ( (player.win_total / (player.win_total + player.lose_total + player.draw_total)) * 100 ).toFixed(2);
+                                        player.win_rate = !isNaN(winRate) ? winRate.toString() === "100.00" ? "100" : winRate : "0.00"
+                                    }
+                                }
+                                // Return
+                                return resolve(player);
                             }
-                            // Return
-                            return resolve(player);
                         }
                     }
                     return resolve({error: true});

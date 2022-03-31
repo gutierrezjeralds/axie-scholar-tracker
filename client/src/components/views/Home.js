@@ -238,13 +238,14 @@ class Home extends React.Component {
     // Onchange checkbox if battle log is show in display table
     handleIsBattleLogShowCheckChange(event) {
         localStorage.setItem("isBattleLogEnable", event.target.checked ? "1" : "0");
+        window.location.reload();
     }
 
     // Page reload
     pageRefresh = (time) => {
         setTimeout( () => {
             if (!this.state.isModalIskoInputsOpen) { // Dont reload when other modal is open
-                //  return window.location.reload();
+                 return window.location.reload();
             }
             // Return
             return true;

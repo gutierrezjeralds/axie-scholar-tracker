@@ -234,12 +234,18 @@ class Home extends React.Component {
             isDeleted: event.target.checked
         })
     }
+    
+    // Onchange checkbox if battle log is show in display table
+    handleIsBattleLogShowCheckChange(event) {
+        localStorage.setItem("isBattleLogEnable", event.target.checked ? "1" : "0");
+        window.location.reload();
+    }
 
     // Page reload
     pageRefresh = (time) => {
         setTimeout( () => {
             if (!this.state.isModalIskoInputsOpen) { // Dont reload when other modal is open
-                 return window.location.reload();
+                //  return window.location.reload();
             }
             // Return
             return true;
@@ -3162,17 +3168,25 @@ class Home extends React.Component {
                                 <MDBRow>
                                     {
                                         Object.keys(this.state.playerRecords).length > 0 ? (
-                                            // Display all data
-                                            <MDBCol size="12">
-                                                <MDBDataTable
-                                                    striped bordered hover responsive noBottomColumns
-                                                    sortable={false}
-                                                    data={this.state.playerDataTable}
-                                                    entries={5}
-                                                    entriesOptions={[ 5, 10, 15 ]}
-                                                    className="player-datatable-container text-white"
-                                                />
-                                            </MDBCol>
+                                            <React.Fragment>
+                                                {/* Display checkbox for Battle Log show */}
+                                                <MDBCol size="12" className="float-right text-right">
+                                                    <MDBBox tag="div" className="isBattleLogShow">
+                                                        <MDBInput containerClass="md-form mt-2rem-neg checkbox-mdb-custom whiteLabel" label={CONSTANTS.MESSAGE.BATTELOG_ISDISPLAY} type="checkbox" id="isBattleLogShow-checkbox" checked={this.state.isBattleLogEnable} onChange={this.handleIsBattleLogShowCheckChange.bind(this)} />
+                                                    </MDBBox>
+                                                </MDBCol>
+                                                {/* Display all data */}
+                                                <MDBCol size="12">
+                                                    <MDBDataTable
+                                                        striped bordered hover responsive noBottomColumns
+                                                        sortable={false}
+                                                        data={this.state.playerDataTable}
+                                                        entries={5}
+                                                        entriesOptions={[ 5, 10, 15 ]}
+                                                        className="player-datatable-container text-white"
+                                                    />
+                                                </MDBCol>
+                                            </React.Fragment>
                                         ) : (
                                             // Display no data
                                             this.renderEmptyDetails()

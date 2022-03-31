@@ -145,7 +145,8 @@ const MESSAGE = {
     MGR: "MGR",
     SCH: "SCH",
     DELETE: "Delete?",
-    HIGH_SLPGAINED: "Highest Gained SLP"
+    HIGH_SLPGAINED: "Highest Gained SLP",
+    BATTELOG_ISDISPLAY: "Show Battle Log?"
 }
 
 export const CONSTANTS = {

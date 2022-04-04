@@ -28,7 +28,7 @@ class Login extends React.Component {
             if (user === "MLoki") {
                 // Display all details
                 Cookies.set("filter", CONSTANTS.MESSAGE.MANAGER);
-                localStorage.setItem("isBattleLogEnable", "0");
+                Cookies.set("isBattleLogEnable", "0");
                 localStorage.setItem("isLeaderboardEnable", "1");
                 // Reload page
                 window.location.reload();
@@ -48,7 +48,7 @@ class Login extends React.Component {
                         if (validUser && validUser !== undefined && Object.keys(validUser).length > 0) {
                             // Display detail based on credential
                             Cookies.set("filter", user);
-                            localStorage.setItem("isBattleLogEnable", "0");
+                            Cookies.set("isBattleLogEnable", "0");
                             localStorage.setItem("isLeaderboardEnable", "1");
                             // Reload page
                             window.location.reload();
@@ -56,7 +56,7 @@ class Login extends React.Component {
                             if (validSponsor && validSponsor !== undefined && Object.keys(validSponsor).length > 0) {
                                 // Display detail based on credential
                                 Cookies.set("filter", user)
-                                localStorage.setItem("isBattleLogEnable", "0");
+                                Cookies.set("isBattleLogEnable", "0");
                                 localStorage.setItem("isLeaderboardEnable", "1");
                                 // Reload page
                                 window.location.reload();

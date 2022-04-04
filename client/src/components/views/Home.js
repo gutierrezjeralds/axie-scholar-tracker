@@ -106,7 +106,7 @@ class Home extends React.Component {
             isViewSLPChart: CONSTANTS.MESSAGE.VIEW_GAINEDSLP_CHART,
             isBonusSLPRewardOn: false, // Indicator if the display of SLP Rewards is vissible to other user
             isDeleted: false,
-            isBattleLogEnable: localStorage.getItem("isBattleLogEnable") ? localStorage.getItem("isBattleLogEnable") === "1" ? true : false : false, // Indicator if the battle log display and logic is visable and functioning
+            isBattleLogEnable: Cookies.get("isBattleLogEnable") ? Cookies.get("isBattleLogEnable") === "1" ? true : false : false, // Indicator if the battle log display and logic is visable and functioning
             isBattleLogDailyEnable: false, // For daily slp object process
             isLeaderboardEnable: localStorage.getItem("isLeaderboardEnable") ? localStorage.getItem("isLeaderboardEnable") === "1" ? true : false : false, // Indicator if the leaderboard api si enable
             maxGainSLP: 500,
@@ -237,7 +237,7 @@ class Home extends React.Component {
     
     // Onchange checkbox if battle log is show in display table
     handleIsBattleLogShowCheckChange(event) {
-        localStorage.setItem("isBattleLogEnable", event.target.checked ? "1" : "0");
+        Cookies.set("isBattleLogEnable", event.target.checked ? "1" : "0");
         window.location.reload();
     }
 

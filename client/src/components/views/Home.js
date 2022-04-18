@@ -53,7 +53,7 @@ class Home extends React.Component {
             isSponsorName: "",
             daysClaimable: 14, // Default day set for allow slp claim
             defaultDailyQuota: 30, // Default daily quota
-            managerPHPInvestment: 370000, // Estimated Investment
+            managerPHPInvestment: 400000, // Estimated Investment
             managerPHPROI: 0,
             managerPHPBreed: 0,
             managerPHPBuy: 0,
@@ -2736,7 +2736,7 @@ class Home extends React.Component {
                                         {/* Started playing */}
                                         <MDBCol size="12" md="6" lg="6">
                                             <MDBBox tag="span" className="d-block">
-                                                {CONSTANTS.MESSAGE.STARTED} <Moment format="MMM DD, YYYY">{this.state.modalPlayerDetails[0].details.STARTED_ON}</Moment>
+                                                <strong>{CONSTANTS.MESSAGE.STARTED}:</strong> <Moment format="MMM DD, YYYY">{this.state.modalPlayerDetails[0].details.STARTED_ON}</Moment>
                                             </MDBBox>
                                         </MDBCol>
                                         {/* Market Place link */}
@@ -2755,7 +2755,7 @@ class Home extends React.Component {
                                         {/* Ronin Address */}
                                             <MDBCol size="12">
                                                 <MDBBox tag="span" className="d-block selectable-text">
-                                                    {CONSTANTS.MESSAGE.RONIN}: {this.state.modalPlayerDetails[0].details.ADDRESS}
+                                                    <strong>{CONSTANTS.MESSAGE.RONIN}:</strong> {this.state.modalPlayerDetails[0].details.ADDRESS}
                                                 </MDBBox>
                                             </MDBCol>
                                         {/* Email */}
@@ -2763,11 +2763,17 @@ class Home extends React.Component {
                                             this.state.isUser === CONSTANTS.MESSAGE.MANAGER || !this.state.isUserEmail || (this.state.isUser).toLowerCase() === (this.state.modalPlayerDetails[0].details.EMAIL).toLowerCase() ? (
                                                 <MDBCol size="12">
                                                     <MDBBox tag="span" className="d-block selectable-text">
-                                                        {CONSTANTS.MESSAGE.EMAIL}: {this.state.modalPlayerDetails[0].details.EMAIL}
+                                                        <strong>{CONSTANTS.MESSAGE.EMAIL}:</strong> {this.state.modalPlayerDetails[0].details.EMAIL}
                                                     </MDBBox>
                                                 </MDBCol>
                                             ) : ("")
                                         }
+                                        {/* High Gained SLP */}
+                                            <MDBCol size="12">
+                                                <MDBBox tag="span" className="d-block">
+                                                    <strong>{CONSTANTS.MESSAGE.HIGH_SLPGAINED}:</strong> {this.state.modalPlayerDetails[0].details.HIGH_SLP_GAIN} (<Moment format="MMM DD, YYYY">{this.state.modalPlayerDetails[0].details.HIGH_SLP_DATE}</Moment>)
+                                                </MDBBox>
+                                            </MDBCol>
                                     </MDBRow>
 
                                     {

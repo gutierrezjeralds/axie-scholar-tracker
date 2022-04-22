@@ -1078,7 +1078,7 @@ class Home extends React.Component {
                                 }
 
                                 // Display data
-                                if (this.state.isUser === CONSTANTS.MESSAGE.MANAGER || this.state.isUserEmail) {
+                                if (!dataItem.isDelete && (this.state.isUser === CONSTANTS.MESSAGE.MANAGER || this.state.isUserEmail)) {
                                     // Data for Manager Earnings in Modal x Pushed specific data
                                     managerEarningsDisplay.push({
                                         name: dataItem.data.name,

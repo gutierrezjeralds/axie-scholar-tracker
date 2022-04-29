@@ -1309,7 +1309,7 @@ class Home extends React.Component {
                 let ranking = {error: true};
                 if (this.state.isLeaderboardEnable) {
                     // Get Player ranking base on Sky Mavis API
-                    ranking = await this.getPlayerRanking(details, ethAddress);
+                    ranking = await this.getPlayerRankingSub(details, ethAddress);
                 }
                 // Get Player battle log base on Game API Axie Technology
                 let battleLogs = undefined;

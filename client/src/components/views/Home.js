@@ -2206,10 +2206,54 @@ class Home extends React.Component {
         });
     }
 
-    // Get Player ranking base on Sky Mavis API
+    // Get Player ranking base on https://www.axie-scho-tracker.xyz/
     getPlayerRanking = async (details, ethAddress) => {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             // url: "https://game-api.skymavis.com/game-api/leaderboard?client_id=" + ethAddress
+            $.ajax({
+                url: "https://axie-scho-tracker-server.herokuapp.com/api/account/" + details.ADDRESS,
+                dataType: "json",
+                cache: false
+            })
+            .then(
+                async (result) => {
+                    if (Object.keys(result).length > 0) {
+                        if (Object.keys(result.leaderboardData).length > 0) {
+                            return resolve(result.leaderboardData);
+                        } else {
+                            // Get Sub Player ranking base on https://game-api.axie.technology/
+                            return resolve(await this.getPlayerRankingSub(details, ethAddress));
+                        }
+                    } else {
+                        // Get Sub Player ranking base on https://game-api.axie.technology/
+                        return resolve(await this.getPlayerRankingSub(details, ethAddress));
+                    }
+                },
+                // Note: it's important to handle errors here
+                // instead of a catch() block so that we don't swallow
+                // exceptions from actual bugs in components.
+                async (error) => {
+                    console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, error)
+                    // Get Sub Player ranking base on https://game-api.axie.technology/
+                    return resolve(await this.getPlayerRankingSub(details, ethAddress));
+                }
+            )
+            .catch(
+                async (err) => {
+                    console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
+                    // Get Sub Player ranking base on https://game-api.axie.technology/
+                    return resolve(await this.getPlayerRankingSub(details, ethAddress));
+                }
+            )
+        }).catch(err => {
+            console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
+            return err;
+        });
+    }
+
+    // Get Player ranking base on https://game-api.axie.technology/
+    getPlayerRankingSub = async (details, ethAddress) => {
+        return new Promise((resolve, reject) => {
             $.ajax({
                 url: "https://game-api.axie.technology/mmr/" + details.ADDRESS,
                 dataType: "json",

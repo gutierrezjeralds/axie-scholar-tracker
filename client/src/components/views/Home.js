@@ -1708,11 +1708,13 @@ class Home extends React.Component {
                             }
                         }
 
-                        // Update Total InGame and Scholar SLP
-                        this.setState({
-                            totalInGameSLP: this.state.totalInGameSLP + result.inGameSLP, // Set Total InGame SLP
-                            totalScholarSLP: this.state.totalScholarSLP + result.scholarSLP // Set Total Scholar SLP
-                        })
+                        // Update Total InGame and Scholar SLP x Exclude InGame SLP from Sponsor doesn't have Manager share x Get only has Manager share
+                        if (details.SHR_MANAGER > 0 || (details.SHR_MANAGER > 0 && details.SHR_SPONSOR > 0)) {
+                            this.setState({
+                                totalInGameSLP: this.state.totalInGameSLP + result.inGameSLP, // Set Total InGame SLP
+                                totalScholarSLP: this.state.totalScholarSLP + result.scholarSLP // Set Total Scholar SLP
+                            })
+                        }
 
                         // Set Average SLP per Day
                         if (result.claim_on_days > 0) {

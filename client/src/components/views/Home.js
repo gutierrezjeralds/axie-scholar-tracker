@@ -53,7 +53,7 @@ class Home extends React.Component {
             isSponsorName: "",
             daysClaimable: 14, // Default day set for allow slp claim
             defaultDailyQuota: 30, // Default daily quota
-            managerPHPInvestment: 400000, // Estimated Investment
+            managerPHPInvestment: 410000, // Estimated Investment
             managerPHPROI: 0,
             managerPHPBreed: 0,
             managerPHPBuy: 0,

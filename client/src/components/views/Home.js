@@ -62,6 +62,7 @@ class Home extends React.Component {
             slpCurrentValue: 0,
             axsCurrentValue: 0,
             currentValueFrm: CONSTANTS.MESSAGE.COINGECKO,
+            apiCoinRunningCounter: 0, // 0 can be rerun another api x 1 discard the running set the default
             isRecordLoaded: false,
             isPlayerLoaded: false,
             playerRecords: [],
@@ -315,33 +316,60 @@ class Home extends React.Component {
                         axsCurrentValue: isAXSValue
                     })
                 } else {
-                    // Get Coingecko data / json
-                    this.getCoingecko();
-                    this.setState({
-                        currentValueFrm: CONSTANTS.MESSAGE.COINGECKO
-                    })
+                    if (this.state.apiCoinRunningCounter === 0) {
+                        // Get Coingecko data / json
+                        this.getCoingecko();
+                        this.setState({
+                            currentValueFrm: CONSTANTS.MESSAGE.COINGECKO,
+                            apiCoinRunningCounter: 1
+                        })
+                    } else {
+                        // Set the default value of SLP and AXS into 0 x error in fetching data from third party api
+                        this.setState({
+                            slpCurrentValue: 0,
+                            axsCurrentValue: 0
+                        })
+                    }
                 }
             },
             // Note: it's important to handle errors here
             // instead of a catch() block so that we don't swallow
             // exceptions from actual bugs in components.
             (error) => {
-                // Get Coingecko data / json
-                this.getCoingecko();
-                this.setState({
-                    currentValueFrm: CONSTANTS.MESSAGE.COINGECKO
-                })
+                if (this.state.apiCoinRunningCounter === 0) {
+                    // Get Coingecko data / json
+                    this.getCoingecko();
+                    this.setState({
+                        currentValueFrm: CONSTANTS.MESSAGE.COINGECKO,
+                        apiCoinRunningCounter: 1
+                    })
+                } else {
+                    // Set the default value of SLP and AXS into 0 x error in fetching data from third party api
+                    this.setState({
+                        slpCurrentValue: 0,
+                        axsCurrentValue: 0
+                    })
+                }
                     
                 console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, error)
             }
         )
         .catch(
             (err) => {
-                // Get Coingecko data / json
-                this.getCoingecko();
-                this.setState({
-                    currentValueFrm: CONSTANTS.MESSAGE.COINGECKO
-                })
+                if (this.state.apiCoinRunningCounter === 0) {
+                    // Get Coingecko data / json
+                    this.getCoingecko();
+                    this.setState({
+                        currentValueFrm: CONSTANTS.MESSAGE.COINGECKO,
+                        apiCoinRunningCounter: 1
+                    })
+                } else {
+                    // Set the default value of SLP and AXS into 0 x error in fetching data from third party api
+                    this.setState({
+                        slpCurrentValue: 0,
+                        axsCurrentValue: 0
+                    })
+                }
                     
                 console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
             }
@@ -363,6 +391,7 @@ class Home extends React.Component {
         .then(
             (result) => {
                 this.setState({
+                    currentValueFrm: CONSTANTS.MESSAGE.COINGECKO,
                     slpCurrentValue: result["smooth-love-potion"].php,
                     axsCurrentValue: result["axie-infinity"].php
                 })
@@ -371,27 +400,41 @@ class Home extends React.Component {
             // instead of a catch() block so that we don't swallow
             // exceptions from actual bugs in components.
             (error) => {
-                this.setState({
-                    isLoaded: true,
-                    isNotif: true,
-                    notifCat: "error",
-                    notifStr: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
-                    error: true
-                })
-                    
+                if (this.state.apiCoinRunningCounter === 0) {
+                    // Get Binance data / json
+                    this.getBinance();
+                    this.setState({
+                        currentValueFrm: CONSTANTS.MESSAGE.BINANCE,
+                        apiCoinRunningCounter: 1
+                    })
+                } else {
+                    // Set the default value of SLP and AXS into 0 x error in fetching data from third party api
+                    this.setState({
+                        slpCurrentValue: 0,
+                        axsCurrentValue: 0
+                    })
+                }
+
                 console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, error)
             }
         )
         .catch(
             (err) => {
-                this.setState({
-                    isLoaded: true,
-                    isNotif: true,
-                    notifCat: "error",
-                    notifStr: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
-                    error: true
-                })
-                    
+                if (this.state.apiCoinRunningCounter === 0) {
+                    // Get Binance data / json
+                    this.getBinance();
+                    this.setState({
+                        currentValueFrm: CONSTANTS.MESSAGE.BINANCE,
+                        apiCoinRunningCounter: 1
+                    })
+                } else {
+                    // Set the default value of SLP and AXS into 0 x error in fetching data from third party api
+                    this.setState({
+                        slpCurrentValue: 0,
+                        axsCurrentValue: 0
+                    })
+                }
+
                 console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
             }
         )

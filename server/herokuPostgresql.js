@@ -87,7 +87,7 @@ const CONSTANTS = {
 }
 
 // Global console log
-const logger = (message, subMessage = "", addedMessage = "", isDevMode = false) => {
+const logger = (message, subMessage = "", addedMessage = "", isDevMode = true) => {
     if (isDevMode) {
         return console.log(message, subMessage, addedMessage);
     }
@@ -402,15 +402,17 @@ app.post("/api/dailySLP", async (req, res) => {
                             }
                         } else if (items.TBUPDATEHIGHSLP) { // Update High SLP Gained
                             // Execute Query x update team record
-                            const query = `${CONSTANTS.QUERY.UPDATE.USERPROFILE} SET "HIGH_SLP_GAIN" = '${items.HIGHSLPGAIN}', "HIGH_SLP_DATE" = '${items.HIGHSLPDATE}' WHERE "ADDRESS" = '${items.ADDRESS}'`;
-                            client.query(query, (error) => {
-                                logger(CONSTANTS.MESSAGE.STARTED_UPDATEQUERY, items.ADDRESS);
-                                // End Connection
-                                client.end();
-                                if (error) {
-                                    logger(CONSTANTS.MESSAGE.ERROR_PROCEDURE, error);
-                                }
-                            });
+                            if (Number(items.HIGHSLPGAIN) > 0 && Number(items.HIGHSLPGAIN) <= Number(items.MAXGAINSLP)) { // Insert all positive value x greater than zero
+                                const query = `${CONSTANTS.QUERY.UPDATE.USERPROFILE} SET "HIGH_SLP_GAIN" = '${items.HIGHSLPGAIN}', "HIGH_SLP_DATE" = '${items.HIGHSLPDATE}' WHERE "ADDRESS" = '${items.ADDRESS}'`;
+                                client.query(query, (error) => {
+                                    logger(CONSTANTS.MESSAGE.STARTED_UPDATEQUERY, items.ADDRESS);
+                                    // End Connection
+                                    client.end();
+                                    if (error) {
+                                        logger(CONSTANTS.MESSAGE.ERROR_PROCEDURE, error);
+                                    }
+                                });
+                            }
                         } else {
                             // End Connection
                             client.end();

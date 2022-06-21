@@ -51,6 +51,7 @@ class Home extends React.Component {
             isUser: this.props.user || "",
             isUserEmail: false,
             isSponsorName: "",
+            maxGainSLP: 200, // Max Gained SLP for validation of inserting in table
             daysClaimable: 14, // Default day set for allow slp claim
             defaultDailyQuota: 30, // Default daily quota
             managerPHPInvestment: 410000, // Estimated Investment
@@ -110,7 +111,6 @@ class Home extends React.Component {
             isBattleLogEnable: Cookies.get("isBattleLogEnable") ? Cookies.get("isBattleLogEnable") === "1" ? true : false : false, // Indicator if the battle log display and logic is visable and functioning
             isBattleLogDailyEnable: false, // For daily slp object process
             isLeaderboardEnable: localStorage.getItem("isLeaderboardEnable") ? localStorage.getItem("isLeaderboardEnable") === "1" ? true : false : false, // Indicator if the leaderboard api si enable
-            maxGainSLP: 500,
             highestGainedSLP: { // Object for Highest SLP Gained
                 Name: "",
                 SLP: 0,
@@ -1288,15 +1288,16 @@ class Home extends React.Component {
     // Get Player details base on Sky Mavis API
     getPlayerDetails = async (details, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned, dataYesterdaySLP, playersStaticData) => {
         return new Promise((resolve, reject) => {
+            // "https://game-api.skymavis.com/game-api/clients/" + ethAddress + "/items/1"
             $.ajax({
-                url: "https://game-api.skymavis.com/game-api/clients/" + ethAddress + "/items/1",
+                url: "https://game-api.axie.technology/slp/" + details.ADDRESS,
                 dataType: "json",
                 cache: false
             })
             .then(
                 async (result) => {
                     if (Object.keys(result).length > 0) { // Has player details
-                        const detailProcess = await this.processPlayerDetails(result, details, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned, dataYesterdaySLP, playersStaticData);
+                        const detailProcess = await this.processPlayerDetails(result[0], details, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned, dataYesterdaySLP, playersStaticData);
                         return resolve(detailProcess);
                     } else {
                         return reject({error: true});

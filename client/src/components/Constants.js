@@ -146,7 +146,8 @@ const MESSAGE = {
     SCH: "SCH",
     DELETE: "Delete?",
     HIGH_SLPGAINED: "Highest Gained SLP",
-    BATTELOG_ISDISPLAY: "Show Battle Log?"
+    BATTELOG_ISDISPLAY: "Show Battle Log?",
+    RESET_DAILYSLP: "Reset Daily SLP"
 }
 
 export const CONSTANTS = {

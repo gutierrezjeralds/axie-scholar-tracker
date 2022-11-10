@@ -113,7 +113,7 @@ class Home extends React.Component {
                 if (dataRecords.length > 0) {
                     // Fetch player details in api of sky mavis
                     const dataResultPromise = dataRecords.map(async (item) => {
-                        const isDeleted = details.DELETEIND ? details.DELETEIND : "";
+                        const isDeleted = item.DELETEIND ? item.DELETEIND : "";
                         if (isDeleted) { // To prevent fetching access token and processing for delete details
                             // End the process x Details is mark as deleted
                             return false;

@@ -68,7 +68,8 @@ export const GenerateAccessToken = async (key, address, name) => {
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
                     'Accept': '*/*',
-                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Origin': 'http://localhost:3000',
+                    'Access-Control-Allow-Credentials': 'true',
                     'Access-Control-Allow-Headers': 'Content-Type'
                 },
                 cache: false
@@ -148,7 +149,8 @@ export const GenerateAccessToken = async (key, address, name) => {
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
                         'Accept': '*/*',
-                        'Access-Control-Allow-Origin': '*',
+                        'Access-Control-Allow-Origin': 'http://localhost:3000',
+                        'Access-Control-Allow-Credentials': 'true',
                         'Access-Control-Allow-Headers': 'Content-Type'
                     },
                     cache: false

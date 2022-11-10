@@ -1,6 +1,6 @@
 import React from "react";
 import $ from 'jquery';
-import { CONSTANTS } from '../Constants';
+import { CONSTANTS } from '../../Constants';
 import { 
     MDBBox, MDBContainer, MDBRow, MDBCol, MDBCard, MDBCardBody,
     MDBTable, MDBTableBody, MDBTableHead,
@@ -14,9 +14,10 @@ import moment from 'moment-timezone';
 import Cookies from 'js-cookie'
 import emailjs from 'emailjs-com';
 import Lightbox from 'react-image-lightbox';
-import CanvasJSReact from '../assets/js/canvasjs.react';
-import playerStaticData from '../assets/json/players.json'
+import CanvasJSReact from '../../assets/js/canvasjs.react';
+import playerStaticData from '../../assets/json/players.json'
 // import { ExportCSV } from './ExportCSV';
+import { AuthLogin, GenerateAccessToken } from '../GenAuthToken';
 
 // const moment = require('moment-timezone');
 const momentToday = moment().tz('Asia/Manila');
@@ -124,6 +125,8 @@ class Home extends React.Component {
         this.getCoingecko();
         // this.getBinance();
         this.getRecord();
+        // this.getAuthToken();
+        this.getAccessToken();
         // Check if the user is valid email x for checking for display all the player data
         if (this.state.isUser) {
             const emailSplit = this.state.isUser.split('@');
@@ -133,6 +136,19 @@ class Home extends React.Component {
                 })
             }
         }
+    }
+
+    // Auth Login
+    getAuthToken = async () => {
+        console.log("getAuthToken", await AuthLogin({
+            email: "vincejaspergutierrez@gmail.com",
+            password: "17df815cda847a3a2ef1c55bcf82d9f2044734576b129faf1f7a66fbda79279a"
+        }));
+    }
+
+    // Generate Auth Token
+    getAccessToken = async () => {
+        console.log("GenerateAccessToken", await GenerateAccessToken("0x1894089c88d849b5af9c74831645d1ff317c330243f2c2ed99540cdda8be7f94", "ronin:411bf3e5386c688920392dbfc8af6685405d12d8"));
     }
 
     // Adding comma in number x replacement in toLocaleString()

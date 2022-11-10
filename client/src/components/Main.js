@@ -1,7 +1,7 @@
 import React from 'react'
 import Header from './Header'
 import Footer from './Footer'
-import Home from './views/Home'
+import Home from './views/origin/Home'
 import Login from './views/Login'
 import Cookies from 'js-cookie'
 import { MDBBox } from 'mdbreact'

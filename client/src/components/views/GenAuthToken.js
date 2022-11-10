@@ -65,7 +65,12 @@ export const GenerateAccessToken = async (key, address, name) => {
                     "query": "mutation CreateRandomMessage{createRandomMessage}",
                     "variables": {}
                 }),
-                contentType: 'application/json',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Accept': '*/*',
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type'
+                },
                 cache: false
             })
             .then(
@@ -140,7 +145,12 @@ export const GenerateAccessToken = async (key, address, name) => {
                             }
                         }
                     }),
-                    contentType: 'application/json',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'Accept': '*/*',
+                        'Access-Control-Allow-Origin': '*',
+                        'Access-Control-Allow-Headers': 'Content-Type'
+                    },
                     cache: false
                 })
                 .then(

@@ -627,18 +627,19 @@ app.post("/api/managerEarned", async (req, res) => {
 // Generate Access Token
 app.post("/api/accessToken", async (req, res) => {
     try {
+        const formData = {
+            "query": "mutation CreateRandomMessage{createRandomMessage}",
+            "variables": {}
+        }
         request.post(
             {
                 url:'https://graphql-gateway.axieinfinity.com/graphql',
-                formData: JSON.stringify({
-                    "query": "mutation CreateRandomMessage{createRandomMessage}",
-                    "variables": {}
-                })
+                form: formData
             },
-            function optionalCallback(err, httpResponse, body) {
+            function (err, httpResponse, body) {
                 if (err) {
                     return res.type("application/json").status(500).send({
-                        error: true,
+                        error: "hereee",
                         data: err
                     });
                 }

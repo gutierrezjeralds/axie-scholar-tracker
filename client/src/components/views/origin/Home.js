@@ -34,6 +34,7 @@ class Home extends React.Component {
         this.pageRefresh(120000); // Refresh in 2 minutes
         this.getCoingecko();
         this.getRecord();
+        this.getAccessToken();
     }
     
     // Page reload
@@ -49,6 +50,39 @@ class Home extends React.Component {
         setTimeout(() => {
             // this.getCoingecko();
         }, 5000); // Refresh in 5 seconds
+    }
+
+    getAccessToken = async () => {
+        return new Promise((resolve, reject) => {
+            // Get Current PHP Value
+            $.ajax({
+                url: "/api/accessToken",
+                type: "POST",
+                data: JSON.stringify({}),
+                contentType: 'application/json',
+                cache: false,
+            })
+            .then(
+                (result) => {
+                    console.log("getAccessToken", result)
+                    return resolve({data: result});
+                },
+                // Note: it's important to handle errors here
+                // instead of a catch() block so that we don't swallow
+                // exceptions from actual bugs in components.
+                (error) => {
+                    return reject({error: error})
+                }
+            )
+            .catch(
+                (err) => {
+                    return reject({error: err})
+                }
+            )
+        }).catch(err => {
+            console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
+            return err;
+        });
     }
 
     // Get Coingecko data / json

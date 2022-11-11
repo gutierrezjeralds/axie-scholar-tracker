@@ -1,5 +1,6 @@
 const path = require('path');
 const express = require("express");
+const request = require("request")
 const { Client } = require('pg');
 const PORT = process.env.PORT || 3001;
 
@@ -626,64 +627,87 @@ app.post("/api/managerEarned", async (req, res) => {
 // Generate Access Token
 app.post("/api/accessToken", async (req, res) => {
     try {
-        // Get Random Message x Initial Process
-        $.ajax({
-            url: "https://graphql-gateway.axieinfinity.com/graphql",
-            type: "POST",
-            data: JSON.stringify({
-                "query": "mutation CreateRandomMessage{createRandomMessage}",
-                "variables": {}
-            }),
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'Access-Control-Allow-Origin': 'http://team-loki.herokuapp.com',
-                'Access-Control-Allow-Credentials': 'true',
-                'Access-Control-Allow-Headers': 'Content-Type'
+        request.post(
+            {
+                url:'https://graphql-gateway.axieinfinity.com/graphql',
+                formData: JSON.stringify({
+                    "query": "mutation CreateRandomMessage{createRandomMessage}",
+                    "variables": {}
+                })
             },
-            cache: false
-        })
-        .then(
-            async (result) => {
-                if (result.data !== null && result.data !== undefined && Object.keys(result.data).length > 0) {
-                    if (result.data.createRandomMessage !== undefined && result.data.createRandomMessage.length > 0) {
-                        // Return Success
-                        const msg = result.data.createRandomMessage;
-                        return res.type("application/json").status(200).send({
-                            error: false,
-                            data: msg
-                        });
-                    } else {
-                        // Return error
-                        return res.type("application/json").status(500).send({
-                            error: true
-                        });
-                    }
-                } else {
-                    // Return error
+            function optionalCallback(err, httpResponse, body) {
+                if (err) {
                     return res.type("application/json").status(500).send({
-                        error: true
+                        error: true,
+                        data: err
                     });
                 }
-            },
-            // Note: it's important to handle errors here
-            // instead of a catch() block so that we don't swallow
-            // exceptions from actual bugs in components.
-            async (error) => {
-                return res.type("application/json").status(500).send({
-                    error: true,
-                    data: error
+
+                return res.type("application/json").status(200).send({
+                    error: false,
+                    httpResponse: httpResponse,
+                    body: body
                 });
+            }
+        );
+        // // Get Random Message x Initial Process
+        // $.ajax({
+        //     url: "https://graphql-gateway.axieinfinity.com/graphql",
+        //     type: "POST",
+        //     data: JSON.stringify({
+        //         "query": "mutation CreateRandomMessage{createRandomMessage}",
+        //         "variables": {}
+        //     }),
+        //     headers: {
+        //         'Content-Type': 'application/x-www-form-urlencoded',
+        //         'Access-Control-Allow-Origin': 'http://team-loki.herokuapp.com',
+        //         'Access-Control-Allow-Credentials': 'true',
+        //         'Access-Control-Allow-Headers': 'Content-Type'
+        //     },
+        //     cache: false
+        // })
+        // .then(
+        //     async (result) => {
+        //         if (result.data !== null && result.data !== undefined && Object.keys(result.data).length > 0) {
+        //             if (result.data.createRandomMessage !== undefined && result.data.createRandomMessage.length > 0) {
+        //                 // Return Success
+        //                 const msg = result.data.createRandomMessage;
+        //                 return res.type("application/json").status(200).send({
+        //                     error: false,
+        //                     data: msg
+        //                 });
+        //             } else {
+        //                 // Return error
+        //                 return res.type("application/json").status(500).send({
+        //                     error: true
+        //                 });
+        //             }
+        //         } else {
+        //             // Return error
+        //             return res.type("application/json").status(500).send({
+        //                 error: true
+        //             });
+        //         }
+        //     },
+        //     // Note: it's important to handle errors here
+        //     // instead of a catch() block so that we don't swallow
+        //     // exceptions from actual bugs in components.
+        //     async (error) => {
+        //         return res.type("application/json").status(500).send({
+        //             error: true,
+        //             data: error
+        //         });
                 
-            }
-        )
-        .catch(
-            async (err) => {
-                return res.type("application/json").status(500).send({
-                    error: true,
-                    data: err
-                });
-            }
-        )
+        //     }
+        // )
+        // .catch(
+        //     async (err) => {
+        //         return res.type("application/json").status(500).send({
+        //             error: true,
+        //             data: err
+        //         });
+        //     }
+        // )
     } catch (err) {
         return res.type("application/json").status(500).send({
             error: true,

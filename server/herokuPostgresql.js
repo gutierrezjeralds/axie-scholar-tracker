@@ -1,6 +1,5 @@
 const path = require('path');
 const express = require("express");
-const request = require("request")
 const { Client } = require('pg');
 const PORT = process.env.PORT || 3001;
 
@@ -14,6 +13,9 @@ app.use(express.static(path.resolve(__dirname, '../client/build')));
     ReactJS Buildpack Heroku
     ** https://buildpack-registry.s3.amazonaws.com/buildpacks/mars/create-react-app.tgz
 */
+
+// Dependencies
+const origin = require("./origin");
 
 const pgConn = {
     connectionString: "postgres://jxbcqarlcxuwwt:9328a074960dae0975c57dc4a88fd21af6be26c4ef0708316df54368c565da83@ec2-23-23-199-57.compute-1.amazonaws.com:5432/d2kdqt4muprt6i",
@@ -38,6 +40,10 @@ const pgConn = {
 
 const CONSTANTS = {
     MESSAGE: {
+        ERROR_JSONPARSE: "Error in JSON Parsing",
+        BAD_REQUEST: "400 Bad Request",
+        INTERNAL_SERVER_ERROR: "Internal Server Error",
+        ERROR_OCCURED: "Oh well, you failed. Here some thoughts on the error that occured:",
         EMPTYPAYLOAD: "Empty Payload",
         ERROR_PROCEDURE: "Error in QUERY Procedure",
         STARTED_SELECTQUERY: "SELECT QUERY Started!",
@@ -55,7 +61,19 @@ const CONSTANTS = {
         DAILYSLP: "Daily SLP",
         TEAMRECORD: "Team Record",
         WITHDRAW: "Withdraw",
-        MANAGER_EARNED: "Manager Earned"
+        MANAGER_EARNED: "Manager Earned",
+        STARTED_GENERATE_TOKEN: "Generate Access Token Started",
+        ERROR_GENERATE_TOKEN: "Error in Generation of Access Token",
+        END_GENERATE_TOKEN: "Generate Access Token End",
+        STARTED_GENERATE_RANDOMMSG: "Generate Access Token Random Message Started",
+        CANT_GEN_TOKEN_RANDOMMSG: "Could not generate Access Token Random Message",
+        STARTED_GENERATE_SIGNRONINMSG: "Generate Sign Ronin Message Started",
+        CANT_GEN_TOKEN_SIGNRONINMSG: "Could not Sign Ronin Message",
+        STARTED_CREATE_ACCESSMSG: "Create Access Token Started",
+        CANT_GEN_TOKEN_ACCESSMSG: "Could not Create Access Token",
+        STARTED_AUTHLOGIN: "Auth Login Started",
+        END_AUTHLOGIN: "Auth Login End",
+        ERROR_AUTHLOGIN: "Error in Auth Login"
     },
     TABLE: {
         USERPROFILE: `public."TB_USERPROFILE"`,
@@ -88,7 +106,7 @@ const CONSTANTS = {
 }
 
 // Global console log
-const logger = (message, subMessage = "", addedMessage = "", isDevMode = false) => {
+const logger = (message, subMessage = "", addedMessage = "", isDevMode = true) => {
     if (isDevMode) {
         return console.log(message, subMessage, addedMessage);
     }
@@ -103,6 +121,31 @@ app.get("/api", (req, res) => {
 // app.get('*', (req, res) => {
 //     res.sendFile(path.resolve(__dirname, '../client/build', 'index.html'));
 // });
+
+// POST Method x Get Access Token
+app.post("/api/authLogin", async (req, res) => {
+    try {
+        logger(CONSTANTS.MESSAGE.STARTED_GENERATE_TOKEN);
+        
+        // Body payload
+        const payload = req.body;
+
+        // Execute Process of Auth Login
+        const accessToken = await origin.authLogin(payload, logger, CONSTANTS);
+
+        logger(CONSTANTS.MESSAGE.MANAGER_EARNED, CONSTANTS.MESSAGE.END_GENERATE_TOKEN);
+        return res.type("application/json").status(200).send({
+            error: false,
+            data: accessToken
+        });
+    } catch (err) {
+        logger(CONSTANTS.MESSAGE.ERROR_OCCURED, err);
+        return res.type("application/json").status(500).send({
+            error: true,
+            data: err
+        });
+    }
+});
 
 // GET Method x Fetch User Profile x TB_USERPROFILE
 app.get("/api/userProfile", async (req, res) => {
@@ -132,6 +175,7 @@ app.get("/api/userProfile", async (req, res) => {
             }
         });
     } catch (err) {
+        logger(CONSTANTS.MESSAGE.ERROR_OCCURED, err);
         return res.type("application/json").status(500).send({
             error: true,
             data: err
@@ -178,6 +222,7 @@ app.get("/api/userProfile/login", async (req, res) => {
             });
         }
     } catch (err) {
+        logger(CONSTANTS.MESSAGE.ERROR_OCCURED, err);
         return res.type("application/json").status(500).send({
             error: true,
             data: err
@@ -266,6 +311,7 @@ app.get("/api/records", async (req, res) => {
             }
         });
     } catch (err) {
+        logger(CONSTANTS.MESSAGE.ERROR_OCCURED, err);
         return res.type("application/json").status(500).send({
             error: true,
             data: err
@@ -349,6 +395,7 @@ app.post("/api/addEditScholar", async (req, res) => {
             });
         }
     } catch (err) {
+        logger(CONSTANTS.MESSAGE.ERROR_OCCURED, err);
         return res.type("application/json").status(500).send({
             error: true,
             data: err
@@ -437,6 +484,7 @@ app.post("/api/dailySLP", async (req, res) => {
             });
         }
     } catch (err) {
+        logger(CONSTANTS.MESSAGE.ERROR_OCCURED, err);
         return res.type("application/json").status(500).send({
             error: true,
             data: err
@@ -487,6 +535,7 @@ app.post("/api/updateSLPClaimed", async (req, res) => {
             });
         }
     } catch (err) {
+        logger(CONSTANTS.MESSAGE.ERROR_OCCURED, err);
         return res.type("application/json").status(500).send({
             error: true,
             data: err
@@ -537,6 +586,7 @@ app.post("/api/deleteYesterdaySLP", async (req, res) => {
             });
         }
     } catch (err) {
+        logger(CONSTANTS.MESSAGE.ERROR_OCCURED, err);
         return res.type("application/json").status(500).send({
             error: true,
             data: err
@@ -577,6 +627,7 @@ app.post("/api/withdraw", async (req, res) => {
             }
         });
     } catch (err) {
+        logger(CONSTANTS.MESSAGE.ERROR_OCCURED, err);
         return res.type("application/json").status(500).send({
             error: true,
             data: err
@@ -617,99 +668,7 @@ app.post("/api/managerEarned", async (req, res) => {
             }
         });
     } catch (err) {
-        return res.type("application/json").status(500).send({
-            error: true,
-            data: err
-        });
-    }
-});
-
-// Generate Access Token
-app.post("/api/accessToken", async (req, res) => {
-    try {
-        const formData = {
-            "query": "mutation CreateRandomMessage{createRandomMessage}",
-            "variables": {}
-        }
-        request.post(
-            {
-                url:'https://graphql-gateway.axieinfinity.com/graphql',
-                form: formData
-            },
-            function (err, httpResponse, body) {
-                if (err) {
-                    return res.type("application/json").status(500).send({
-                        error: "hereee",
-                        data: err
-                    });
-                }
-
-                return res.type("application/json").status(200).send({
-                    error: false,
-                    httpResponse: httpResponse,
-                    body: body
-                });
-            }
-        );
-        // // Get Random Message x Initial Process
-        // $.ajax({
-        //     url: "https://graphql-gateway.axieinfinity.com/graphql",
-        //     type: "POST",
-        //     data: JSON.stringify({
-        //         "query": "mutation CreateRandomMessage{createRandomMessage}",
-        //         "variables": {}
-        //     }),
-        //     headers: {
-        //         'Content-Type': 'application/x-www-form-urlencoded',
-        //         'Access-Control-Allow-Origin': 'http://team-loki.herokuapp.com',
-        //         'Access-Control-Allow-Credentials': 'true',
-        //         'Access-Control-Allow-Headers': 'Content-Type'
-        //     },
-        //     cache: false
-        // })
-        // .then(
-        //     async (result) => {
-        //         if (result.data !== null && result.data !== undefined && Object.keys(result.data).length > 0) {
-        //             if (result.data.createRandomMessage !== undefined && result.data.createRandomMessage.length > 0) {
-        //                 // Return Success
-        //                 const msg = result.data.createRandomMessage;
-        //                 return res.type("application/json").status(200).send({
-        //                     error: false,
-        //                     data: msg
-        //                 });
-        //             } else {
-        //                 // Return error
-        //                 return res.type("application/json").status(500).send({
-        //                     error: true
-        //                 });
-        //             }
-        //         } else {
-        //             // Return error
-        //             return res.type("application/json").status(500).send({
-        //                 error: true
-        //             });
-        //         }
-        //     },
-        //     // Note: it's important to handle errors here
-        //     // instead of a catch() block so that we don't swallow
-        //     // exceptions from actual bugs in components.
-        //     async (error) => {
-        //         return res.type("application/json").status(500).send({
-        //             error: true,
-        //             data: error
-        //         });
-                
-        //     }
-        // )
-        // .catch(
-        //     async (err) => {
-        //         return res.type("application/json").status(500).send({
-        //             error: true,
-        //             data: err
-        //         });
-        //     }
-        // )
-    } catch (err) {
+        logger(CONSTANTS.MESSAGE.ERROR_OCCURED, err);
         return res.type("application/json").status(500).send({
             error: true,
             data: err

@@ -10,7 +10,6 @@ import {
 } from "mdbreact";
 import { CONSTANTS } from '../../Constants';
 import playerStaticData from '../../assets/json/players.json'
-import { GenerateAccessToken } from '../GenAuthToken';
 
 class Home extends React.Component {
     constructor(props) {
@@ -33,8 +32,8 @@ class Home extends React.Component {
     componentDidMount() {
         this.pageRefresh(120000); // Refresh in 2 minutes
         this.getCoingecko();
-        this.getRecord();
-        this.getAccessToken();
+        // this.getRecord();
+        this.authLogin() // Get Access Token
     }
     
     // Page reload
@@ -50,39 +49,6 @@ class Home extends React.Component {
         setTimeout(() => {
             // this.getCoingecko();
         }, 5000); // Refresh in 5 seconds
-    }
-
-    getAccessToken = async () => {
-        return new Promise((resolve, reject) => {
-            // Get Current PHP Value
-            $.ajax({
-                url: "/api/accessToken",
-                type: "POST",
-                data: JSON.stringify({}),
-                contentType: 'application/json',
-                cache: false,
-            })
-            .then(
-                (result) => {
-                    console.log("getAccessToken", result)
-                    return resolve({data: result});
-                },
-                // Note: it's important to handle errors here
-                // instead of a catch() block so that we don't swallow
-                // exceptions from actual bugs in components.
-                (error) => {
-                    return reject({error: error})
-                }
-            )
-            .catch(
-                (err) => {
-                    return reject({error: err})
-                }
-            )
-        }).catch(err => {
-            console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
-            return err;
-        });
     }
 
     // Get Coingecko data / json
@@ -127,6 +93,36 @@ class Home extends React.Component {
             // Refresh API
             this.apiRefresh();
         })
+    }
+
+    // Get Access Token
+    authLogin = async () => {
+        // Run api
+        $.ajax({
+            url: "/api/authLogin",
+            type: "POST",
+            data: JSON.stringify({
+                "email": "vincejaspergutierrez@gmail.com",
+                "password": "17df815cda847a3a2ef1c55bcf82d9f2044734576b129faf1f7a66fbda79279a"
+            }),
+            contentType: 'application/json',
+            cache: false,
+        }).then(
+            async (result) => {
+                console.log("authLogin", result)
+            },
+            // Note: it's important to handle errors here
+            // instead of a catch() block so that we don't swallow
+            // exceptions from actual bugs in components.
+            (error) => {
+                console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, error)
+            }
+        )
+        .catch(
+            (err) => {
+                console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
+            }
+        )
     }
 
     // Fetch Player Record Data
@@ -186,7 +182,7 @@ class Home extends React.Component {
                             } else { // No Access Token x Not available in Local Storage
                                 // Generate Access Token
                                 console.log("Running Access Token", dataRecords.length)
-                                accessToken = await GenerateAccessToken("0x8762c5505e58d70d5eb1daca967ddaaac2f10338b1355521d01a263d5640666a", item.ADDRESS, item.NAME);
+                                // accessToken = await GenerateAccessToken("0x8762c5505e58d70d5eb1daca967ddaaac2f10338b1355521d01a263d5640666a", item.ADDRESS, item.NAME);
                                 if (!accessToken.error) {
                                     // Set for Access Token
                                     item["accessToken"] = accessToken.token;
@@ -198,8 +194,8 @@ class Home extends React.Component {
     
                             if (accessToken) { // Has Access Token
                                 // Return valid details
-                                return await this.getPlayerDetails(item, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned, dataYesterdaySLP, playersStaticData);
-                                // return item;
+                                // return await this.getPlayerDetails(item, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned, dataYesterdaySLP, playersStaticData);
+                                return item;
                             } else {
                                 // End the process x No Access Token
                                 return false;

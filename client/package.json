@@ -23,7 +23,6 @@
     "react-scripts": "4.0.3",
     "sass": "^1.37.5",
     "web-vitals": "^1.1.2",
-    "web3": "^1.8.0",
     "xlsx": "^0.17.2"
   },
   "scripts": {

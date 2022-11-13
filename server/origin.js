@@ -12,7 +12,6 @@ async function authLogin(data, logger, CONSTANTS) {
         try {
             // Get Token from Auth Login
             logger(CONSTANTS.MESSAGE.STARTED_AUTHLOGIN);
-            logger(data);
             request.post(
                 {
                     url:'https://athena.skymavis.com/v1/rpc/auth/login',
@@ -21,7 +20,7 @@ async function authLogin(data, logger, CONSTANTS) {
                 function (err, httpResponse, body) {
                     if (err) {
                         logger(CONSTANTS.MESSAGE.ERROR_AUTHLOGIN);
-                        reject({ error: true, errorMsg: err });
+                        reject({ error: true, data: err });
                     } else {
                         if (httpResponse.statusCode === 200) {
                             // Success return of Random Message
@@ -36,14 +35,14 @@ async function authLogin(data, logger, CONSTANTS) {
                             } catch {
                                 errMsg = CONSTANTS.MESSAGE.ERROR_AUTHLOGIN;
                             }
-                            reject({ error: true, errorMsg: errMsg });
+                            reject({ error: true, data: errMsg });
                         }
                     }
                 }
             );
         } catch (error) {
             logger(CONSTANTS.MESSAGE.INTERNAL_SERVER_ERROR, error);
-            reject({ error: true, errorMsg: err });
+            reject({ error: true, data: error });
         }
     }).catch((err) => {
         logger(CONSTANTS.MESSAGE.ERROR_OCCURED, err);

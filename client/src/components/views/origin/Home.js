@@ -32,8 +32,7 @@ class Home extends React.Component {
     componentDidMount() {
         this.pageRefresh(120000); // Refresh in 2 minutes
         this.getCoingecko();
-        // this.getRecord();
-        this.authLogin() // Get Access Token
+        this.recordProcess();
     }
     
     // Page reload
@@ -96,37 +95,58 @@ class Home extends React.Component {
     }
 
     // Get Access Token
-    authLogin = async () => {
-        // Run api
-        $.ajax({
-            url: "/api/authLogin",
-            type: "POST",
-            data: JSON.stringify({
-                "email": "vincejaspergutierrez@gmail.com",
-                "password": "17df815cda847a3a2ef1c55bcf82d9f2044734576b129faf1f7a66fbda79279a"
-            }),
-            contentType: 'application/json',
-            cache: false,
-        }).then(
-            async (result) => {
-                console.log("authLogin", result)
-            },
-            // Note: it's important to handle errors here
-            // instead of a catch() block so that we don't swallow
-            // exceptions from actual bugs in components.
-            (error) => {
-                console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, error)
-            }
-        )
-        .catch(
-            (err) => {
-                console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
-            }
-        )
+    authLogin = async (credentials) => {
+        return new Promise((resolve, reject) => {
+            // Run api
+            $.ajax({
+                url: "/api/authLogin",
+                type: "POST",
+                data: JSON.stringify(credentials),
+                contentType: 'application/json',
+                cache: false,
+            }).then(
+                async (result) => {
+                    if (result.error) {
+                        // Has Error
+                        return reject({error: true});
+                    } else {
+                        // Success Generate Access Token
+                        try {
+                            const data = result.data !== undefined && Object.keys(result.data).length > 0 ? result.data : false;
+                            const token = data.accessToken ? data.accessToken : false;
+                            if (token) {
+                                return resolve({error: false, token: token});
+                            } else {
+                                return reject({error: true});
+                            }
+                        } catch {
+                            // Has Error in parsing
+                            return reject({error: true});
+                        }
+                    }
+                },
+                // Note: it's important to handle errors here
+                // instead of a catch() block so that we don't swallow
+                // exceptions from actual bugs in components.
+                (error) => {
+                    console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, error)
+                    return reject({error: true});
+                }
+            )
+            .catch(
+                (err) => {
+                    console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
+                    return reject({error: true});
+                }
+            )
+        }).catch(err => {
+            console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
+            return err;
+        });
     }
 
-    // Fetch Player Record Data
-    getRecord = () => {
+    // Process of details by fetching all data in different api
+    recordProcess = () => {
         $.ajax({
             url: "/api/records",
             type: "GET",
@@ -135,6 +155,7 @@ class Home extends React.Component {
         })
         .then(
             async (response) => {
+                const counter = 0; // For checking of valid process counting
                 const dataRecords = response.data;
                 const dataWithdraw = response.withdraw;
                 const dataManagerEarned = response.managerEarned;
@@ -143,11 +164,15 @@ class Home extends React.Component {
                 if (dataRecords.length > 0) {
                     // Fetch player details in api of sky mavis
                     const dataResultPromise = dataRecords.map(async (item) => {
+                        const EMAIL = item.EMAIL ? item.EMAIL : false;
+                        const PASS = item.PASS ? item.PASS.length > 1 ? item.PASS : false : false;
                         const isDeleted = item.DELETEIND ? item.DELETEIND : "";
-                        if (isDeleted) { // To prevent fetching access token and processing for delete details
-                            // End the process x Details is mark as deleted
+                        if (isDeleted || (!EMAIL || !PASS)) { // To prevent fetching access token and processing for delete details
+                            // End the process x Details is mark as deleted and No valid credentials
                             return false;
                         } else {
+                            console.log(CONSTANTS.MESSAGE.PROCESS_COUNT, `${counter + 1} / ${dataRecords.length}`); // For checking of valid process counting
+
                             // Continue process
                             let userEthAddress = null;
                             const ethAddress = item.ADDRESS ? `0x${item.ADDRESS.substring(6)}` : "";
@@ -181,8 +206,8 @@ class Home extends React.Component {
     
                             } else { // No Access Token x Not available in Local Storage
                                 // Generate Access Token
-                                console.log("Running Access Token", dataRecords.length)
-                                // accessToken = await GenerateAccessToken("0x8762c5505e58d70d5eb1daca967ddaaac2f10338b1355521d01a263d5640666a", item.ADDRESS, item.NAME);
+                                console.log(CONSTANTS.MESSAGE.RUN_TOKEN);
+                                accessToken = await this.authLogin({email: item.EMAIL, password: item.PASS});
                                 if (!accessToken.error) {
                                     // Set for Access Token
                                     item["accessToken"] = accessToken.token;
@@ -194,8 +219,8 @@ class Home extends React.Component {
     
                             if (accessToken) { // Has Access Token
                                 // Return valid details
-                                // return await this.getPlayerDetails(item, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned, dataYesterdaySLP, playersStaticData);
-                                return item;
+                                return await this.getPlayerDetails(item, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned, dataYesterdaySLP, playersStaticData);
+                                // return item;
                             } else {
                                 // End the process x No Access Token
                                 return false;

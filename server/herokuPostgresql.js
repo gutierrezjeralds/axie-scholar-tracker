@@ -132,12 +132,7 @@ app.post("/api/authLogin", async (req, res) => {
 
         // Execute Process of Auth Login
         const accessToken = await origin.authLogin(payload, logger, CONSTANTS);
-
-        logger(CONSTANTS.MESSAGE.MANAGER_EARNED, CONSTANTS.MESSAGE.END_GENERATE_TOKEN);
-        return res.type("application/json").status(200).send({
-            error: false,
-            data: accessToken
-        });
+        return res.type("application/json").status(200).send(accessToken); // Return response form Auth Login
     } catch (err) {
         logger(CONSTANTS.MESSAGE.ERROR_OCCURED, err);
         return res.type("application/json").status(500).send({

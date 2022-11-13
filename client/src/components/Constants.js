@@ -151,7 +151,9 @@ const MESSAGE = {
     RESET_DAILYSLP: "Reset Daily SLP",
     CANT_GEN_TOKEN_RANDOMMSG: "Could not generate AccessToken Random Message",
     CANT_GEN_TOKEN_SIGNRONINMSG: "Could not Sign Ronin Message",
-    CANT_GEN_TOKEN_ACCESSMSG: "Could not Create Access Token"
+    CANT_GEN_TOKEN_ACCESSMSG: "Could not Create Access Token",
+    PROCESS_COUNT: "Process Count",
+    RUN_TOKEN: "Running Access Token"
 }
 
 export const CONSTANTS = {

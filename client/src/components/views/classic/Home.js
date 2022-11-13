@@ -631,6 +631,7 @@ class Home extends React.Component {
                 ADDRESS: event.target.ADDRESS.value,
                 NAME: event.target.NAME.value,
                 EMAIL: event.target.EMAIL.value,
+                PASS: event.target.PASS.value,
                 SHR_MANAGER: shrManager,
                 SHR_SCHOLAR: shrScholar,
                 SHR_SPONSOR: shrSponsor,
@@ -3036,6 +3037,11 @@ class Home extends React.Component {
                                             <i data-test="fa" className="fa fa-envelope prefix"></i>
                                             <input data-test="input" type="email" className="form-control" name="EMAIL" required />
                                             <label className="active">{CONSTANTS.MESSAGE.EMAIL}</label>
+                                        </div>
+                                        <div className="md-form">
+                                            <i data-test="fa" className="fa fa-lock prefix"></i>
+                                            <input data-test="input" type="text" className="form-control" name="PASS" required />
+                                            <label className="active">{CONSTANTS.MESSAGE.PASSWORD}</label>
                                         </div>
                                         <MDBRow className="mt-1pt5rem-neg" between>
                                             <MDBCol size="6">

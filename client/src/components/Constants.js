@@ -113,6 +113,7 @@ const MESSAGE = {
     SPONSOR_SLP: "Sponsor SLP",
     SCHOLAR_SLP: "Scholar SLP",
     EMAIL: "Email",
+    PASSWORD: "Password",
     DAILYSLP: "Daily SLP",
     GET: "GET",
     POST: "POST",

@@ -65,7 +65,7 @@ async function generateAccessToken(key, address, name, logger, CONSTANTS) {
                         "variables": {}
                     }
                 },
-                function (err, httpResponse, body) {
+                async function (err, httpResponse, body) {
                     if (err) {
                         reject({ error: true, errorMsg: err });
                     } else {

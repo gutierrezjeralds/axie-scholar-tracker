@@ -226,7 +226,7 @@ async function inGameSLP(access, logger, CONSTANTS) {
             logger(CONSTANTS.MESSAGE.STARTED_INGAMESLP);
             request.get(
                 {
-                    url:'https://game-api-origin.skymavis.com/v2/users/me/items/marketplace/slp', 
+                    url:'https://game-api-origin.skymavis.com/v2/users/me/items/marketplace/slp',
                     headers: {
                         'Authorization': 'Bearer ' + access.token
                     }
@@ -264,9 +264,175 @@ async function inGameSLP(access, logger, CONSTANTS) {
 	});
 }
 
+// Get SLP and AXS Crypto Currency
+async function getCryptoCoins(logger, CONSTANTS) {
+    return new Promise(async(resolve, reject) => {
+        try {
+            // Get Crypto Coins from Binance
+            logger(CONSTANTS.MESSAGE.STARTED_CRYPTOCOINS);
+            request.get(
+                {
+                    url:'https://api.binance.com/api/v3/ticker/price?symbols=["SLPUSDT","AXSUSDT"]'
+                },
+                async function (err, httpResponse, body) {
+                    if (err) {
+                        // Has Error x Get data from Alternative Crypto Coins API
+                        const coingecko = await getCoingecko(logger, CONSTANTS);
+                        resolve (coingecko);
+                    } else {
+                        if (httpResponse.statusCode === 200) {
+                            // Success return
+                            logger(CONSTANTS.MESSAGE.END_CRYPTOCOINS);
+
+                            try {
+                                const dataRes = body ? JSON.parse(body) : false;
+                                if (dataRes) {
+                                    let isSLPValue = 0, isAXSValue = 0;
+                                    // Get the PHP Value
+                                    const currencies = await getPHPCurrentValue(logger, CONSTANTS);
+                                    const phpCurrency = !currencies.error ? JSON.parse(currencies.data).rates.PHP : 0; // 0 is default PHP Value
+                                    console.log("phpCurrency", phpCurrency)
+
+                                    // Map the Crypto Coins
+                                    dataRes.map(items => {
+                                        // Get SLP value in Binance result
+                                        if (items.symbol === "SLPUSDT") {
+                                            isSLPValue = Number(items.price) * Number(phpCurrency);
+                                        }
+                                        // Get AXS value in Binance result
+                                        if (items.symbol === "AXSUSDT") {
+                                            isAXSValue = Number(items.price) * Number(phpCurrency);
+                                        }
+                                        // Return
+                                        return true;
+                                    });
+        
+                                    resolve({ error: false, data: {
+                                        NAME: CONSTANTS.MESSAGE.BINANCE,
+                                        SLP: isSLPValue.toFixed(4),
+                                        AXS: isAXSValue.toFixed(4),
+                                        URI: "https://www.binance.com/en/trade/SLP_USDT"
+                                    }});
+                                } else {
+                                    // Has Error x Get data from Alternative Crypto Coins API
+                                    const coingecko = await getCoingecko(logger, CONSTANTS);
+                                    resolve (coingecko);
+                                }
+                            } catch {
+                                // Has Error x Get data from Alternative Crypto Coins API
+                                const coingecko = await getCoingecko(logger, CONSTANTS);
+                                resolve (coingecko);
+                            }
+                        } else {
+                            // Has Error x Get data from Alternative Crypto Coins API
+                            const coingecko = await getCoingecko(logger, CONSTANTS);
+                            resolve (coingecko);
+                        }
+                    }
+                }
+            );
+        } catch (error) {
+            // Has Error x Get data from Alternative Crypto Coins API
+            const coingecko = await getCoingecko(logger, CONSTANTS);
+            resolve (coingecko);
+        }
+    }).catch((err) => {
+        logger(CONSTANTS.MESSAGE.ERROR_OCCURED, err);
+		return err;
+	});
+}
+
+// Get Crypto Coins from Coingecko
+async function getCoingecko(logger, CONSTANTS) {
+    return new Promise(async(resolve, reject) => {
+        try {
+            // Get Crypto Coins from Binance
+            logger(CONSTANTS.MESSAGE.STARTED_CRYPTOCOINS);
+            request.get(
+                {
+                    url:'https://api.coingecko.com/api/v3/simple/price?ids=smooth-love-potion,axie-infinity&vs_currencies=php'
+                },
+                async function (err, httpResponse, body) {
+                    if (err) {
+                        logger(CONSTANTS.MESSAGE.ERROR_CRYPTOCOINS);
+                        reject({ error: true, data: err });
+                    } else {
+                        if (httpResponse.statusCode === 200) {
+                            // Success return
+                            logger(CONSTANTS.MESSAGE.END_CRYPTOCOINS);
+
+                            try {
+                                const currencies = body ? JSON.parse(body) : false; // 0 is default PHP Value
+                                if (currencies) {
+                                    resolve({ error: false, data: {
+                                        NAME: CONSTANTS.MESSAGE.COINGECKO,
+                                        SLP: (currencies["smooth-love-potion"].php).toFixed(4),
+                                        AXS: (currencies["axie-infinity"].php).toFixed(4),
+                                        URI: "https://www.coingecko.com/en/coins/smooth-love-potion"
+                                    }});
+                                } else {
+                                    reject({ error: true, data: CONSTANTS.MESSAGE.ERROR_CRYPTOCOINS });
+                                }
+                            } catch {
+                                reject({ error: true, data: CONSTANTS.MESSAGE.ERROR_CRYPTOCOINS });
+                            }
+                        } else {
+                            // Has error in response
+                            logger(CONSTANTS.MESSAGE.ERROR_CRYPTOCOINS);
+                            let errMsg = CONSTANTS.MESSAGE.ERROR_CRYPTOCOINS;
+                            try {
+                                errMsg = httpResponse.body ? JSON.parse(httpResponse.body)._errorMessage : CONSTANTS.MESSAGE.ERROR_CRYPTOCOINS;
+                            } catch {
+                                errMsg = CONSTANTS.MESSAGE.ERROR_CRYPTOCOINS;
+                            }
+                            reject({ error: true, data: errMsg });
+                        }
+                    }
+                }
+            );
+        } catch (error) {
+            logger(CONSTANTS.MESSAGE.INTERNAL_SERVER_ERROR, error);
+            reject({ error: true, data: error });
+        }
+    }).catch((err) => {
+        logger(CONSTANTS.MESSAGE.ERROR_OCCURED, err);
+		return err;
+	});
+}
+
+// Get frankfurter data / json
+async function getPHPCurrentValue(logger, CONSTANTS) {
+    return new Promise((resolve, reject) => {
+        // Get Current PHP Value
+        request.get(
+            {
+                url:'https://api.frankfurter.app/latest?from=USD'
+            },
+            async function (err, httpResponse, body) {
+                if (err) {
+                    reject({ error: true, data: err });
+                } else {
+                    if (httpResponse.statusCode === 200) {
+                        // Success return
+                        return resolve({error: false, data: body});
+                        
+                    } else {
+                        // Has error in response
+                        return reject({error: true, data: error})
+                    }
+                }
+            }
+        )
+    }).catch(err => {
+        logger(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
+        return err;
+    });
+}
+
 // Export the function
 module.exports = {
     authLogin,
     generateAccessToken,
-    inGameSLP
+    inGameSLP,
+    getCryptoCoins
 };

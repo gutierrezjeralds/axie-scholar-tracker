@@ -17,9 +17,10 @@ class Home extends React.Component {
         this.state = {
             error: false,
             isLoaded: false,
-            slpCurrentValue: 0,
-            axsCurrentValue: 0,
-            currentValueFrm: CONSTANTS.MESSAGE.COINGECKO,
+            currencySLP: 0,
+            currencyAXS: 0,
+            currencyNAME: "",
+            currencyURI: "",
             apiCoinRunningCounter: 0, // 0 can be rerun another api x 1 discard the running set the default
             maxGainSLP: 200, // Max Gained SLP for validation of inserting in table
             daysClaimable: 7, // Default day set for allow slp claim
@@ -39,7 +40,7 @@ class Home extends React.Component {
 
     componentDidMount() {
         this.pageRefresh(120000); // Refresh in 2 minutes
-        this.getCoingecko();
+        this.getCryptoCoins();
         this.recordProcess();
         // Check if the user is valid email x for checking for display all the player data
         if (this.state.isUser) {
@@ -75,21 +76,30 @@ class Home extends React.Component {
         }, 5000); // Refresh in 5 seconds
     }
 
-    // Get Coingecko data / json
-    getCoingecko = () => {
-        // Get Current SLP and AXS Value
+    // Get SLP and AXS Crypto Coins
+    getCryptoCoins = () => {
         $.ajax({
-            url: "https://api.coingecko.com/api/v3/simple/price?ids=smooth-love-potion,axie-infinity&vs_currencies=php",
+            url: "/api/getCryptoCoins",
             dataType: "json",
             cache: false
         })
         .then(
             (result) => {
-                this.setState({
-                    currentValueFrm: CONSTANTS.MESSAGE.COINGECKO,
-                    slpCurrentValue: result["smooth-love-potion"].php,
-                    axsCurrentValue: result["axie-infinity"].php
-                })
+                if (result.error) {
+                    // Has Error x Set the default value of SLP and AXS into 0 x error in fetching data from third party api
+                    this.setState({
+                        currencySLP: 0,
+                        currencyAXS: 0
+                    })
+                } else {
+                    // Success fetch Crypto Coins
+                    this.setState({
+                        currencyNAME: result.data.NAME,
+                        currencySLP: result.data.SLP,
+                        currencyAXS: result.data.AXS,
+                        currencyURI: result.data.URI
+                    })
+                }
             },
             // Note: it's important to handle errors here
             // instead of a catch() block so that we don't swallow
@@ -98,8 +108,8 @@ class Home extends React.Component {
                 console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, error)
                 // Set the default value of SLP and AXS into 0 x error in fetching data from third party api
                 this.setState({
-                    slpCurrentValue: 0,
-                    axsCurrentValue: 0
+                    currencySLP: 0,
+                    currencyAXS: 0
                 })
             }
         )
@@ -108,15 +118,11 @@ class Home extends React.Component {
                 console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
                 // Set the default value of SLP and AXS into 0 x error in fetching data from third party api
                 this.setState({
-                    slpCurrentValue: 0,
-                    axsCurrentValue: 0
+                    currencySLP: 0,
+                    currencyAXS: 0
                 })
             }
         )
-        .done(() => {
-            // Refresh API
-            this.apiRefresh();
-        })
     }
 
     // Get Access Token
@@ -504,7 +510,7 @@ class Home extends React.Component {
 
                 // Set Total Earnings
                 details.TOTALEARNING_SLP = parseInt(details.SHAREDSLP) + parseInt(WALLET.slp);
-                details.TOTALEARNING_PHP = details.TOTALEARNING_SLP * this.state.slpCurrentValue // Ccomputed base on TOTALEARNING_SLP multiply slpCurrentValue
+                details.TOTALEARNING_PHP = details.TOTALEARNING_SLP * this.state.currencySLP // Ccomputed base on TOTALEARNING_SLP multiply currencySLP
 
                 // Construct date for dispay details
                 const playerDataTableRes = {
@@ -668,19 +674,19 @@ class Home extends React.Component {
 
     // Render Coingecko details
     renderCurrencies() {
-        if (this.state.slpCurrentValue > 0) {
+        if (this.state.currencySLP > 0) {
             return (
                 <React.Fragment>
                     <MDBCol size="12" className="mb-3">
                         <MDBBox tag="div" className="py-3 px-2 text-center currency-details">
                             <MDBBox tag="span">
                                 {CONSTANTS.MESSAGE.PRICE_BASEON}
-                                <a href="https://www.coingecko.com/en/coins/smooth-love-potion" target="_blank" rel="noreferrer"> {CONSTANTS.MESSAGE.COINGECKO}. </a>
+                                <a href={this.state.currencyURI} target="_blank" rel="noreferrer"> {this.state.currencyNAME}. </a>
                                 {CONSTANTS.MESSAGE.CURRENT_EXCHANGERATE}:
                                 <MDBBox tag="span">
-                                    <strong> 1 {CONSTANTS.MESSAGE.SLP} = {this.state.slpCurrentValue} </strong>
+                                    <strong> 1 {CONSTANTS.MESSAGE.SLP} = {this.state.currencySLP} </strong>
                                     and
-                                    <strong> 1 {CONSTANTS.MESSAGE.AXS} = {this.state.axsCurrentValue}</strong>
+                                    <strong> 1 {CONSTANTS.MESSAGE.AXS} = {this.state.currencyAXS}</strong>
                                 </MDBBox>
                             </MDBBox>
                         </MDBBox>

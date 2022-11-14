@@ -15,7 +15,7 @@ app.use(express.static(path.resolve(__dirname, '../client/build')));
 */
 
 // Dependencies
-const origin = require("./origin");
+const clientRequest = require("./clientReq");
 
 const pgConn = {
     connectionString: "postgres://jxbcqarlcxuwwt:9328a074960dae0975c57dc4a88fd21af6be26c4ef0708316df54368c565da83@ec2-23-23-199-57.compute-1.amazonaws.com:5432/d2kdqt4muprt6i",
@@ -77,7 +77,13 @@ const CONSTANTS = {
         STARTED_INGAMESLP_API: "Origin InGame SLP API Started",
         STARTED_INGAMESLP: "Origin InGame SLP Started",
         END_INGAMESLP: "Origin InGame SLP End",
-        ERROR_INGAMESLP: "Error in Origin InGame SLP"
+        ERROR_INGAMESLP: "Error in Origin InGame SLP",
+        STARTED_CRYPTOCOINS_API: "Crypto Coins API Started",
+        STARTED_CRYPTOCOINS: "Crypto Coins Started",
+        END_CRYPTOCOINS: "Crypto Coins End",
+        ERROR_CRYPTOCOINS: "Error in Crypto Coins",
+        BINANCE: "Binance",
+        COINGECKO: "Coingecko"
     },
     TABLE: {
         USERPROFILE: `public."TB_USERPROFILE"`,
@@ -135,7 +141,7 @@ app.post("/api/authLogin", async (req, res) => {
         const payload = req.body;
 
         // Execute Process of Auth Login
-        const accessToken = await origin.authLogin(payload, logger, CONSTANTS);
+        const accessToken = await clientRequest.authLogin(payload, logger, CONSTANTS);
         return res.type("application/json").status(200).send(accessToken); // Return response form Auth Login
     } catch (err) {
         logger(CONSTANTS.MESSAGE.ERROR_OCCURED, err);
@@ -155,7 +161,24 @@ app.post("/api/getInGameSLP", async (req, res) => {
         const payload = req.body;
 
         // Execute Process of Auth Login
-        const inGameSLP = await origin.inGameSLP(payload, logger, CONSTANTS);
+        const inGameSLP = await clientRequest.inGameSLP(payload, logger, CONSTANTS);
+        return res.type("application/json").status(200).send(inGameSLP); // Return response form InGame SLP
+    } catch (err) {
+        logger(CONSTANTS.MESSAGE.ERROR_OCCURED, err);
+        return res.type("application/json").status(500).send({
+            error: true,
+            data: err
+        });
+    }
+});
+
+// POST Method x Get In Game SLP
+app.get("/api/getCryptoCoins", async (req, res) => {
+    try {
+        logger(CONSTANTS.MESSAGE.STARTED_CRYPTOCOINS_API);
+
+        // Execute Process of Crypto Coins
+        const inGameSLP = await clientRequest.getCryptoCoins(logger, CONSTANTS);
         return res.type("application/json").status(200).send(inGameSLP); // Return response form InGame SLP
     } catch (err) {
         logger(CONSTANTS.MESSAGE.ERROR_OCCURED, err);

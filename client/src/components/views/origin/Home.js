@@ -457,12 +457,16 @@ class Home extends React.Component {
                             return resolve(detailProcess);
                         } catch {
                             // Continue Process for Player Details with Default/Empty data of InGame SLP
-                            const detailProcess = await this.processPlayerDetails(_INGAMESLP, detailsLength, details, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned);
+                            details.accessToken = false; // Update the Access Token property value to empty for resetting in generate token
+                            const detailsReturn = Object.assign({}, details);
+                            const detailProcess = await this.processPlayerDetails(_INGAMESLP, detailsLength, detdetailsReturnails, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned);
                             return resolve(detailProcess);
                         }
                     } else {
                         // Continue Process for Player Details with Default/Empty data of InGame SLP
-                        const detailProcess = await this.processPlayerDetails(_INGAMESLP, detailsLength, details, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned);
+                        details.accessToken = false; // Update the Access Token property value to empty for resetting in generate token
+                        const detailsReturn = Object.assign({}, details);
+                        const detailProcess = await this.processPlayerDetails(_INGAMESLP, detailsLength, detailsReturn, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned);
                         return resolve(detailProcess);
                     }
                 },

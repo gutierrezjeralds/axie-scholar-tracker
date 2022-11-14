@@ -572,7 +572,8 @@ class Home extends React.Component {
                 // Update input fields
                 $(".addEdit-inputHolder input[name=ADDRESS]").val(dataSet[0].details.ADDRESS).attr("value", dataSet[0].details.ADDRESS).trigger("change").attr("disabled", "disabled");
                 $(".addEdit-inputHolder input[name=NAME]").val(dataSet[0].details.NAME).attr("value", dataSet[0].details.NAME).trigger("change");
-                $(".addEdit-inputHolder input[name=EMAIL]").val(dataSet[0].details.EMAIL).attr("value", dataSet[0].details.EMAIL).trigger("change");
+                $(".addEdit-inputHolder input[name=EMAIL]").val(dataSet[0].details.EMAIL).attr("value", dataSet[0].details.EMAIL).trigger("change")
+                $(".addEdit-inputHolder input[name=PASS]").val(dataSet[0].details.PASS).attr("value", dataSet[0].details.PASS).trigger("change");;
                 $(".addEdit-inputHolder input[name=SHR_MANAGER]").val(dataSet[0].details.SHR_MANAGER).attr("value", dataSet[0].details.SHR_MANAGER).trigger("change");
                 $(".addEdit-inputHolder input[name=SHR_SCHOLAR]").val(dataSet[0].details.SHR_SCHOLAR).attr("value", dataSet[0].details.SHR_SCHOLAR).trigger("change");
 
@@ -589,6 +590,7 @@ class Home extends React.Component {
                 $(".addEdit-inputHolder input[name=ADDRESS]").val("").trigger("change").removeAttr("disabled");
                 $(".addEdit-inputHolder input[name=NAME]").val("").trigger("change");
                 $(".addEdit-inputHolder input[name=EMAIL]").val("").trigger("change");
+                $(".addEdit-inputHolder input[name=PASS]").val("").trigger("change");
                 $(".addEdit-inputHolder input[name=SHR_MANAGER]").val("").trigger("change");
                 $(".addEdit-inputHolder input[name=SHR_SCHOLAR]").val("").trigger("change");
                 $(".addEdit-inputHolder input[name=SHR_SPONSOR]").val("").trigger("change");
@@ -602,6 +604,7 @@ class Home extends React.Component {
             $(".addEdit-inputHolder input[name=ADDRESS]").val("").trigger("change").removeAttr("disabled");
             $(".addEdit-inputHolder input[name=NAME]").val("").trigger("change");
             $(".addEdit-inputHolder input[name=EMAIL]").val("").trigger("change");
+            $(".addEdit-inputHolder input[name=PASS]").val("").trigger("change");
             $(".addEdit-inputHolder input[name=SHR_MANAGER]").val("").trigger("change");
             $(".addEdit-inputHolder input[name=SHR_SCHOLAR]").val("").trigger("change");
             $(".addEdit-inputHolder input[name=SHR_SPONSOR]").val("").trigger("change");

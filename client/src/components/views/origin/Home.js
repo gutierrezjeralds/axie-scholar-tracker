@@ -9,7 +9,13 @@ import {
     MDBTabPane, MDBTabContent, MDBNav, MDBNavItem
 } from "mdbreact";
 import { CONSTANTS } from '../../Constants';
-import playerStaticData from '../../assets/json/players.json'
+
+// Global InGame SLP Default
+const _INGAMESLP = {
+    "itemId": "slp",
+    "quantity": 0,
+    "withdrawable": 0
+}
 
 class Home extends React.Component {
     constructor(props) {
@@ -28,13 +34,22 @@ class Home extends React.Component {
             managerPHPInvestment: 410000, // Estimated Investment
             isUser: this.props.user || "",
             isUserEmail: false,
+            isSponsorName: "",
+            arrSponsorName: [],
+            totalManagerClaimableSLP: 0,
             totalManagerSLP: 0,
             totalSponsorSLP: 0,
             totalScholarSLP: 0,
             totalInGameSLP: 0,
+            totalAverageInGameSLP: 0,
             isPlayerLoaded: false,
+            playerRecords: [],
             playerDataTable: {},
-            playerRecords: []
+            leaderboardDatatable: {},
+            topUserRank: "",
+            topUserInGameSLP: "",
+            isModalLeaderboardOpen: false,
+            modalLeaderboardDetails: [],
         }
     }
 
@@ -59,6 +74,14 @@ class Home extends React.Component {
             return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
         }
         return value;
+    }
+
+    // Modal Toggle for view details of Leaderboard
+    modalLeaderboardToggle = (playerDetails) => () => {
+        this.setState({
+            isModalLeaderboardOpen: !this.state.isModalLeaderboardOpen,
+            modalLeaderboardDetails: playerDetails
+        });
     }
     
     // Page reload
@@ -139,7 +162,7 @@ class Home extends React.Component {
                 async (result) => {
                     if (result.error) {
                         // Has Error
-                        return reject({error: true});
+                        return reject({error: true, category: "authLogin"});
                     } else {
                         // Success Generate Access Token
                         try {
@@ -148,11 +171,11 @@ class Home extends React.Component {
                             if (token) {
                                 return resolve({error: false, token: token});
                             } else {
-                                return reject({error: true});
+                                return reject({error: true, category: "authLogin"});
                             }
-                        } catch {
+                        } catch (error) {
                             // Has Error in parsing
-                            return reject({error: true});
+                            return reject({error: true, data: error, category: "authLogin"});
                         }
                     }
                 },
@@ -161,13 +184,13 @@ class Home extends React.Component {
                 // exceptions from actual bugs in components.
                 (error) => {
                     console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, error)
-                    return reject({error: true});
+                    return reject({error: true, data: error, category: "authLogin"});
                 }
             )
             .catch(
                 (err) => {
                     console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
-                    return reject({error: true});
+                    return reject({error: true, data: err, category: "authLogin"});
                 }
             )
         }).catch(err => {
@@ -186,7 +209,7 @@ class Home extends React.Component {
         })
         .then(
             async (response) => {
-                const counter = 0; // For checking of valid process counting
+                let counter = 0; // For checking of valid process counting
                 const dataRecords = response.data;
                 const dataWithdraw = response.withdraw;
                 const dataManagerEarned = response.managerEarned;
@@ -202,17 +225,23 @@ class Home extends React.Component {
                             // End the process x Details is mark as deleted and No valid credentials
                             return false;
                         } else {
-                            console.log(CONSTANTS.MESSAGE.PROCESS_COUNT, `${counter + 1} / ${dataRecords.length}`); // For checking of valid process counting
+                            counter = counter + 1;
+                            // console.log(CONSTANTS.MESSAGE.PROCESS_COUNT, `${counter} / ${dataRecords.length}`); // For checking of valid process counting
 
                             // Continue process
                             let userEthAddress = null;
                             const ethAddress = item.ADDRESS ? `0x${item.ADDRESS.substring(6)}` : "";
-                            const iSponsorName = item.SPONSOR_NAME ? item.SPONSOR_NAME.toLowerCase() : ""
+                            const isSponsorName = item.SPONSOR_NAME ? item.SPONSOR_NAME.toLowerCase() : ""
+
+                            // Set Array of Sponsors
+                            if (isSponsorName) {
+                                this.state.arrSponsorName.push(isSponsorName);
+                            }
     
                             // Set ETH Address and Sponsor Name
                             if (item.EMAIL.toLowerCase() === this.state.isUser.toLowerCase() ||
                                 item.NAME.toLowerCase() === this.state.isUser.toLowerCase() ||
-                                iSponsorName === this.state.isUser.toLowerCase()) {
+                                isSponsorName === this.state.isUser.toLowerCase()) {
                                     // Get ETH Address based on Credential
                                     userEthAddress = ethAddress;
                                     if (item.SHR_SPONSOR !== "" && item.SHR_SPONSOR !== "0" && item.SHR_SPONSOR !== undefined) {
@@ -234,7 +263,7 @@ class Home extends React.Component {
     
                             } else { // No Access Token x Not available in Local Storage
                                 // Generate Access Token
-                                console.log(CONSTANTS.MESSAGE.RUN_TOKEN);
+                                console.log(`${CONSTANTS.MESSAGE.RUN_TOKEN}:`, item.NAME);
                                 accessToken = await this.authLogin({email: item.EMAIL, password: item.PASS});
                                 if (!accessToken.error) {
                                     // Set for Access Token
@@ -247,7 +276,7 @@ class Home extends React.Component {
     
                             if (accessToken) { // Has Access Token
                                 // Return valid details
-                                return await this.getPlayerDetails(item, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned);
+                                return await this.getPlayerDetails(item, counter, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned);
                                 // return item;
                             } else {
                                 // End the process x No Access Token
@@ -258,23 +287,31 @@ class Home extends React.Component {
 
                     await Promise.all(dataResultPromise).then(async (results) => {
                         let initDisplay = []; // Data for initial display
+                        let leaderboardDisplay = []; // Data for players leaderboard list display in Modal
 
-                        const dataResult = results.filter(item => item && !item.error && item.data !== undefined); // Filter valid data
+                        const dataResult = results.filter(item => item && !item.error && item.data !== undefined && item.eth !== undefined); // Filter valid data
                         if (dataResult && dataResult.length > 0) {
-                            // Sort as Top MMR Ranking
+                            // Sort as Top Leaderboard
                             dataResult.sort(function (a, b) {
-                                if (a.LEADERBOARD.topRank === b.LEADERBOARD.topRank) { // equal items sort equally
+                                if (a.topRank === b.topRank) { // equal items sort equally
                                     return 0;
-                                } else if (a.LEADERBOARD.topRank === 0) { // 0 sort after anything else
+                                } else if (a.topRank === 0) { // 0 sort after anything else
                                     return 1;
-                                } else if (b.LEADERBOARD.topRank === 0) { // 0 sort after anything else
+                                } else if (b.topRank === 0) { // 0 sort after anything else
                                     return -1;
                                 } else {  // otherwise, if we're ascending, lowest sorts first
-                                    return a.LEADERBOARD.topRank < b.LEADERBOARD.topRank ? -1 : 1;
+                                    return a.topRank < b.topRank ? -1 : 1;
                                 }
                               }).map((dataItem, index) => {
                                 const indexCount = index + 1; // Global index count
                                 dataItem.data.order = indexCount; // Adding ordered number
+
+                                // Get Top MMR Player
+                                if (indexCount === 1) {
+                                    this.setState({
+                                        topUserRank: dataItem.nameTopRank ? dataItem.nameTopRank : ""
+                                    })
+                                }
 
                                 // Update Name with combination of index counter x for display in data table x display for next page
                                 if (indexCount > 5) {
@@ -290,6 +327,31 @@ class Home extends React.Component {
                                     if (dataItem.eth !== null) {
                                         initDisplay.push(dataItem.data); // Data for initial display x specific data to be display
                                     }
+                                }
+
+                                // Data for players MMR list display in Modal x Pushed specific data
+                                if (!dataItem.isDelete) { // Display not deleted player
+                                    leaderboardDisplay.push({
+                                        order: dataItem.data.order,
+                                        name: dataItem.data.name,
+                                        rank: dataItem.data.rank,
+                                        topRank: dataItem.data.topRank
+                                    });
+                                }
+    
+                                // Return
+                                return true;
+                            });
+
+                            // Sort as Top SLP Gainer
+                            dataResult.sort((a, b) =>  b.inGameSLP - a.inGameSLP ).map((dataItem, index) => {
+                                dataItem.data.order = index + 1; // Adding ordered number
+    
+                                // Get Top InGame SLP Player
+                                if (dataItem.data.order === 1) {
+                                    this.setState({
+                                        topUserInGameSLP: dataItem.nameTopInGameSLP ? dataItem.nameTopInGameSLP : ""
+                                    })
                                 }
     
                                 // Return
@@ -314,12 +376,21 @@ class Home extends React.Component {
 
                             // Return data x Set state
                             this.setState({
+                                error: false,
                                 isLoaded: true,
                                 isPlayerLoaded: true,
                                 playerDataTable: {
                                     columns: playerDataTableColums,
                                     rows: initDisplay
-                                }
+                                },
+                                leaderboardDatatable: {
+                                    columns: [
+                                        {label: "", field: "order"},
+                                        {label: CONSTANTS.MESSAGE.NAME, field: "name"},
+                                        {label: CONSTANTS.MESSAGE.RANK, field: "rank"},
+                                        {label: CONSTANTS.MESSAGE.LEADERBOARD, field: "topRank", sort: "desc"}
+                                    ], rows: leaderboardDisplay
+                                },
                             })
     
                             console.log("playerRecords", this.state.playerRecords)
@@ -365,7 +436,7 @@ class Home extends React.Component {
     }
 
     // Get Player details base on Sky Mavis API
-    getPlayerDetails = async (details, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned) => {
+    getPlayerDetails = async (details, detailsLength, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned) => {
         return new Promise((resolve, reject) => {
             $.ajax({
                 url: "/api/getInGameSLP",
@@ -382,13 +453,17 @@ class Home extends React.Component {
                         try {
                             // Process the player details for display
                             const dataRes = result.data ? JSON.parse(result.data) : false;
-                            const detailProcess = await this.processPlayerDetails(dataRes, details, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned);
+                            const detailProcess = await this.processPlayerDetails(dataRes, detailsLength, details, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned);
                             return resolve(detailProcess);
                         } catch {
-                            return reject({error: true});
+                            // Continue Process for Player Details with Default/Empty data of InGame SLP
+                            const detailProcess = await this.processPlayerDetails(_INGAMESLP, detailsLength, details, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned);
+                            return resolve(detailProcess);
                         }
                     } else {
-                        return reject({error: true});
+                        // Continue Process for Player Details with Default/Empty data of InGame SLP
+                        const detailProcess = await this.processPlayerDetails(_INGAMESLP, detailsLength, details, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned);
+                        return resolve(detailProcess);
                     }
                 },
                 // Note: it's important to handle errors here
@@ -398,19 +473,23 @@ class Home extends React.Component {
                     // Get Cookies data based on eth address
                     const detailLocalStored = localStorage.getItem(ethAddress) !== null ? localStorage.getItem(ethAddress) : false;
                     if (detailLocalStored) {
-                        const result = JSON.parse(detailLocalStored); // Parse the Cookie
-                        if (Object.keys(result).length > 0) { // Has player details
+                        const dataRes = JSON.parse(detailLocalStored); // Parse the Cookie
+                        if (Object.keys(dataRes).length > 0) { // Has player details
                             details.accessToken = false; // Update the Access Token property value to empty for resetting in generate token
                             const detailsReturn = Object.assign({}, details);
                             // Process data from Local Storage
-                            const detailProcess = await this.processPlayerDetails(result, detailsReturn, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned, true);
+                            const detailProcess = await this.processPlayerDetails(dataRes, detailsLength, detailsReturn, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned, true);
                             return resolve(detailProcess);
                         } else {
-                            return reject({error: true});
+                            // Continue Process for Player Details with Default/Empty data of InGame SLP
+                            const detailProcess = await this.processPlayerDetails(_INGAMESLP, detailsLength, details, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned);
+                            return resolve(detailProcess);
                         }
                     } else {
                         console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, error)
-                        return reject({error: true});
+                        // Continue Process for Player Details with Default/Empty data of InGame SLP
+                        const detailProcess = await this.processPlayerDetails(_INGAMESLP, detailsLength, details, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned);
+                        return resolve(detailProcess);
                     }
                 }
             )
@@ -418,19 +497,23 @@ class Home extends React.Component {
                 async (err) => {
                     const detailLocalStored = localStorage.getItem(ethAddress) !== null ? localStorage.getItem(ethAddress) : false;
                     if (detailLocalStored) {
-                        const result = JSON.parse(detailLocalStored); // Parse the Cookie
-                        if (Object.keys(result).length > 0) { // Has player details
+                        const dataRes = JSON.parse(detailLocalStored); // Parse the Cookie
+                        if (Object.keys(dataRes).length > 0) { // Has player details
                             details.accessToken = false; // Update the Access Token property value to empty for resetting in generate token
                             const detailsReturn = Object.assign({}, details);
                             // Process data from Local Storage
-                            const detailProcess = await this.processPlayerDetails(result, detailsReturn, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned, true);
+                            const detailProcess = await this.processPlayerDetails(dataRes, detailsLength, detailsReturn, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned, true);
                             return resolve(detailProcess);
                         } else {
-                            return reject({error: true});
+                            // Continue Process for Player Details with Default/Empty data of InGame SLP
+                            const detailProcess = await this.processPlayerDetails(_INGAMESLP, detailsLength, details, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned);
+                            return resolve(detailProcess);
                         }
                     } else {
                         console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
-                        return reject({error: true});
+                        // Continue Process for Player Details with Default/Empty data of InGame SLP
+                        const detailProcess = await this.processPlayerDetails(_INGAMESLP, detailsLength, details, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned);
+                        return resolve(detailProcess);
                     }
                 }
             )
@@ -441,7 +524,7 @@ class Home extends React.Component {
     }
 
     // Process for Player Details result
-    processPlayerDetails = async (INGAME, details, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned, isBasedCookie = false) => {
+    processPlayerDetails = async (INGAME, detailsLength, details, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned, isBasedCookie = false) => {
         return new Promise(async (resolve, reject) => {
             if (Object.keys(INGAME).length > 0) { // Has player details
                 // Fetch Player Wallet
@@ -477,9 +560,11 @@ class Home extends React.Component {
 
                     // Set Total Manager Shared SLP
                     this.setState({
+                        totalManagerClaimableSLP: this.state.totalManagerClaimableSLP + details.SHAREDSLP + Number(WALLET.slp),
                         totalManagerSLP: this.state.totalManagerSLP + details.SHAREDSLP
                     })
                 } else {
+                    let totalSponsorSLPRes = 0;
                     // Set Shared Scholar/Sponsor SLP
                     if ((details.SHR_SPONSOR).toString() !== "0" || details.SHR_SPONSOR > 0) {
                         // Sponsor SLP
@@ -487,8 +572,9 @@ class Home extends React.Component {
                         details.SHAREDSLP = Math.floor(INGAME.withdrawable * sponsorShare);
 
                         // Set Total Sponsor Shared SLP
+                        totalSponsorSLPRes = this.state.totalSponsorSLP + details.SHAREDSLP;
                         this.setState({
-                            totalSponsorSLP: this.state.totalSponsorSLP + details.SHAREDSLP
+                            totalSponsorSLP: totalSponsorSLPRes
                         })
                     } else {
                         // Scholar SLP
@@ -504,12 +590,27 @@ class Home extends React.Component {
                     // Set Total Manager Shared SLP
                     const managerShare = "0." + details.SHR_MANAGER;
                     this.setState({
+                        totalManagerClaimableSLP: this.state.totalManagerClaimableSLP + details.SHAREDSLP,
                         totalManagerSLP: this.state.totalManagerSLP + Math.ceil(INGAME.withdrawable * managerShare)
                     })
+
+                    // Set Total Sponsor Shared SLP with Ronin of Sponsor
+                    if (this.state.arrSponsorName.includes((details.NAME).toLowerCase())) {
+                        this.setState({
+                            totalSponsorSLP: totalSponsorSLPRes + Number(WALLET.slp)
+                        })
+                    }
                 }
 
+                // Set Total InGame SLP x Average InGame SLP
+                const totalIngameSLPRes = this.state.totalInGameSLP + INGAME.quantity;
+                this.setState({
+                    totalInGameSLP: totalIngameSLPRes,
+                    totalAverageInGameSLP: Number(totalIngameSLPRes) / Number(detailsLength)
+                })
+
                 // Set Total Earnings
-                details.TOTALEARNING_SLP = parseInt(details.SHAREDSLP) + parseInt(WALLET.slp);
+                details.TOTALEARNING_SLP = Number(details.SHAREDSLP) + Number(WALLET.slp);
                 details.TOTALEARNING_PHP = details.TOTALEARNING_SLP * this.state.currencySLP // Ccomputed base on TOTALEARNING_SLP multiply currencySLP
 
                 // Construct date for dispay details
@@ -517,36 +618,60 @@ class Home extends React.Component {
                     name: details.NAME,
                     nameSub: details.NAME,
                     inGameSLP: <MDBBox data-th={CONSTANTS.MESSAGE.INGAME_SLP} tag="span">{this.numberWithCommas(INGAME.quantity)}</MDBBox>,
-                    mintSLP: <MDBBox data-th={CONSTANTS.MESSAGE.MINT_SLP} tag="span">{this.numberWithCommas(INGAME.withdrawable)}</MDBBox>,
-                    shareSLP: <MDBBox data-th={CONSTANTS.MESSAGE.SHARED_SLP} tag="span" className="d-inline d-md-block d-lg-block">
-                                    <React.Fragment>
-                                        {this.numberWithCommas(details.SHAREDSLP)}
-                                        <MDBBox tag="span" className="d-inline d-md-block d-lg-block">
-                                            ({(details.SHR_MANAGER).toString() === "100" ? details.SHR_MANAGER : details.SHR_SCHOLAR}%)
-                                        </MDBBox>
-                                    </React.Fragment>
+                    mintSLP: <MDBBox data-th={CONSTANTS.MESSAGE.MINT_SLP} tag="span">
+                                    {
+                                        this.state.isUser === CONSTANTS.MESSAGE.MANAGER || !this.state.isUserEmail || (this.state.isUser).toLowerCase() === (details.EMAIL).toLowerCase() ? (
+                                            this.numberWithCommas(INGAME.withdrawable)
+                                        ) : (0) // If user is email x display 0 for other player
+                                    }
                                 </MDBBox>,
-                    roninSLP: <MDBBox data-th={CONSTANTS.MESSAGE.RONIN_SLP} tag="span">{this.numberWithCommas(WALLET.slp)}</MDBBox>,
-                    totalEarningSLP: <MDBBox data-th={CONSTANTS.MESSAGE.TOTAL_SLP} tag="span">
-                                                {
-                                                    this.numberWithCommas(details.TOTALEARNING_SLP)
-                                                }
-                                            </MDBBox>,
-                    totalEarningPHP: <MDBBox data-th={CONSTANTS.MESSAGE.EARNINGS_PHP} tag="span">
-                                                {
-                                                    this.numberWithCommas((details.TOTALEARNING_PHP).toFixed(2))
-                                                }
-                                            </MDBBox>,
-                    totalEarningPHPSLP: <MDBBox data-th={CONSTANTS.MESSAGE.TOTAL_SLP_PHP} tag="span">
+                    shareSLP: <MDBBox data-th={CONSTANTS.MESSAGE.SHARED_SLP} tag="span" className="d-inline d-md-block d-lg-block">
+                                    {
+                                        this.state.isUser === CONSTANTS.MESSAGE.MANAGER || !this.state.isUserEmail || (this.state.isUser).toLowerCase() === (details.EMAIL).toLowerCase() ? (
                                             <React.Fragment>
-                                                {this.numberWithCommas(details.TOTALEARNING_SLP)}
-                                                <MDBBox tag="span" className="d-block">
-                                                    (&#8369; {this.numberWithCommas((details.TOTALEARNING_PHP).toFixed(2))})
+                                                {this.numberWithCommas(details.SHAREDSLP)}
+                                                <MDBBox tag="span" className="d-inline d-md-block d-lg-block">
+                                                    ({(details.SHR_MANAGER).toString() === "100" ? details.SHR_MANAGER : details.SHR_SCHOLAR}%)
                                                 </MDBBox>
                                             </React.Fragment>
+                                        ) : (0) // If user is email x display 0 for other player
+                                    }
+                                </MDBBox>,
+                    roninSLP: <MDBBox data-th={CONSTANTS.MESSAGE.RONIN_SLP} tag="span">
+                                    {
+                                        this.state.isUser === CONSTANTS.MESSAGE.MANAGER || !this.state.isUserEmail || (this.state.isUser).toLowerCase() === (details.EMAIL).toLowerCase() ? (
+                                            this.numberWithCommas(WALLET.slp)
+                                        ) : (0) // If user is email x display 0 for other player
+                                    }
+                                </MDBBox>,
+                    totalEarningSLP: <MDBBox data-th={CONSTANTS.MESSAGE.TOTAL_SLP} tag="span">
+                                        {
+                                            this.state.isUser === CONSTANTS.MESSAGE.MANAGER || !this.state.isUserEmail || (this.state.isUser).toLowerCase() === (details.EMAIL).toLowerCase() ? (
+                                                this.numberWithCommas(details.TOTALEARNING_SLP)
+                                            ) : (0) // If user is email x display 0 for other player
+                                        }
+                                    </MDBBox>,
+                    totalEarningPHP: <MDBBox data-th={CONSTANTS.MESSAGE.EARNINGS_PHP} tag="span">
+                                        {
+                                            this.state.isUser === CONSTANTS.MESSAGE.MANAGER || !this.state.isUserEmail || (this.state.isUser).toLowerCase() === (details.EMAIL).toLowerCase() ? (
+                                                this.numberWithCommas((details.TOTALEARNING_PHP).toFixed(2))
+                                            ) : (0) // If user is email x display 0 for other player
+                                        }
+                                    </MDBBox>,
+                    totalEarningPHPSLP: <MDBBox data-th={CONSTANTS.MESSAGE.TOTAL_SLP_PHP} tag="span">
+                                            {
+                                                this.state.isUser === CONSTANTS.MESSAGE.MANAGER || !this.state.isUserEmail || (this.state.isUser).toLowerCase() === (details.EMAIL).toLowerCase() ? (
+                                                    <React.Fragment>
+                                                        {this.numberWithCommas(details.TOTALEARNING_SLP)}
+                                                        <MDBBox tag="span" className="d-block">
+                                                            (&#8369; {this.numberWithCommas((details.TOTALEARNING_PHP).toFixed(2))})
+                                                        </MDBBox>
+                                                    </React.Fragment>
+                                                ) : (0) // If user is email x display 0 for other player
+                                            }
                                         </MDBBox>,
                     rank: <MDBBox data-th={CONSTANTS.MESSAGE.RANK} tag="span">{LEADERBOARD.rank + " " + LEADERBOARD.tier}</MDBBox>,
-                    topRank: <MDBBox data-th={CONSTANTS.MESSAGE.RANK} tag="span">{LEADERBOARD.topRank}</MDBBox>,
+                    topRank: <MDBBox data-th={CONSTANTS.MESSAGE.RANK} tag="span">{this.numberWithCommas(LEADERBOARD.topRank)}</MDBBox>,
                     leaderboard: <MDBBox data-th={CONSTANTS.MESSAGE.LEADERBOARD} tag="span">{LEADERBOARD.rank + " " + LEADERBOARD.tier} <MDBBox tag="span" className="d-inline d-md-block d-lg-block">{LEADERBOARD.topRank > 0 ? ("(" + this.numberWithCommas(LEADERBOARD.topRank) + ")") : ("")}</MDBBox></MDBBox>,
                     clickEvent: ""
                 };
@@ -567,10 +692,15 @@ class Home extends React.Component {
                 return resolve({
                     error: false,
                     data: playerDataTableRes,
+                    inGameSLP: details.INGAME.quantity,
+                    topRank: details.LEADERBOARD.topRank,
+                    nameTopRank: `${details.NAME} (${details.LEADERBOARD.rank} ${details.LEADERBOARD.tier})`,
+                    nameTopInGameSLP: `${details.NAME} (${details.INGAME.quantity})`,
+                    eth: userEthAddress,
                     isDelete: details.DELETEIND ? details.DELETEIND : ""
                 });
             } else {
-                return reject({error: true});
+                return reject({error: true, category: "processPlayerDetails"});
             }
         }).catch(err => {
             console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
@@ -594,20 +724,20 @@ class Home extends React.Component {
                                 // Sucess Return x Setup property key and value
                                 const dataSet = {
                                     slp: result.balances.SLP.balance,
-                                    axs: parseInt(result.balances.AXS.balance).toFixed(4),
-                                    ron: parseInt(result.balances.RON.balance).toFixed(4)
+                                    axs: Number(result.balances.AXS.balance).toFixed(4),
+                                    ron: Number(result.balances.RON.balance).toFixed(4)
                                 }
                                 return resolve(dataSet);
                             } else {
                                 // Hass Error
-                                return reject({error: true});
+                                return reject({error: true, category: "getPlayerWallet"});
                             }
                         } else {
                             // Hass Error
-                            return reject({error: true});
+                            return reject({error: true, category: "getPlayerWallet"});
                         }
-                    } catch {
-                        return reject({error: true});
+                    } catch (error) {
+                        return reject({error: true, data: error, category: "getPlayerWallet"});
                     }
                 },
                 // Note: it's important to handle errors here
@@ -615,13 +745,13 @@ class Home extends React.Component {
                 // exceptions from actual bugs in components.
                 (error) => {
                     console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, error)
-                    return reject({error: true})
+                    return reject({error: true, data: error, category: "getPlayerWallet"})
                 }
             )
             .catch(
                 (err) => {
                     console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
-                    return reject({error: true});
+                    return reject({error: true, data: err, category: "getPlayerWallet"});
                 }
             )
         }).catch(err => {
@@ -646,10 +776,10 @@ class Home extends React.Component {
                             return resolve(res.result);
                         } else {
                             // Hass Error
-                            return reject({error: true});
+                            return reject({error: true, category: "getPlayerLeaderboard"});
                         }
-                    } catch {
-                        return reject({error: true});
+                    } catch (error) {
+                        return reject({error: true, data: error, category: "getPlayerLeaderboard"});
                     }
                 },
                 // Note: it's important to handle errors here
@@ -657,13 +787,13 @@ class Home extends React.Component {
                 // exceptions from actual bugs in components.
                 (error) => {
                     console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, error)
-                    return reject({error: true})
+                    return reject({error: true, data: error, category: "getPlayerLeaderboard"})
                 }
             )
             .catch(
                 (err) => {
                     console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
-                    return reject({error: true});
+                    return reject({error: true, data: err, category: "getPlayerLeaderboard"});
                 }
             )
         }).catch(err => {
@@ -672,7 +802,7 @@ class Home extends React.Component {
         });
     }
 
-    // Render Coingecko details
+    // Render Crypto Currency details
     renderCurrencies() {
         if (this.state.currencySLP > 0) {
             return (
@@ -694,6 +824,167 @@ class Home extends React.Component {
                 </React.Fragment>
             )
         }
+    }
+
+    // Render Total Earnings of Manager, Scholar and Sponsor and other details
+    renderSubDetails() {
+        if ( this.state.isPlayerLoaded && this.state.isLoaded && !this.state.error ) {
+            return (
+                <React.Fragment>
+                    {this.state.isUser === CONSTANTS.MESSAGE.MANAGER || this.state.isUserEmail ? (
+                        <React.Fragment>
+                            {/* Top MMR and SLP */}
+                            <MDBCol size="6" md="4" lg="2" className="my-2">
+                                <MDBCard className="z-depth-2 player-details h-180px">
+                                    <MDBCardBody className="black-text cursor-pointer d-flex-center" onClick={this.modalLeaderboardToggle(this.state.playerRecords)}>
+                                        <MDBBox tag="div" className="text-center">
+                                            {/* Top Leaderboard */}
+                                            <MDBBox tag="span" className="d-block">{CONSTANTS.MESSAGE.TOP_MMR}</MDBBox>
+                                            <MDBBox tag="span" className="d-block font-size-1rem font-weight-bold"><strong>{this.state.topUserRank}</strong></MDBBox>
+                                            {/* Top In Game SLP */}
+                                            <MDBBox tag="span" className="d-block mt-3">{CONSTANTS.MESSAGE.TOP_INGAME_SLP}</MDBBox>
+                                            <MDBBox tag="span" className="d-block font-size-1rem font-weight-bold"><strong>{this.state.topUserInGameSLP}</strong></MDBBox>
+                                        </MDBBox>
+                                    </MDBCardBody>
+                                </MDBCard>
+                            </MDBCol>
+
+                            {/* Total Average SLP of all players */}
+                            <MDBCol size="6" md="4" lg="2" className="my-2">
+                                <MDBCard className="z-depth-2 player-details h-180px">
+                                    <MDBCardBody className="black-text d-flex-center">
+                                        <MDBBox tag="div" className="text-center">
+                                            <MDBBox tag="span" className="d-block">{CONSTANTS.MESSAGE.TOTAL_AVERAGE_SLP}</MDBBox>
+                                            <MDBBox tag="span" className="d-block font-size-1pt3rem font-weight-bold">
+                                                <img src="/assets/images/smooth-love-potion.png" className="w-24px mr-1 mt-0pt3rem-neg" alt="SLP" />
+                                                {this.numberWithCommas(Math.floor(this.state.totalAverageInGameSLP))}
+                                            </MDBBox>
+                                            <MDBBox tag="span" className="d-block font-size-1pt3rem font-weight-bold">&#8369; {this.numberWithCommas((Number(this.state.totalAverageInGameSLP) * Number(this.state.currencySLP)).toFixed(2))}</MDBBox>
+                                        </MDBBox>
+                                    </MDBCardBody>
+                                </MDBCard>
+                            </MDBCol>
+
+                            {/* Total InGame SLP */}
+                            <MDBCol size="6" md="4" lg="2" className="my-2">
+                                <MDBCard className="z-depth-2 player-details h-180px">
+                                    <MDBCardBody className="black-text d-flex-center">
+                                        <MDBBox tag="div" className="text-center">
+                                            <MDBBox tag="span" className="d-block">{CONSTANTS.MESSAGE.TOTAL_INGAME_SLP}</MDBBox>
+                                            <MDBBox tag="span" className="d-block font-size-1pt3rem font-weight-bold">
+                                                <img src="/assets/images/smooth-love-potion.png" className="w-24px mr-1 mt-0pt3rem-neg" alt="SLP" />
+                                                {this.numberWithCommas(this.state.totalInGameSLP)}
+                                            </MDBBox>
+                                            <MDBBox tag="span" className="d-block font-size-1pt3rem font-weight-bold">&#8369; {this.numberWithCommas((Number(this.state.totalInGameSLP) * Number(this.state.currencySLP)).toFixed(2))}</MDBBox>
+                                        </MDBBox>
+                                    </MDBCardBody>
+                                </MDBCard>
+                            </MDBCol>
+        
+                            {/* Total Scholar SLP */}
+                            <MDBCol size="6" md="4" lg="2" className="my-2">
+                                <MDBCard className="z-depth-2 player-details h-180px">
+                                    <MDBCardBody className="black-text d-flex-center">
+                                        <MDBBox tag="div" className="text-center">
+                                            <MDBBox tag="span" className="d-block">{CONSTANTS.MESSAGE.TOTAL_SCHOLAR_SLP}</MDBBox>
+                                            <MDBBox tag="span" className="d-block font-size-1pt3rem font-weight-bold">
+                                                <img src="/assets/images/smooth-love-potion.png" className="w-24px mr-1 mt-0pt3rem-neg" alt="SLP" />
+                                                {this.numberWithCommas(this.state.totalScholarSLP)}
+                                            </MDBBox>
+                                            <MDBBox tag="span" className="d-block font-size-1pt3rem font-weight-bold">&#8369; {this.numberWithCommas((Number(this.state.totalScholarSLP) * Number(this.state.currencySLP)).toFixed(2))}</MDBBox>
+                                        </MDBBox>
+                                    </MDBCardBody>
+                                </MDBCard>
+                            </MDBCol>
+        
+                            {/* Total Sponsor SLP */}
+                            <MDBCol size="6" md="4" lg="2" className="my-2">
+                                <MDBCard className="z-depth-2 player-details h-180px">
+                                    <MDBCardBody className="black-text d-flex-center">
+                                        <MDBBox tag="div" className="text-center">
+                                            <MDBBox tag="span" className="d-block">{CONSTANTS.MESSAGE.TOTAL_SPONSOR_SLP}</MDBBox>
+                                            <MDBBox tag="span" className="d-block font-size-1pt3rem font-weight-bold">
+                                                <img src="/assets/images/smooth-love-potion.png" className="w-24px mr-1 mt-0pt3rem-neg" alt="SLP" />
+                                                {this.numberWithCommas(this.state.totalSponsorSLP)}
+                                            </MDBBox>
+                                            <MDBBox tag="span" className="d-block font-size-1pt3rem font-weight-bold">&#8369; {this.numberWithCommas((Number(this.state.totalSponsorSLP) * (this.state.currencySLP)).toFixed(2))}</MDBBox>
+                                        </MDBBox>
+                                    </MDBCardBody>
+                                </MDBCard>
+                            </MDBCol>
+        
+                            {/* Total Manager SLP */}
+                            <MDBCol size="6" md="4" lg="2" className="my-2">
+                                <MDBCard className="z-depth-2 player-details h-180px">
+                                    <MDBCardBody 
+                                        className={this.state.isUser === CONSTANTS.MESSAGE.MANAGER ? "black-text cursor-pointer d-flex-center" : "black-text d-flex-center"}>
+                                        {/* onClick={this.state.isUser === CONSTANTS.MESSAGE.MANAGER ? this.modalEarningToggle(CONSTANTS.MESSAGE.MANAGER_EARNING, CONSTANTS.MESSAGE.MANAGER, this.state.managerEarningDatatable) : () => {}} > */}
+                                        <MDBBox tag="div" className="text-center">
+                                            <MDBBox tag="span" className="d-block">{CONSTANTS.MESSAGE.TOTAL_MANAGERCLAIMABLE_SLP}</MDBBox>
+                                            <MDBBox tag="span" className="d-block font-size-1pt3rem font-weight-bold">
+                                                <img src="/assets/images/smooth-love-potion.png" className="w-24px mr-1 mt-0pt3rem-neg" alt="SLP" />
+                                                {
+                                                    this.state.isUser === CONSTANTS.MESSAGE.MANAGER ? (
+                                                        this.numberWithCommas(this.state.totalManagerClaimableSLP)
+                                                    ) : (0)
+                                                }
+                                            </MDBBox>
+                                            <MDBBox tag="span" className="d-block font-size-1pt3rem font-weight-bold">&#8369; {this.state.isUser === CONSTANTS.MESSAGE.MANAGER ? (this.numberWithCommas((Number(this.state.totalManagerClaimableSLP) * Number(this.state.currencySLP)).toFixed(2))) : ("0.00")}</MDBBox>
+                                        </MDBBox>
+                                    </MDBCardBody>
+                                </MDBCard>
+                            </MDBCol>
+                        </React.Fragment>
+                    ) : ("")}
+
+                    {this.state.isUser !== CONSTANTS.MESSAGE.MANAGER && !this.state.isUserEmail && Object.keys(this.state.playerRecords).length > 0 ? (
+                        <React.Fragment>
+                            <MDBCol size="12" className="mb-3">
+                                <MDBBox tag="div" className="py-3 px-2 text-center player-details cursor-pointer" onClick={this.modalLeaderboardToggle(this.state.playerRecords)}>
+                                    {/* Top ELO / MMR Rank */}
+                                    <MDBBox tag="span" className="d-block d-md-inline d-lg-inline">{CONSTANTS.MESSAGE.TOP_MMR}: <strong>{this.state.topUserRank}</strong></MDBBox>
+                                    {/* Top In Game SLP */}
+                                    <MDBBox tag="span" className="d-block d-md-inline d-lg-inline ml-2">{CONSTANTS.MESSAGE.TOP_INGAME_SLP}: <strong>{this.state.topUserInGameSLP}</strong></MDBBox>
+                                </MDBBox>
+                            </MDBCol>
+                        </React.Fragment>
+                    ) : ("")}
+
+                    {this.state.isUser === this.state.isSponsorName && this.state.totalSponsorSLP > 0 ? (
+                        <React.Fragment>
+                            <MDBCol size="12">
+                                <MDBBox tag="div" className="py-3 px-2 text-center player-details">
+                                    <MDBBox tag="span" className="blue-whale d-block cursor-pointer">
+                                        {CONSTANTS.MESSAGE.SPONSOR_EARNING}: {CONSTANTS.MESSAGE.SLP} {this.state.totalSponsorSLP} (&#8369; {this.numberWithCommas((Number(this.state.totalSponsorSLP) * (this.state.currencySLP)).toFixed(2))})
+                                    </MDBBox>
+                                </MDBBox>
+                            </MDBCol>
+                        </React.Fragment>
+                    ) : ("")}
+                </React.Fragment>
+            )
+        }
+    }
+
+    // Render Modal for viewing of Leaderboard
+    renderModalLeaderboard() {
+        return (
+            <React.Fragment>
+                <MDBModal isOpen={this.state.isModalLeaderboardOpen} size="lg">
+                    <MDBModalHeader toggle={this.modalLeaderboardToggle("")}>{CONSTANTS.MESSAGE.LEADERBOARD}</MDBModalHeader>
+                    <MDBModalBody>
+                        <MDBDataTable
+                            striped bordered hover responsive noBottomColumns
+                            sortable={false}
+                            entries={5}
+                            displayEntries={false}
+                            data={this.state.leaderboardDatatable}
+                            className="default-datatable-container text-center"
+                        />
+                    </MDBModalBody>
+                </MDBModal>
+            </React.Fragment>
+        )
     }
 
     // Render Empty Detail
@@ -732,6 +1023,7 @@ class Home extends React.Component {
                 <MDBContainer className="pt-5 mt-5 position-relative">
                     <MDBRow>
                         {this.renderCurrencies()}
+                        {this.renderSubDetails()}
                     </MDBRow>
                 </MDBContainer>
 
@@ -777,6 +1069,9 @@ class Home extends React.Component {
                         )
                     )
                 }
+
+                {/* Render Modal */}
+                {this.renderModalLeaderboard()}
             </MDBBox>
         )
     }

@@ -31,6 +31,7 @@ const MESSAGE = {
     SLP: "SLP",
     AXS: "AXS",
     SLP_DESC: "Smooth Love Potion",
+    TOP_RANK: "Top RANK",
     TOP_MMR: "Top MMR",
     TOP_INGAME_SLP: "Top InGame SLP",
     TOP_MMR_SLP: "Top MMR and SLP",

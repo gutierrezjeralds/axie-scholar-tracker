@@ -7,15 +7,15 @@ const Web3 = require("web3");
 */
 
 // Auth Login
-async function authLogin(data, logger, CONSTANTS) {
+async function authLogin(credentials, logger, CONSTANTS) {
     return new Promise(async(resolve, reject) => {
         try {
             // Get Token from Auth Login
             logger(CONSTANTS.MESSAGE.STARTED_AUTHLOGIN);
             request.post(
                 {
-                    url:'https://athena.skymavis.com/v1/rpc/auth/login',
-                    json: data
+                    url:'https://athena.skymavis.com/v1/rpc/auth/login', 
+                    json: credentials
                 },
                 function (err, httpResponse, body) {
                     if (err) {
@@ -46,7 +46,7 @@ async function authLogin(data, logger, CONSTANTS) {
         }
     }).catch((err) => {
         logger(CONSTANTS.MESSAGE.ERROR_OCCURED, err);
-		return error;
+		return err;
 	});
 }
 
@@ -218,8 +218,55 @@ async function CreateAccessToken(message, signnature, address, name, logger, CON
     }
 }
 
+// Origin InGame SLP
+async function inGameSLP(access, logger, CONSTANTS) {
+    return new Promise(async(resolve, reject) => {
+        try {
+            // Get Token from Auth Login
+            logger(CONSTANTS.MESSAGE.STARTED_INGAMESLP);
+            request.get(
+                {
+                    url:'https://game-api-origin.skymavis.com/v2/users/me/items/marketplace/slp', 
+                    headers: {
+                        'Authorization': 'Bearer ' + access.token
+                    }
+                },
+                function (err, httpResponse, body) {
+                    if (err) {
+                        logger(CONSTANTS.MESSAGE.ERROR_INGAMESLP);
+                        reject({ error: true, data: err });
+                    } else {
+                        if (httpResponse.statusCode === 200) {
+                            // Success return of Random Message
+                            logger(CONSTANTS.MESSAGE.END_INGAMESLP);
+                            resolve({ error: false, data: body });
+                        } else {
+                            // Has error in response
+                            logger(CONSTANTS.MESSAGE.ERROR_INGAMESLP);
+                            let errMsg = CONSTANTS.MESSAGE.ERROR_INGAMESLP;
+                            try {
+                                errMsg = httpResponse.body ? JSON.parse(httpResponse.body)._errorMessage : CONSTANTS.MESSAGE.ERROR_INGAMESLP;
+                            } catch {
+                                errMsg = CONSTANTS.MESSAGE.ERROR_INGAMESLP;
+                            }
+                            reject({ error: true, data: errMsg });
+                        }
+                    }
+                }
+            );
+        } catch (error) {
+            logger(CONSTANTS.MESSAGE.INTERNAL_SERVER_ERROR, error);
+            reject({ error: true, data: error });
+        }
+    }).catch((err) => {
+        logger(CONSTANTS.MESSAGE.ERROR_OCCURED, err);
+		return err;
+	});
+}
+
 // Export the function
 module.exports = {
     authLogin,
-    generateAccessToken
+    generateAccessToken,
+    inGameSLP
 };

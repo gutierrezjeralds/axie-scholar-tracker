@@ -26,6 +26,14 @@ class Home extends React.Component {
             defaultDailyQuota: 30, // Default daily quota
             managerPHPInvestment: 410000, // Estimated Investment
             isUser: this.props.user || "",
+            isUserEmail: false,
+            totalManagerSLP: 0,
+            totalSponsorSLP: 0,
+            totalScholarSLP: 0,
+            totalInGameSLP: 0,
+            isPlayerLoaded: false,
+            playerDataTable: {},
+            playerRecords: []
         }
     }
 
@@ -33,6 +41,23 @@ class Home extends React.Component {
         this.pageRefresh(120000); // Refresh in 2 minutes
         this.getCoingecko();
         this.recordProcess();
+        // Check if the user is valid email x for checking for display all the player data
+        if (this.state.isUser) {
+            const emailSplit = this.state.isUser.split('@');
+            if (emailSplit.length >= 2) { // Is valid Email
+                this.setState({
+                    isUserEmail: true
+                })
+            }
+        }
+    }
+
+    // Adding comma in number x replacement in toLocaleString()
+    numberWithCommas = (value) => {
+        if (value) {
+            return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+        return value;
     }
     
     // Page reload
@@ -159,7 +184,7 @@ class Home extends React.Component {
                 const dataRecords = response.data;
                 const dataWithdraw = response.withdraw;
                 const dataManagerEarned = response.managerEarned;
-                const dataYesterdaySLP = response.yesterdaySLP;
+                // const dataYesterdaySLP = response.yesterdaySLP;
                 console.log("getRecord", response)
                 if (dataRecords.length > 0) {
                     // Fetch player details in api of sky mavis
@@ -177,9 +202,6 @@ class Home extends React.Component {
                             let userEthAddress = null;
                             const ethAddress = item.ADDRESS ? `0x${item.ADDRESS.substring(6)}` : "";
                             const iSponsorName = item.SPONSOR_NAME ? item.SPONSOR_NAME.toLowerCase() : ""
-    
-                            const staticData = playerStaticData.filter(items => items.roninAddress === item.ADDRESS); // Filter valid data
-                            const playersStaticData = staticData.length > 0 ? staticData[0] : undefined;
     
                             // Set ETH Address and Sponsor Name
                             if (item.EMAIL.toLowerCase() === this.state.isUser.toLowerCase() ||
@@ -219,7 +241,7 @@ class Home extends React.Component {
     
                             if (accessToken) { // Has Access Token
                                 // Return valid details
-                                return await this.getPlayerDetails(item, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned, dataYesterdaySLP, playersStaticData);
+                                return await this.getPlayerDetails(item, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned);
                                 // return item;
                             } else {
                                 // End the process x No Access Token
@@ -229,8 +251,80 @@ class Home extends React.Component {
                     });
 
                     await Promise.all(dataResultPromise).then(async (results) => {
-                        const dataResult = results.filter(item => item && item.error === undefined); // Filter valid data
-                        console.log("dataResultPromise results", results.filter(item => item.NAME === "Vince"));
+                        let initDisplay = []; // Data for initial display
+
+                        const dataResult = results.filter(item => item && !item.error && item.data !== undefined); // Filter valid data
+                        if (dataResult && dataResult.length > 0) {
+                            // Sort as Top MMR Ranking
+                            dataResult.sort(function (a, b) {
+                                if (a.LEADERBOARD.topRank === b.LEADERBOARD.topRank) { // equal items sort equally
+                                    return 0;
+                                } else if (a.LEADERBOARD.topRank === 0) { // 0 sort after anything else
+                                    return 1;
+                                } else if (b.LEADERBOARD.topRank === 0) { // 0 sort after anything else
+                                    return -1;
+                                } else {  // otherwise, if we're ascending, lowest sorts first
+                                    return a.LEADERBOARD.topRank < b.LEADERBOARD.topRank ? -1 : 1;
+                                }
+                              }).map((dataItem, index) => {
+                                const indexCount = index + 1; // Global index count
+                                dataItem.data.order = indexCount; // Adding ordered number
+
+                                // Update Name with combination of index counter x for display in data table x display for next page
+                                if (indexCount > 5) {
+                                    dataItem.data.nameSub = indexCount + ". " + dataItem.data.name;
+                                }
+    
+                                // Display data
+                                if (this.state.isUser === CONSTANTS.MESSAGE.MANAGER || this.state.isUserEmail) {
+                                    if (!dataItem.isDelete) { // Display not deleted player
+                                        initDisplay.push(dataItem.data); // Data for initial display x display all
+                                    }
+                                } else {
+                                    if (dataItem.eth !== null) {
+                                        initDisplay.push(dataItem.data); // Data for initial display x specific data to be display
+                                    }
+                                }
+    
+                                // Return
+                                return true;
+                            });
+
+                            // Adding body document if the playerDataTableis single data x initDisplay
+                            if (initDisplay.length <= 1) {
+                                document.body.classList.add('single-player-datatable-handler');
+                            }
+
+                            // Default Columns for Player Datatable
+                            let playerDataTableColums = [
+                                {label: CONSTANTS.MESSAGE.NAME, field: "nameSub"},
+                                {label: CONSTANTS.MESSAGE.INGAME_SLP, field: "inGameSLP"},
+                                {label: CONSTANTS.MESSAGE.MINT_SLP, field: "mintSLP"},
+                                {label: CONSTANTS.MESSAGE.SHARED_SLP, field: "shareSLP"},
+                                {label: CONSTANTS.MESSAGE.RONIN_SLP, field: "roninSLP"},
+                                {label: CONSTANTS.MESSAGE.TOTAL_SLP_PHP, field: "totalEarningPHPSLP"},
+                                {label: CONSTANTS.MESSAGE.LEADERBOARD, field: "leaderboard"}
+                            ];
+
+                            // Return data x Set state
+                            this.setState({
+                                isLoaded: true,
+                                isPlayerLoaded: true,
+                                playerDataTable: {
+                                    columns: playerDataTableColums,
+                                    rows: initDisplay
+                                }
+                            })
+    
+                            console.log("playerRecords", this.state.playerRecords)
+                        } else {
+                            // No data found
+                            this.setState({
+                                isLoaded: true,
+                                notifStr: CONSTANTS.MESSAGE.NODATA_FOUND,
+                                error: true
+                            })
+                        }
                     })
                 } else {
                     // No data found
@@ -265,22 +359,28 @@ class Home extends React.Component {
     }
 
     // Get Player details base on Sky Mavis API
-    getPlayerDetails = async (details, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned, dataYesterdaySLP, playersStaticData) => {
+    getPlayerDetails = async (details, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned) => {
         return new Promise((resolve, reject) => {
             $.ajax({
-                url: "https://game-api-origin.skymavis.com/v2/users/me/items/marketplace/slp",
-                method: "GET",
-                dataType: "json",
-                cache: false,
-                headers: {
-                    'Authorization': 'Bearer ' + details.accessToken
-                }
+                url: "/api/getInGameSLP",
+                type: "POST",
+                data: JSON.stringify({
+                    token: details.accessToken
+                }),
+                contentType: 'application/json',
+                cache: false
             })
             .then(
                 async (result) => {
-                    if (Object.keys(result).length > 0) { // Has player details
-                        const detailProcess = await this.processPlayerDetails(result, details, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned, dataYesterdaySLP, playersStaticData);
-                        return resolve(detailProcess);
+                    if (!result.error && Object.keys(result.data).length > 0) { // Has player details
+                        try {
+                            // Process the player details for display
+                            const dataRes = result.data ? JSON.parse(result.data) : false;
+                            const detailProcess = await this.processPlayerDetails(dataRes, details, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned);
+                            return resolve(detailProcess);
+                        } catch {
+                            return reject({error: true});
+                        }
                     } else {
                         return reject({error: true});
                     }
@@ -294,7 +394,10 @@ class Home extends React.Component {
                     if (detailLocalStored) {
                         const result = JSON.parse(detailLocalStored); // Parse the Cookie
                         if (Object.keys(result).length > 0) { // Has player details
-                            const detailProcess = await this.processPlayerDetails(result, details, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned, dataYesterdaySLP, playersStaticData, true);
+                            details.accessToken = false; // Update the Access Token property value to empty for resetting in generate token
+                            const detailsReturn = Object.assign({}, details);
+                            // Process data from Local Storage
+                            const detailProcess = await this.processPlayerDetails(result, detailsReturn, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned, true);
                             return resolve(detailProcess);
                         } else {
                             return reject({error: true});
@@ -311,7 +414,10 @@ class Home extends React.Component {
                     if (detailLocalStored) {
                         const result = JSON.parse(detailLocalStored); // Parse the Cookie
                         if (Object.keys(result).length > 0) { // Has player details
-                            const detailProcess = await this.processPlayerDetails(result, details, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned, dataYesterdaySLP, playersStaticData, true);
+                            details.accessToken = false; // Update the Access Token property value to empty for resetting in generate token
+                            const detailsReturn = Object.assign({}, details);
+                            // Process data from Local Storage
+                            const detailProcess = await this.processPlayerDetails(result, detailsReturn, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned, true);
                             return resolve(detailProcess);
                         } else {
                             return reject({error: true});
@@ -329,19 +435,231 @@ class Home extends React.Component {
     }
 
     // Process for Player Details result
-    processPlayerDetails = async (inGameResult, details, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned, dataYesterdaySLP, playersStaticData, isBasedCookie = false) => {
+    processPlayerDetails = async (INGAME, details, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned, isBasedCookie = false) => {
         return new Promise(async (resolve, reject) => {
-            if (Object.keys(inGameResult).length > 0) { // Has player details
-                details.inGame = inGameResult; // Insert InGame Result in Details
+            if (Object.keys(INGAME).length > 0) { // Has player details
+                // Fetch Player Wallet
+                let WALLET = await this.getPlayerWallet(details);
+                if (WALLET.error) {
+                    // Set default object value x Get Previous Data from Local Storage
+                    WALLET = details.WALLET && Object.keys(details.WALLET).length > 0 ? details.WALLET : {
+                        slp: 0,
+                        axs: 0,
+                        ron: 0
+                    }
+                }
+
+                // Fetch Player Leaderboard
+                let LEADERBOARD = await this.getPlayerLeaderboard(details);
+                if (LEADERBOARD.error) {
+                    // Set default object value x Get Previous Data from Local Storage
+                    LEADERBOARD = details.LEADERBOARD && Object.keys(details.LEADERBOARD).length > 0 ? details.LEADERBOARD : {
+                        rank: "",
+                        tier: 0,
+                        topRank: 0,
+                        vstar: 0
+                    }
+                }
+
+                // Fetch Player Items (Active Runes)
+
+                // Construct data for getting the correct computation of SLP and Balance
+                if ((details.SHR_MANAGER).toString() === "100" || details.SHR_MANAGER === 100) {
+                    // Set Manager Shared SLP
+                    const managerShare = (details.SHR_MANAGER).toString() === "100" ? 1 : "0." + details.SHR_MANAGER;
+                    details.SHAREDSLP = Math.ceil(INGAME.withdrawable * managerShare);
+
+                    // Set Total Manager Shared SLP
+                    this.setState({
+                        totalManagerSLP: this.state.totalManagerSLP + details.SHAREDSLP
+                    })
+                } else {
+                    // Set Shared Scholar/Sponsor SLP
+                    if ((details.SHR_SPONSOR).toString() !== "0" || details.SHR_SPONSOR > 0) {
+                        // Sponsor SLP
+                        const sponsorShare = "0." + details.SHR_SPONSOR;
+                        details.SHAREDSLP = Math.floor(INGAME.withdrawable * sponsorShare);
+
+                        // Set Total Sponsor Shared SLP
+                        this.setState({
+                            totalSponsorSLP: this.state.totalSponsorSLP + details.SHAREDSLP
+                        })
+                    } else {
+                        // Scholar SLP
+                        const iskoShare = (details.SHR_SCHOLAR).toString() === "100" ? 1 : "0." + details.SHR_SCHOLAR;
+                        details.SHAREDSLP = Math.floor(INGAME.withdrawable * iskoShare);
+
+                        // Set Total Scholar Shared SLP
+                        this.setState({
+                            totalScholarSLP: this.state.totalScholarSLP + details.SHAREDSLP
+                        })
+                    }
+
+                    // Set Total Manager Shared SLP
+                    const managerShare = "0." + details.SHR_MANAGER;
+                    this.setState({
+                        totalManagerSLP: this.state.totalManagerSLP + Math.ceil(INGAME.withdrawable * managerShare)
+                    })
+                }
+
+                // Set Total Earnings
+                details.TOTALEARNING_SLP = parseInt(details.SHAREDSLP) + parseInt(WALLET.slp);
+                details.TOTALEARNING_PHP = details.TOTALEARNING_SLP * this.state.slpCurrentValue // Ccomputed base on TOTALEARNING_SLP multiply slpCurrentValue
+
+                // Construct date for dispay details
+                const playerDataTableRes = {
+                    name: details.NAME,
+                    nameSub: details.NAME,
+                    inGameSLP: <MDBBox data-th={CONSTANTS.MESSAGE.INGAME_SLP} tag="span">{this.numberWithCommas(INGAME.quantity)}</MDBBox>,
+                    mintSLP: <MDBBox data-th={CONSTANTS.MESSAGE.MINT_SLP} tag="span">{this.numberWithCommas(INGAME.withdrawable)}</MDBBox>,
+                    shareSLP: <MDBBox data-th={CONSTANTS.MESSAGE.SHARED_SLP} tag="span" className="d-inline d-md-block d-lg-block">
+                                    <React.Fragment>
+                                        {this.numberWithCommas(details.SHAREDSLP)}
+                                        <MDBBox tag="span" className="d-inline d-md-block d-lg-block">
+                                            ({(details.SHR_MANAGER).toString() === "100" ? details.SHR_MANAGER : details.SHR_SCHOLAR}%)
+                                        </MDBBox>
+                                    </React.Fragment>
+                                </MDBBox>,
+                    roninSLP: <MDBBox data-th={CONSTANTS.MESSAGE.RONIN_SLP} tag="span">{this.numberWithCommas(WALLET.slp)}</MDBBox>,
+                    totalEarningSLP: <MDBBox data-th={CONSTANTS.MESSAGE.TOTAL_SLP} tag="span">
+                                                {
+                                                    this.numberWithCommas(details.TOTALEARNING_SLP)
+                                                }
+                                            </MDBBox>,
+                    totalEarningPHP: <MDBBox data-th={CONSTANTS.MESSAGE.EARNINGS_PHP} tag="span">
+                                                {
+                                                    this.numberWithCommas((details.TOTALEARNING_PHP).toFixed(2))
+                                                }
+                                            </MDBBox>,
+                    totalEarningPHPSLP: <MDBBox data-th={CONSTANTS.MESSAGE.TOTAL_SLP_PHP} tag="span">
+                                            <React.Fragment>
+                                                {this.numberWithCommas(details.TOTALEARNING_SLP)}
+                                                <MDBBox tag="span" className="d-block">
+                                                    (&#8369; {this.numberWithCommas((details.TOTALEARNING_PHP).toFixed(2))})
+                                                </MDBBox>
+                                            </React.Fragment>
+                                        </MDBBox>,
+                    rank: <MDBBox data-th={CONSTANTS.MESSAGE.RANK} tag="span">{LEADERBOARD.rank + " " + LEADERBOARD.tier}</MDBBox>,
+                    topRank: <MDBBox data-th={CONSTANTS.MESSAGE.RANK} tag="span">{LEADERBOARD.topRank}</MDBBox>,
+                    leaderboard: <MDBBox data-th={CONSTANTS.MESSAGE.LEADERBOARD} tag="span">{LEADERBOARD.rank + " " + LEADERBOARD.tier} <MDBBox tag="span" className="d-inline d-md-block d-lg-block">{LEADERBOARD.topRank > 0 ? ("(" + this.numberWithCommas(LEADERBOARD.topRank) + ")") : ("")}</MDBBox></MDBBox>,
+                    clickEvent: ""
+                };
+
+                // Reassigned Object
+                details.INGAME = INGAME; // Insert InGame Result in Details
+                details.WALLET = WALLET; // Insert Wallet Result in Details
+                details.LEADERBOARD = LEADERBOARD; // Insert Leaderboard Result in Details
+                const detailsReturn = Object.assign({}, details);
+
+                // Set State Object of Player Details
+                this.state.playerRecords.push(detailsReturn);
 
                 // Set Player Details in LocalStorage
-                localStorage.setItem(ethAddress, JSON.stringify(details));
+                localStorage.setItem(ethAddress, JSON.stringify(detailsReturn));
                 
                 // Success return
-                return resolve(details);
+                return resolve({
+                    error: false,
+                    data: playerDataTableRes,
+                    isDelete: details.DELETEIND ? details.DELETEIND : ""
+                });
             } else {
                 return reject({error: true});
             }
+        }).catch(err => {
+            console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
+            return err;
+        });
+    }
+
+    // Get Player Wallet
+    getPlayerWallet = async (details) => {
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                url: "https://ronin.rest/ronin/wallet/" + details.ADDRESS,
+                dataType: "json",
+                cache: false
+            })
+            .then(
+                (result) => {
+                    try {
+                        if (result.error === undefined && Object.keys(result).length > 0) {
+                            if (result.balances && Object.keys(result.balances).length > 0) {
+                                // Sucess Return x Setup property key and value
+                                const dataSet = {
+                                    slp: result.balances.SLP.balance,
+                                    axs: parseInt(result.balances.AXS.balance).toFixed(4),
+                                    ron: parseInt(result.balances.RON.balance).toFixed(4)
+                                }
+                                return resolve(dataSet);
+                            } else {
+                                // Hass Error
+                                return reject({error: true});
+                            }
+                        } else {
+                            // Hass Error
+                            return reject({error: true});
+                        }
+                    } catch {
+                        return reject({error: true});
+                    }
+                },
+                // Note: it's important to handle errors here
+                // instead of a catch() block so that we don't swallow
+                // exceptions from actual bugs in components.
+                (error) => {
+                    console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, error)
+                    return reject({error: true})
+                }
+            )
+            .catch(
+                (err) => {
+                    console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
+                    return reject({error: true});
+                }
+            )
+        }).catch(err => {
+            console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
+            return err;
+        });
+    }
+
+    // Get Player Leaderboard
+    getPlayerLeaderboard = async (details) => {
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                url: "https://ronin.rest/origin/leaderboard/search?player=" + details.ADDRESS,
+                dataType: "json",
+                cache: false
+            })
+            .then(
+                (res) => {
+                    try {
+                        if (res.result !== null && res.result !== undefined && Object.keys(res.result).length > 0) {
+                            // Sucess Return
+                            return resolve(res.result);
+                        } else {
+                            // Hass Error
+                            return reject({error: true});
+                        }
+                    } catch {
+                        return reject({error: true});
+                    }
+                },
+                // Note: it's important to handle errors here
+                // instead of a catch() block so that we don't swallow
+                // exceptions from actual bugs in components.
+                (error) => {
+                    console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, error)
+                    return reject({error: true})
+                }
+            )
+            .catch(
+                (err) => {
+                    console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
+                    return reject({error: true});
+                }
+            )
         }).catch(err => {
             console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
             return err;
@@ -419,7 +737,38 @@ class Home extends React.Component {
                             {this.pageRefresh(5000)} {/* Refresh in 5 seconds if there's an error */}
                         </MDBContainer>
                     ) : (
-                        ""
+                        Object.keys(this.state.playerRecords).length <= 0 ? (
+                            // Empty Player details
+                            <MDBContainer fluid className="pt-3 pb-5 mb-5 position-relative display-margin">
+                                {this.renderEmptyDetails()}
+                            </MDBContainer>
+                        ) : (
+                            // Diplay Player details
+                            <MDBContainer className="pt-3 pb-5 mb-5 position-relative display-margin">
+                                <MDBRow>
+                                    {
+                                        Object.keys(this.state.playerRecords).length > 0 ? (
+                                            <React.Fragment>
+                                                {/* Display all data */}
+                                                <MDBCol size="12">
+                                                    <MDBDataTable
+                                                        striped bordered hover responsive noBottomColumns
+                                                        sortable={false}
+                                                        data={this.state.playerDataTable}
+                                                        entries={5}
+                                                        entriesOptions={[ 5, 10, 15 ]}
+                                                        className="player-datatable-container text-white"
+                                                    />
+                                                </MDBCol>
+                                            </React.Fragment>
+                                        ) : (
+                                            // Display no data
+                                            this.renderEmptyDetails()
+                                        )
+                                    }
+                                </MDBRow>
+                            </MDBContainer>
+                        )
                     )
                 }
             </MDBBox>

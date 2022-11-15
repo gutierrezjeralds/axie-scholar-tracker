@@ -8,7 +8,16 @@ import {
     MDBDataTable, MDBIcon, MDBAnimation, MDBInput,
     MDBTabPane, MDBTabContent, MDBNav, MDBNavItem
 } from "mdbreact";
+import Moment from 'react-moment';
+import moments from 'moment';
+import moment from 'moment-timezone';
 import { CONSTANTS } from '../../Constants';
+
+// const moment = require('moment-timezone');
+const momentToday = moment().tz('Asia/Manila');
+const unixMomentToday = new Date(momentToday).getTime();
+console.log("Default", moments().format("YYYY-MM-DD HH:mm:ss"));
+console.log("Timezone", momentToday.format("YYYY-MM-DD HH:mm:ss"));
 
 // Global InGame SLP Default
 const _INGAMESLP = {
@@ -22,12 +31,12 @@ class Home extends React.Component {
         super(props)
         this.state = {
             error: false,
+            errorMsg: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
             isLoaded: false,
             currencySLP: 0,
             currencyAXS: 0,
             currencyNAME: "",
             currencyURI: "",
-            apiCoinRunningCounter: 0, // 0 can be rerun another api x 1 discard the running set the default
             maxGainSLP: 200, // Max Gained SLP for validation of inserting in table
             daysClaimable: 7, // Default day set for allow slp claim
             defaultDailyQuota: 30, // Default daily quota
@@ -49,7 +58,20 @@ class Home extends React.Component {
             topUserRank: "",
             topUserInGameSLP: "",
             isModalLeaderboardOpen: false,
-            modalLeaderboardDetails: [],
+            isModalManagerEarningOpen: false,
+            managerEarnings: false, // Object if has data
+            isModalPlayerDetailsOpen: false,
+            modalPlayerDetails: [],
+            isViewAxieTeam: CONSTANTS.MESSAGE.VIEW_AXIE_TEAM,
+            isModalIskoInputsOpen: false,
+            isValidAddTeam: 0,
+            isValidWithdraw: 0,
+            isValidManagerEarn: 0,
+            tabIskoInputsActive: "1",
+            slctClaimId: "",
+            slctAddEditId: "",
+            hasSponsor: false,
+            isDeleted: false
         }
     }
 
@@ -67,22 +89,6 @@ class Home extends React.Component {
             }
         }
     }
-
-    // Adding comma in number x replacement in toLocaleString()
-    numberWithCommas = (value) => {
-        if (value) {
-            return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-        }
-        return value;
-    }
-
-    // Modal Toggle for view details of Leaderboard
-    modalLeaderboardToggle = (playerDetails) => () => {
-        this.setState({
-            isModalLeaderboardOpen: !this.state.isModalLeaderboardOpen,
-            modalLeaderboardDetails: playerDetails
-        });
-    }
     
     // Page reload
     pageRefresh = (time) => {
@@ -97,6 +103,482 @@ class Home extends React.Component {
         setTimeout(() => {
             // this.getCoingecko();
         }, 5000); // Refresh in 5 seconds
+    }
+
+    // Adding comma in number x replacement in toLocaleString()
+    numberWithCommas = (value) => {
+        if (value) {
+            return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+        return value;
+    }
+
+    // Modal Toggle for view details of Leaderboard
+    modalLeaderboardToggle = () => () => {
+        this.setState({
+            isModalLeaderboardOpen: !this.state.isModalLeaderboardOpen
+        });
+    }
+
+    // Modal Toggle for view of Manager Earning
+    modalManagerEarningToggle = () => () => {
+        // Open Modal Eraning from filters of "Manager"
+        this.setState({
+            isModalManagerEarningOpen: !this.state.isModalManagerEarningOpen
+        });
+    }
+
+    // Modal Toggle for view of Players details
+    modalPlayerDetailsToggle = (id, playerDetails) => async () => {
+        let details = [];
+        if (id && playerDetails.length > 0) {
+            const findDetail = playerDetails.find(items => items.ID === id);
+            if (Object.keys(findDetail).length > 0) {
+                details = [findDetail];
+            }
+        }
+
+        this.setState({
+            isModalPlayerDetailsOpen: !this.state.isModalPlayerDetailsOpen,
+            modalPlayerDetails: details,
+            isViewAxieTeam: CONSTANTS.MESSAGE.VIEW_AXIE_TEAM
+        });
+    }
+
+    // Hide and Show Player Earnings and SLP Chart
+    onScholarEaningNActiveTeamHandle(event) {
+        if (event.target.innerText === CONSTANTS.MESSAGE.VIEW_EARNINGS) {
+            this.setState({
+                isViewAxieTeam: CONSTANTS.MESSAGE.VIEW_EARNINGS,
+            })
+        } else {
+            this.setState({
+                isViewAxieTeam: CONSTANTS.MESSAGE.VIEW_AXIE_TEAM,
+            })
+        }
+    }
+
+    // Modal Toggle for adding new team
+    modalIskoInputs = () => () => {
+        this.setState({
+            isModalIskoInputsOpen: !this.state.isModalIskoInputsOpen
+        });
+    }
+
+    // Hide and Show Manager Total Earning
+    onManagerEarningHandle(event) {
+        if (event.target.innerText === CONSTANTS.MESSAGE.VIEW_ALL_EARNINGS) {
+            this.setState({
+                isViewMangerEarning: CONSTANTS.MESSAGE.VIEW_ALL_EARNINGS,
+            })
+        } else {
+            this.setState({
+                isViewMangerEarning: CONSTANTS.MESSAGE.VIEW_CURRENT_EARNINGS,
+            })
+        }
+    }
+
+    // Hide and Show Player Earnings and Active Axie Team
+    onScholarEaningNActiveTeamHandle(event) {
+        if (event.target.innerText === CONSTANTS.MESSAGE.VIEW_EARNINGS) {
+            this.setState({
+                isViewSLPChart: CONSTANTS.MESSAGE.VIEW_EARNINGS,
+            })
+        } else {
+            this.setState({
+                isViewSLPChart: CONSTANTS.MESSAGE.VIEW_GAINEDSLP_CHART,
+            })
+        }
+    }
+
+    // Tabs Toggle for Scholar inputs
+    tabsIskoInputs = tab => e => {
+        if (this.state.tabIskoInputsActive !== tab) {
+            this.setState({
+                tabIskoInputsActive: tab
+            });
+        }
+    };
+
+    // Onchange checkbox if has sponsor in add/edit modal
+    handleHasSponsorCheckChange(event) {
+        this.setState({
+            hasSponsor: event.target.checked
+        })
+    }
+
+    // Onchange checkbos if user profile is delete in add/edit modal
+    handleIsDeleteCheckChange(event) {
+        this.setState({
+            isDeleted: event.target.checked
+        })
+    }
+
+    // Handle for onchange select of Add/Edit Scholar
+    handleAddEditIskoChange(event) {
+        this.setState({
+            slctAddEditId: event.target.value,
+            hasSponsor: false,
+            isDeleted: false
+        })
+
+        if (event.target.value) {
+            // Update Select Option text
+            // $(".addEdit-inputHolder").find("select").text(`${CONSTANTS.MESSAGE.EDIT}: ${event.target.value}`);
+            const dataSet = this.state.playerRecords.filter(item => (item.ID).toString() === (event.target.value).toString() || item.NAME === event.target.value); // Filter valid data
+            if (dataSet.length > 0) {
+                // Check if item has sponsor
+                if (Number(dataSet[0].SHR_SPONSOR) > 0) {
+                    this.setState({
+                        hasSponsor: true
+                    })
+                }
+                // Check if item is delete
+                if (dataSet[0].isDeleted) {
+                    this.setState({
+                        isDeleted: true
+                    })
+                }
+                // Update input fields
+                $(".addEdit-inputHolder input[name=ADDRESS]").val(dataSet[0].ADDRESS).attr("value", dataSet[0].ADDRESS).trigger("change").attr("disabled", "disabled");
+                $(".addEdit-inputHolder input[name=NAME]").val(dataSet[0].NAME).attr("value", dataSet[0].NAME).trigger("change");
+                $(".addEdit-inputHolder input[name=EMAIL]").val(dataSet[0].EMAIL).attr("value", dataSet[0].EMAIL).trigger("change")
+                $(".addEdit-inputHolder input[name=PASS]").val(dataSet[0].PASS).attr("value", dataSet[0].PASS).trigger("change");;
+                $(".addEdit-inputHolder input[name=SHR_MANAGER]").val(dataSet[0].SHR_MANAGER).attr("value", dataSet[0].SHR_MANAGER).trigger("change");
+                $(".addEdit-inputHolder input[name=SHR_SCHOLAR]").val(dataSet[0].SHR_SCHOLAR).attr("value", dataSet[0].SHR_SCHOLAR).trigger("change");
+
+                // Timeout the function for update the value from hidden previous
+                setTimeout( () => {
+                    $(".addEdit-inputHolder input[name=SHR_SPONSOR]").val(dataSet[0].SHR_SPONSOR).attr("value", dataSet[0].SHR_SPONSOR).trigger("change");
+                    $(".addEdit-inputHolder input[name=SPONSOR_NAME]").val(dataSet[0].SPONSOR_NAME).attr("value", dataSet[0].SPONSOR_NAME).trigger("change");
+                }, 500);
+            } else {
+                this.setState({
+                    hasSponsor: false
+                })
+                // Clear data in input fields
+                $(".addEdit-inputHolder input[name=ADDRESS]").val("").trigger("change").removeAttr("disabled");
+                $(".addEdit-inputHolder input[name=NAME]").val("").trigger("change");
+                $(".addEdit-inputHolder input[name=EMAIL]").val("").trigger("change");
+                $(".addEdit-inputHolder input[name=PASS]").val("").trigger("change");
+                $(".addEdit-inputHolder input[name=SHR_MANAGER]").val("").trigger("change");
+                $(".addEdit-inputHolder input[name=SHR_SCHOLAR]").val("").trigger("change");
+                $(".addEdit-inputHolder input[name=SHR_SPONSOR]").val("").trigger("change");
+                $(".addEdit-inputHolder input[name=SPONSOR_NAME]").val("").trigger("change");
+            }
+        } else {
+            this.setState({
+                hasSponsor: false
+            })
+            // Clear data in input fields
+            $(".addEdit-inputHolder input[name=ADDRESS]").val("").trigger("change").removeAttr("disabled");
+            $(".addEdit-inputHolder input[name=NAME]").val("").trigger("change");
+            $(".addEdit-inputHolder input[name=EMAIL]").val("").trigger("change");
+            $(".addEdit-inputHolder input[name=PASS]").val("").trigger("change");
+            $(".addEdit-inputHolder input[name=SHR_MANAGER]").val("").trigger("change");
+            $(".addEdit-inputHolder input[name=SHR_SCHOLAR]").val("").trigger("change");
+            $(".addEdit-inputHolder input[name=SHR_SPONSOR]").val("").trigger("change");
+            $(".addEdit-inputHolder input[name=SPONSOR_NAME]").val("").trigger("change");
+        }
+    }
+
+    // Handle for saving record
+    onAddEditRecordHandle(event) {
+        event.preventDefault();
+        // Remove error message
+        this.setState({
+            isValidAddTeam: 0,
+            isLoaded: false,
+            isModalIskoInputsOpen: false // Close modal while processing
+        })
+
+        const shrManager = event.target.SHR_MANAGER.value ? event.target.SHR_MANAGER.value : "0";
+        const shrScholar = event.target.SHR_SCHOLAR.value ? event.target.SHR_SCHOLAR.value : "0";
+        const shrSponsor = event.target.SHR_SPONSOR ? event.target.SHR_SPONSOR.value ? event.target.SHR_SPONSOR.value : "0" : "0";
+        const shareTotal = Number(shrManager) + Number(shrScholar) + Number(shrSponsor);
+        const dateToday = momentToday.format("YYYY-MM-DD HH:mm:ss");
+        if (shareTotal === 100) {
+            const sponsorName = Number(shrManager) + Number(shrScholar) === 100 ? "" : event.target.SPONSOR_NAME ? event.target.SPONSOR_NAME.value ? event.target.SPONSOR_NAME.value : "" : "";
+            // Continue with the process
+            const datas = {
+                ADDRESS: event.target.ADDRESS.value,
+                NAME: event.target.NAME.value,
+                EMAIL: event.target.EMAIL.value,
+                PASS: event.target.PASS.value,
+                SHR_MANAGER: shrManager,
+                SHR_SCHOLAR: shrScholar,
+                SHR_SPONSOR: shrSponsor,
+                SPONSOR_NAME: sponsorName,
+                STARTED_ON: dateToday,
+                DELETEIND: this.state.isDeleted ? "X" : "",
+                ACTION: this.state.slctAddEditId ? CONSTANTS.MESSAGE.UPDATE : CONSTANTS.MESSAGE.INSERT // Empty addEdit id from select will be insert
+            }
+
+            // Run Ajax
+            $.ajax({
+                url: "/api/addEditScholar",
+                type: "POST",
+                data: JSON.stringify(datas),
+                contentType: 'application/json',
+                cache: false,
+            }).then(
+                async (result) => {
+                    // Return
+                    if (!result.error) {
+                        // Sucess response x reload the page
+                        window.location.reload();
+                    } else {
+                        // Has error
+                        this.setState({
+                            isValidAddTeam: false,
+                            errorMsg: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
+                            isLoaded: true,
+                            isModalIskoInputsOpen: true // Open modal after processing with error
+                        })
+                    }
+                },
+                // Note: it's important to handle errors here
+                // instead of a catch() block so that we don't swallow
+                // exceptions from actual bugs in components.
+                (error) => {
+                    console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, error)
+                    this.setState({
+                        isValidAddTeam: false,
+                        errorMsg: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
+                        isLoaded: true,
+                        isModalIskoInputsOpen: true // Open modal after processing with error
+                    })
+                }
+            )
+            .catch(
+                (err) => {
+                    console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
+                    this.setState({
+                        isValidAddTeam: false,
+                        errorMsg: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
+                        isLoaded: true,
+                        isModalIskoInputsOpen: true // Open modal after processing with error
+                    })
+                }
+            )
+        } else {
+            // Invalid total of Share
+            this.setState({
+                isValidAddTeam: false,
+                errorMsg: CONSTANTS.MESSAGE.SHARELIMIT,
+                isLoaded: true,
+                isModalIskoInputsOpen: true // Open modal after processing with error
+            })
+        }
+    }
+
+    // Handle for Select Change in Claim Tab
+    handleClaimChange(event) {
+        this.setState({
+            slctClaimId: event.target.value
+        })
+
+        // Update SLP Currency input value
+        $(".claim-inputHolder input[name=SLPCURRENCY]").val(this.state.currencySLP).attr("value", this.state.currencySLP).trigger("change");
+        // Continue with the process
+        if (event.target.value) {
+            const dataSet = this.state.playerRecords.filter(item => (item.ID).toString() === (event.target.value).toString() || item.NAME === event.target.value); // Filter valid data
+            if (dataSet.length > 0) {
+                // Update input fields
+                $(".claim-inputHolder input[name=ADDRESS]").val(dataSet[0].ADDRESS).attr("value", dataSet[0].ADDRESS).trigger("change").siblings('label').addClass('active');
+                // $(".claim-inputHolder input[name=SHR_MANAGER]").val(dataSet[0].sharedManagerSLP).attr("value", dataSet[0].sharedManagerSLP).trigger("change");
+                // $(".claim-inputHolder input[name=SHR_SCHOLAR]").val(dataSet[0].scholarSLP).attr("value", dataSet[0].scholarSLP).trigger("change");
+                // $(".claim-inputHolder input[name=SHR_SPONSOR]").val(dataSet[0].sharedSponsorSLP).attr("value", dataSet[0].sharedSponsorSLP).trigger("change");
+                // Enable Button Submit
+                $(".claim-inputHolder button").removeAttr("disabled");
+            } else {
+                // Clear data in input fields
+                $(".claim-inputHolder input[name=ADDRESS]").val("").trigger("change").siblings('label').removeClass('active');
+                $(".claim-inputHolder input[name=SHR_MANAGER]").val("").trigger("change");
+                $(".claim-inputHolder input[name=SHR_SCHOLAR]").val("").trigger("change");
+                $(".claim-inputHolder input[name=SHR_SPONSOR]").val("").trigger("change");
+                // Disabled Button Submit
+                $(".claim-inputHolder button").attr("disabled", "disabled");
+            }
+        } else {
+            // Clear data in input fields
+            $(".claim-inputHolder input[name=ADDRESS]").val("").trigger("change");
+            $(".claim-inputHolder input[name=SHR_MANAGER]").val("").trigger("change");
+            $(".claim-inputHolder input[name=SHR_SCHOLAR]").val("").trigger("change");
+            $(".claim-inputHolder input[name=SHR_SPONSOR]").val("").trigger("change");
+            // Disabled Button Submit
+            $(".claim-inputHolder button").attr("disabled", "disabled");
+        }
+    }
+
+    // Handle for saving withdraw slp
+    onWithdrawHandle(event) {
+        event.preventDefault();
+        // Remove error message
+        this.setState({
+            isValidWithdraw: 0,
+            isLoaded: false,
+            isModalIskoInputsOpen: false // Close modal while processing
+        })
+
+        const roninAddress = event.target.ADDRESS.value ? event.target.ADDRESS.value : "";
+        const shrManager = event.target.SHR_MANAGER.value ? event.target.SHR_MANAGER.value : "0";
+        const shrScholar = event.target.SHR_SCHOLAR.value ? event.target.SHR_SCHOLAR.value : "0";
+        const shrSponsor = event.target.SHR_SPONSOR.value ? event.target.SHR_SPONSOR.value : "0";
+        const slpCurrency = Number(event.target.SLPCURRENCY.value) && Number(event.target.SLPCURRENCY.value) !== 0 ? event.target.SLPCURRENCY.value : this.state.currencySLP;
+        const withdrawOn = event.target.WITHDRAW_ON.value ? moment(event.target.WITHDRAW_ON.value).format("YYYY-MM-DD HH:mm:ss") : momentToday.format("YYYY-MM-DD HH:mm:ss");
+        if ((Number(shrManager) > 0 || Number(shrScholar) > 0 || Number(shrSponsor) > 0) && roninAddress) {
+            // Continue with the process
+            const datas = {
+                ADDRESS: roninAddress,
+                SHR_MANAGER: shrManager,
+                SHR_SCHOLAR: shrScholar,
+                SHR_SPONSOR: shrSponsor,
+                SLPCURRENCY: slpCurrency,
+                WITHDRAW_ON: withdrawOn
+            }
+
+            // Run api
+            $.ajax({
+                url: "/api/withdraw",
+                type: "POST",
+                data: JSON.stringify(datas),
+                contentType: 'application/json',
+                cache: false,
+            }).then(
+                async (result) => {
+                    // Return
+                    if (!result.error) {
+                        // Sucess response x reload the page
+                        window.location.reload();
+                    } else {
+                        // Has error
+                        this.setState({
+                            isValidWithdraw: false,
+                            errorMsg: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
+                            isLoaded: true,
+                            isModalIskoInputsOpen: true // Open modal after processing with error
+                        })
+                    }
+                },
+                // Note: it's important to handle errors here
+                // instead of a catch() block so that we don't swallow
+                // exceptions from actual bugs in components.
+                (error) => {
+                    console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, error)
+                    // Has error
+                    this.setState({
+                        isValidWithdraw: false,
+                        errorMsg: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
+                        isLoaded: true,
+                        isModalIskoInputsOpen: true // Open modal after processing with error
+                    })
+                }
+            )
+            .catch(
+                (err) => {
+                    console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
+                    // Has error
+                    this.setState({
+                        isValidWithdraw: false,
+                        errorMsg: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
+                        isLoaded: true,
+                        isModalIskoInputsOpen: true // Open modal after processing with error
+                    })
+                }
+            )
+        } else {
+            // Invalid data
+            this.setState({
+                isValidAddTeam: false,
+                errorMsg: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
+                isLoaded: true,
+                isModalIskoInputsOpen: true // Open modal after processing with error
+            })
+        }
+    }
+
+    // Handle for saving manager earnings
+    onManagerEarnedHandle(event) {
+        event.preventDefault();
+        // Remove error message
+        this.setState({
+            isValidManagerEarn: 0,
+            isLoaded: false,
+            isModalIskoInputsOpen: false // Close modal while processing
+        })
+
+        const slpTotal = event.target.SLPTOTAL.value ? event.target.SLPTOTAL.value : "0";
+        const slpCurrency = Number(event.target.SLPCURRENCY.value) && Number(event.target.SLPCURRENCY.value) !== 0 ? event.target.SLPCURRENCY.value : this.state.currencySLP;
+        const category = $(".managerEarn-inputHolder").find("select option:selected").text();
+        const earnedOn = event.target.EARNED_ON.value ? moment(event.target.EARNED_ON.value).format("YYYY-MM-DD HH:mm:ss") : momentToday.format("YYYY-MM-DD HH:mm:ss");
+        if (Number(slpTotal) > 0 && Number(slpCurrency) > 0 && category) {
+            // Continue with the process
+            const datas = {
+                SLPTOTAL: slpTotal,
+                SLPCURRENCY: slpCurrency,
+                CATEGORY: category,
+                EARNED_ON: earnedOn
+            }
+                
+            // Run api
+            $.ajax({
+                url: "/api/managerEarned",
+                type: "POST",
+                data: JSON.stringify(datas),
+                contentType: 'application/json',
+                cache: false,
+            }).then(
+                async (result) => {
+                    // Return
+                    if (!result.error) {
+                        // Sucess response x reload the page
+                        window.location.reload();
+                    } else {
+                        // Has error
+                        this.setState({
+                            isValidManagerEarn: false,
+                            errorMsg: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
+                            isLoaded: true,
+                            isModalIskoInputsOpen: true // Open modal after processing with error
+                        })
+                    }
+                },
+                // Note: it's important to handle errors here
+                // instead of a catch() block so that we don't swallow
+                // exceptions from actual bugs in components.
+                (error) => {
+                    console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, error)
+                    // Has error
+                    this.setState({
+                        isValidManagerEarn: false,
+                        errorMsg: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
+                        isLoaded: true,
+                        isModalIskoInputsOpen: true // Open modal after processing with error
+                    })
+                }
+            )
+            .catch(
+                (err) => {
+                    console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
+                    // Has error
+                    this.setState({
+                        isValidManagerEarn: false,
+                        errorMsg: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
+                        isLoaded: true,
+                        isModalIskoInputsOpen: true // Open modal after processing with error
+                    })
+                }
+            )
+        } else {
+            // Invalid data
+            this.setState({
+                isValidAddTeam: false,
+                errorMsg: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
+                isLoaded: true,
+                isModalIskoInputsOpen: true // Open modal after processing with error
+            })
+        }
     }
 
     // Get SLP and AXS Crypto Coins
@@ -221,46 +703,50 @@ class Home extends React.Component {
                         const EMAIL = item.EMAIL ? item.EMAIL : false;
                         const PASS = item.PASS ? item.PASS.length > 1 ? item.PASS : false : false;
                         const isDeleted = item.DELETEIND ? item.DELETEIND : "";
+
+                        counter = counter + 1;
+                        // console.log(CONSTANTS.MESSAGE.PROCESS_COUNT, `${counter} / ${dataRecords.length}`); // For checking of valid process counting
+
+                        // Continue process
+                        let userEthAddress = null;
+                        const ethAddress = item.ADDRESS ? `0x${item.ADDRESS.substring(6)}` : "";
+                        const isSponsorName = item.SPONSOR_NAME ? item.SPONSOR_NAME.toLowerCase() : ""
+
+                        // Set Array of Sponsors
+                        if (isSponsorName) {
+                            this.state.arrSponsorName.push(isSponsorName);
+                        }
+
+                        // Set ETH Address and Sponsor Name
+                        if (item.EMAIL.toLowerCase() === this.state.isUser.toLowerCase() ||
+                            item.NAME.toLowerCase() === this.state.isUser.toLowerCase() ||
+                            isSponsorName === this.state.isUser.toLowerCase()) {
+                                // Get ETH Address based on Credential
+                                userEthAddress = ethAddress;
+                                if (item.SHR_SPONSOR !== "" && item.SHR_SPONSOR !== "0" && item.SHR_SPONSOR !== undefined) {
+                                    // Set valid Sponsor Name
+                                    this.setState({
+                                        isSponsorName: this.state.isUser
+                                    })
+                                }
+                        }
+
                         if (isDeleted || (!EMAIL || !PASS)) { // To prevent fetching access token and processing for delete details
-                            // End the process x Details is mark as deleted and No valid credentials
-                            return false;
+                            // Details is mark as deleted and No valid credentials
+                            // Continue Process for Player Details with Default/Empty data of InGame SLP
+                            item["accessToken"] = false; // Update the Access Token property value to empty for resetting in generate token
+                            return await this.processPlayerDetails(_INGAMESLP, counter, item, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned);
+
                         } else {
-                            counter = counter + 1;
-                            // console.log(CONSTANTS.MESSAGE.PROCESS_COUNT, `${counter} / ${dataRecords.length}`); // For checking of valid process counting
-
-                            // Continue process
-                            let userEthAddress = null;
-                            const ethAddress = item.ADDRESS ? `0x${item.ADDRESS.substring(6)}` : "";
-                            const isSponsorName = item.SPONSOR_NAME ? item.SPONSOR_NAME.toLowerCase() : ""
-
-                            // Set Array of Sponsors
-                            if (isSponsorName) {
-                                this.state.arrSponsorName.push(isSponsorName);
-                            }
-    
-                            // Set ETH Address and Sponsor Name
-                            if (item.EMAIL.toLowerCase() === this.state.isUser.toLowerCase() ||
-                                item.NAME.toLowerCase() === this.state.isUser.toLowerCase() ||
-                                isSponsorName === this.state.isUser.toLowerCase()) {
-                                    // Get ETH Address based on Credential
-                                    userEthAddress = ethAddress;
-                                    if (item.SHR_SPONSOR !== "" && item.SHR_SPONSOR !== "0" && item.SHR_SPONSOR !== undefined) {
-                                        // Set valid Sponsor Name
-                                        this.setState({
-                                            isSponsorName: this.state.isUser
-                                        })
-                                    }
-                            }
-    
                             // Get Previous data from Local Storage
                             const detailLocalStored = localStorage.getItem(ethAddress) !== null ? JSON.parse(localStorage.getItem(ethAddress)) : false;
-    
+
                             // Process for Generate Access Token
                             let accessToken = detailLocalStored && detailLocalStored.accessToken ? detailLocalStored.accessToken : false;
                             if (accessToken) {
                                 // Has already Access Token x Reassigned existing data from Local Storage
                                 item = detailLocalStored;
-    
+
                             } else { // No Access Token x Not available in Local Storage
                                 // Generate Access Token
                                 console.log(`${CONSTANTS.MESSAGE.RUN_TOKEN}:`, item.NAME);
@@ -273,7 +759,7 @@ class Home extends React.Component {
                                     accessToken = false;
                                 }
                             }
-    
+
                             if (accessToken) { // Has Access Token
                                 // Return valid details
                                 return await this.getPlayerDetails(item, counter, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned);
@@ -606,6 +1092,92 @@ class Home extends React.Component {
                     }
                 }
 
+                // Construct data for Manager All Income and Set value for Total Earning per claimed
+                if ((details.SHR_MANAGER).toString() === "100" && (dataManagerEarned !== undefined && dataManagerEarned.length > 0)) {
+                    details.MANAGEREARNING = { // Default Total Value
+                        TOTAL: {
+                            ROI: 0,
+                            INCOME: 0,
+                            BREED: 0,
+                            BUY: 0,
+                            SLP: 0,
+                            PHP: 0
+                        },
+                        CLAIMED: [],
+                        REACHEDROI: false, // For validation if ROI is completed
+                    };
+
+                    dataManagerEarned.map(data => {
+                        // Adding PHP Earning
+                        data.PHPTOTAL = Number(data.SLPTOTAL) * Number(data.SLPCURRENCY);
+                        // Update Total Income and SLP
+                        details.MANAGEREARNING.TOTAL.SLP = Number(details.MANAGEREARNING.TOTAL.SLP) + Number(data.SLPTOTAL);
+                        details.MANAGEREARNING.TOTAL.PHP = Number(details.MANAGEREARNING.TOTAL.PHP) + Number(data.PHPTOTAL);
+
+                        if (data.CATEGORY && (data.CATEGORY.toLowerCase()) === "withdraw") {
+                            if (!details.MANAGEREARNING.REACHEDROI) {
+                                // Adding Return of Investment
+                                details.MANAGEREARNING.TOTAL.ROI = Number(details.MANAGEREARNING.TOTAL.ROI) + Number(data.PHPTOTAL);
+
+                                // Reached the ROI
+                                if (Number(details.MANAGEREARNING.TOTAL.ROI) >= Number(this.state.managerPHPInvestment)) {
+                                    details.MANAGEREARNING.REACHEDROI = true;
+                                }
+                            } else {
+                                // Adding total of Income
+                                details.MANAGEREARNING.TOTAL.INCOME = Number(details.MANAGEREARNING.TOTAL.INCOME) + Number(data.PHPTOTAL);
+                            }
+                        }
+
+                        if (data.CATEGORY && (data.CATEGORY.toLowerCase()) === "breed") {
+                            // Adding total cost for breeding
+                            details.MANAGEREARNING.TOTAL.BREED = Number(details.MANAGEREARNING.TOTAL.BREED) + Number(data.PHPTOTAL);
+                        }
+
+                        if (data.CATEGORY && (data.CATEGORY.toLowerCase()) === "buy") {
+                            // Adding total cost for buying axie
+                            details.MANAGEREARNING.TOTAL.BUY = Number(details.MANAGEREARNING.TOTAL.BUY) + Number(data.PHPTOTAL);
+                        }
+
+                        // Push data
+                        let managerData = Object.assign({}, data);
+                        details.MANAGEREARNING.CLAIMED.push(managerData);
+
+                        // Return
+                        return true;
+                    })
+
+                    // Update Data for Manager All Earning
+                    this.setState({
+                        managerEarnings: details.MANAGEREARNING
+                    })
+                }
+
+                // Set new value for Team Total Income and Total Earning per withdraw
+                if (dataWithdraw !== undefined && dataWithdraw.length > 0) {
+                    details.WITHDRAWEARNING = { // Default Total Value
+                        TOTALINCOME: 0,
+                        CLAIMED: []
+                    }
+                    // Get specific data based on ronin address in dataWithdraw
+                    dataWithdraw.filter(item => item.ADDRESS === details.ADDRESS).map(data => {
+                        // Adding SLP and PHP Earning
+                        data.SLPTOTAL = (details.SHR_MANAGER).toString() === "100" ? data.SHR_MANAGER : data.SHR_SCHOLAR;
+                        data.PHPTOTAL = Number(data.SLPTOTAL) * Number(data.SLPCURRENCY);
+
+                        // Update Total Income
+                        details.WITHDRAWEARNING.TOTALINCOME = details.WITHDRAWEARNING.TOTALINCOME + data.PHPTOTAL;
+
+                        // Push data
+                        let withdrawData = Object.assign({}, data);
+                        details.WITHDRAWEARNING.CLAIMED.push(withdrawData);
+
+                        // Return
+                        return true;
+
+                    });
+                }
+
                 // Set Total InGame SLP x Average InGame SLP
                 const totalIngameSLPRes = this.state.totalInGameSLP + INGAME.quantity;
                 this.setState({
@@ -616,26 +1188,38 @@ class Home extends React.Component {
                 // Set Total Earnings
                 details.TOTALEARNING_SLP = Number(details.SHAREDSLP) + Number(WALLET.slp);
                 details.TOTALEARNING_PHP = details.TOTALEARNING_SLP * this.state.currencySLP // Ccomputed base on TOTALEARNING_SLP multiply currencySLP
+                
+                // Reassigned Object
+                details.INGAME = INGAME; // Insert InGame Result in Details
+                details.WALLET = WALLET; // Insert Wallet Result in Details
+                details.LEADERBOARD = LEADERBOARD; // Insert Leaderboard Result in Details
+                const PLAYER = Object.assign({}, details);
+
+                // Set State Object of Player Details
+                this.state.playerRecords.push(PLAYER);
+
+                // Set Player Details in LocalStorage
+                localStorage.setItem(ethAddress, JSON.stringify(PLAYER));
 
                 // Construct date for dispay details
                 const playerDataTableRes = {
-                    name: details.NAME,
-                    nameSub: details.NAME,
-                    inGameSLP: <MDBBox data-th={CONSTANTS.MESSAGE.INGAME_SLP} tag="span">{this.numberWithCommas(INGAME.quantity)}</MDBBox>,
+                    name: PLAYER.NAME,
+                    nameSub: PLAYER.NAME,
+                    inGameSLP: <MDBBox data-th={CONSTANTS.MESSAGE.INGAME_SLP} tag="span">{this.numberWithCommas(PLAYER.INGAME.quantity)}</MDBBox>,
                     mintSLP: <MDBBox data-th={CONSTANTS.MESSAGE.MINT_SLP} tag="span">
                                     {
-                                        this.state.isUser === CONSTANTS.MESSAGE.MANAGER || !this.state.isUserEmail || (this.state.isUser).toLowerCase() === (details.EMAIL).toLowerCase() ? (
-                                            this.numberWithCommas(INGAME.withdrawable)
+                                        this.state.isUser === CONSTANTS.MESSAGE.MANAGER || !this.state.isUserEmail || (this.state.isUser).toLowerCase() === (PLAYER.EMAIL).toLowerCase() ? (
+                                            this.numberWithCommas(PLAYER.INGAME.withdrawable)
                                         ) : (0) // If user is email x display 0 for other player
                                     }
                                 </MDBBox>,
                     shareSLP: <MDBBox data-th={CONSTANTS.MESSAGE.SHARED_SLP} tag="span" className="d-inline d-md-block d-lg-block">
                                     {
-                                        this.state.isUser === CONSTANTS.MESSAGE.MANAGER || !this.state.isUserEmail || (this.state.isUser).toLowerCase() === (details.EMAIL).toLowerCase() ? (
+                                        this.state.isUser === CONSTANTS.MESSAGE.MANAGER || !this.state.isUserEmail || (this.state.isUser).toLowerCase() === (PLAYER.EMAIL).toLowerCase() ? (
                                             <React.Fragment>
-                                                {this.numberWithCommas(details.SHAREDSLP)}
+                                                {this.numberWithCommas(PLAYER.SHAREDSLP)}
                                                 <MDBBox tag="span" className="d-inline d-md-block d-lg-block">
-                                                    ({(details.SHR_MANAGER).toString() === "100" ? details.SHR_MANAGER : details.SHR_SCHOLAR}%)
+                                                    ({(PLAYER.SHR_MANAGER).toString() === "100" ? PLAYER.SHR_MANAGER : PLAYER.SHR_SCHOLAR}%)
                                                 </MDBBox>
                                             </React.Fragment>
                                         ) : (0) // If user is email x display 0 for other player
@@ -643,65 +1227,53 @@ class Home extends React.Component {
                                 </MDBBox>,
                     roninSLP: <MDBBox data-th={CONSTANTS.MESSAGE.RONIN_SLP} tag="span">
                                     {
-                                        this.state.isUser === CONSTANTS.MESSAGE.MANAGER || !this.state.isUserEmail || (this.state.isUser).toLowerCase() === (details.EMAIL).toLowerCase() ? (
-                                            this.numberWithCommas(WALLET.slp)
+                                        this.state.isUser === CONSTANTS.MESSAGE.MANAGER || !this.state.isUserEmail || (this.state.isUser).toLowerCase() === (PLAYER.EMAIL).toLowerCase() ? (
+                                            this.numberWithCommas(PLAYER.WALLET.slp)
                                         ) : (0) // If user is email x display 0 for other player
                                     }
                                 </MDBBox>,
                     totalEarningSLP: <MDBBox data-th={CONSTANTS.MESSAGE.TOTAL_SLP} tag="span">
                                         {
-                                            this.state.isUser === CONSTANTS.MESSAGE.MANAGER || !this.state.isUserEmail || (this.state.isUser).toLowerCase() === (details.EMAIL).toLowerCase() ? (
-                                                this.numberWithCommas(details.TOTALEARNING_SLP)
+                                            this.state.isUser === CONSTANTS.MESSAGE.MANAGER || !this.state.isUserEmail || (this.state.isUser).toLowerCase() === (PLAYER.EMAIL).toLowerCase() ? (
+                                                this.numberWithCommas(PLAYER.TOTALEARNING_SLP)
                                             ) : (0) // If user is email x display 0 for other player
                                         }
                                     </MDBBox>,
                     totalEarningPHP: <MDBBox data-th={CONSTANTS.MESSAGE.EARNINGS_PHP} tag="span">
                                         {
-                                            this.state.isUser === CONSTANTS.MESSAGE.MANAGER || !this.state.isUserEmail || (this.state.isUser).toLowerCase() === (details.EMAIL).toLowerCase() ? (
-                                                this.numberWithCommas((details.TOTALEARNING_PHP).toFixed(2))
+                                            this.state.isUser === CONSTANTS.MESSAGE.MANAGER || !this.state.isUserEmail || (this.state.isUser).toLowerCase() === (PLAYER.EMAIL).toLowerCase() ? (
+                                                this.numberWithCommas((PLAYER.TOTALEARNING_PHP).toFixed(2))
                                             ) : (0) // If user is email x display 0 for other player
                                         }
                                     </MDBBox>,
                     totalEarningPHPSLP: <MDBBox data-th={CONSTANTS.MESSAGE.TOTAL_SLP_PHP} tag="span">
                                             {
-                                                this.state.isUser === CONSTANTS.MESSAGE.MANAGER || !this.state.isUserEmail || (this.state.isUser).toLowerCase() === (details.EMAIL).toLowerCase() ? (
+                                                this.state.isUser === CONSTANTS.MESSAGE.MANAGER || !this.state.isUserEmail || (this.state.isUser).toLowerCase() === (PLAYER.EMAIL).toLowerCase() ? (
                                                     <React.Fragment>
-                                                        {this.numberWithCommas(details.TOTALEARNING_SLP)}
+                                                        {this.numberWithCommas(PLAYER.TOTALEARNING_SLP)}
                                                         <MDBBox tag="span" className="d-block">
-                                                            (&#8369; {this.numberWithCommas((details.TOTALEARNING_PHP).toFixed(2))})
+                                                            (&#8369; {this.numberWithCommas((PLAYER.TOTALEARNING_PHP).toFixed(2))})
                                                         </MDBBox>
                                                     </React.Fragment>
                                                 ) : (0) // If user is email x display 0 for other player
                                             }
                                         </MDBBox>,
-                    rank: <MDBBox data-th={CONSTANTS.MESSAGE.RANK} tag="span">{LEADERBOARD.rank + " " + LEADERBOARD.tier}</MDBBox>,
-                    topRank: <MDBBox data-th={CONSTANTS.MESSAGE.RANK} tag="span">{this.numberWithCommas(LEADERBOARD.topRank)}</MDBBox>,
-                    leaderboard: <MDBBox data-th={CONSTANTS.MESSAGE.LEADERBOARD} tag="span">{LEADERBOARD.rank + " " + LEADERBOARD.tier} <MDBBox tag="span" className="d-inline d-md-block d-lg-block">{LEADERBOARD.topRank > 0 ? ("(" + this.numberWithCommas(LEADERBOARD.topRank) + ")") : ("")}</MDBBox></MDBBox>,
-                    clickEvent: ""
+                    rank: <MDBBox data-th={CONSTANTS.MESSAGE.RANK} tag="span">{PLAYER.LEADERBOARD.rank + " " + PLAYER.LEADERBOARD.tier}</MDBBox>,
+                    topRank: <MDBBox data-th={CONSTANTS.MESSAGE.RANK} tag="span">{this.numberWithCommas(PLAYER.LEADERBOARD.topRank)}</MDBBox>,
+                    leaderboard: <MDBBox data-th={CONSTANTS.MESSAGE.LEADERBOARD} tag="span">{PLAYER.LEADERBOARD.rank + " " + PLAYER.LEADERBOARD.tier} <MDBBox tag="span" className="d-inline d-md-block d-lg-block">{PLAYER.LEADERBOARD.topRank > 0 ? ("(" + this.numberWithCommas(PLAYER.LEADERBOARD.topRank) + ")") : ("")}</MDBBox></MDBBox>,
+                    clickEvent: this.modalPlayerDetailsToggle(PLAYER.ID, [PLAYER])
                 };
-
-                // Reassigned Object
-                details.INGAME = INGAME; // Insert InGame Result in Details
-                details.WALLET = WALLET; // Insert Wallet Result in Details
-                details.LEADERBOARD = LEADERBOARD; // Insert Leaderboard Result in Details
-                const detailsReturn = Object.assign({}, details);
-
-                // Set State Object of Player Details
-                this.state.playerRecords.push(detailsReturn);
-
-                // Set Player Details in LocalStorage
-                localStorage.setItem(ethAddress, JSON.stringify(detailsReturn));
                 
                 // Success return
                 return resolve({
                     error: false,
                     data: playerDataTableRes,
-                    inGameSLP: details.INGAME.quantity,
-                    topRank: details.LEADERBOARD.topRank,
-                    nameTopRank: `${details.NAME} (${details.LEADERBOARD.rank} ${details.LEADERBOARD.tier})`,
-                    nameTopInGameSLP: `${details.NAME} (${details.INGAME.quantity})`,
+                    inGameSLP: PLAYER.INGAME.quantity,
+                    topRank: PLAYER.LEADERBOARD.topRank,
+                    nameTopRank: `${PLAYER.NAME} (${PLAYER.LEADERBOARD.rank} ${PLAYER.LEADERBOARD.tier})`,
+                    nameTopInGameSLP: `${PLAYER.NAME} (${PLAYER.INGAME.quantity})`,
                     eth: userEthAddress,
-                    isDelete: details.DELETEIND ? details.DELETEIND : ""
+                    isDelete: PLAYER.DELETEIND ? PLAYER.DELETEIND : ""
                 });
             } else {
                 return reject({error: true, category: "processPlayerDetails"});
@@ -840,7 +1412,7 @@ class Home extends React.Component {
                             {/* Top MMR and SLP */}
                             <MDBCol size="6" md="4" lg="2" className="my-2">
                                 <MDBCard className="z-depth-2 player-details h-180px">
-                                    <MDBCardBody className="black-text cursor-pointer d-flex-center" onClick={this.modalLeaderboardToggle(this.state.playerRecords)}>
+                                    <MDBCardBody className="black-text cursor-pointer d-flex-center" onClick={this.modalLeaderboardToggle()}>
                                         <MDBBox tag="div" className="text-center">
                                             {/* Top Leaderboard */}
                                             <MDBBox tag="span" className="d-block">{CONSTANTS.MESSAGE.TOP_MMR}</MDBBox>
@@ -921,8 +1493,8 @@ class Home extends React.Component {
                             <MDBCol size="6" md="4" lg="2" className="my-2">
                                 <MDBCard className="z-depth-2 player-details h-180px">
                                     <MDBCardBody 
-                                        className={this.state.isUser === CONSTANTS.MESSAGE.MANAGER ? "black-text cursor-pointer d-flex-center" : "black-text d-flex-center"}>
-                                        {/* onClick={this.state.isUser === CONSTANTS.MESSAGE.MANAGER ? this.modalEarningToggle(CONSTANTS.MESSAGE.MANAGER_EARNING, CONSTANTS.MESSAGE.MANAGER, this.state.managerEarningDatatable) : () => {}} > */}
+                                        className={this.state.isUser === CONSTANTS.MESSAGE.MANAGER ? "black-text cursor-pointer d-flex-center" : "black-text d-flex-center"}
+                                        onClick={this.state.isUser === CONSTANTS.MESSAGE.MANAGER && this.state.managerEarnings ? this.modalManagerEarningToggle() : () => {}} >
                                         <MDBBox tag="div" className="text-center">
                                             <MDBBox tag="span" className="d-block">{CONSTANTS.MESSAGE.TOTAL_MANAGERCLAIMABLE_SLP}</MDBBox>
                                             <MDBBox tag="span" className="d-block font-size-1pt3rem font-weight-bold">
@@ -944,7 +1516,7 @@ class Home extends React.Component {
                     {this.state.isUser !== CONSTANTS.MESSAGE.MANAGER && !this.state.isUserEmail && Object.keys(this.state.playerRecords).length > 0 ? (
                         <React.Fragment>
                             <MDBCol size="12" className="mb-3">
-                                <MDBBox tag="div" className="py-3 px-2 text-center player-details cursor-pointer" onClick={this.modalLeaderboardToggle(this.state.playerRecords)}>
+                                <MDBBox tag="div" className="py-3 px-2 text-center player-details cursor-pointer" onClick={this.modalLeaderboardToggle()}>
                                     {/* Top ELO / MMR Rank */}
                                     <MDBBox tag="span" className="d-block d-md-inline d-lg-inline">{CONSTANTS.MESSAGE.TOP_MMR}: <strong>{this.state.topUserRank}</strong></MDBBox>
                                     {/* Top In Game SLP */}
@@ -975,7 +1547,7 @@ class Home extends React.Component {
         return (
             <React.Fragment>
                 <MDBModal isOpen={this.state.isModalLeaderboardOpen} size="lg">
-                    <MDBModalHeader toggle={this.modalLeaderboardToggle("")}>{CONSTANTS.MESSAGE.LEADERBOARD}</MDBModalHeader>
+                    <MDBModalHeader toggle={this.modalLeaderboardToggle()}>{CONSTANTS.MESSAGE.LEADERBOARD}</MDBModalHeader>
                     <MDBModalBody>
                         <MDBDataTable
                             striped bordered hover responsive noBottomColumns
@@ -985,6 +1557,414 @@ class Home extends React.Component {
                             data={this.state.leaderboardDatatable}
                             className="default-datatable-container text-center"
                         />
+                    </MDBModalBody>
+                </MDBModal>
+            </React.Fragment>
+        )
+    }
+
+    // Render Modal for viewing of Manager Earning
+    renderModalManagerEarnings() {
+        if(this.state.managerEarnings) {
+            return (
+                <React.Fragment>
+                    <MDBModal isOpen={this.state.isModalManagerEarningOpen} size="lg">
+                        <MDBModalHeader toggle={this.modalManagerEarningToggle()}>{CONSTANTS.MESSAGE.MANAGER_ALL_EARNINGS}</MDBModalHeader>
+                        <MDBModalBody>
+                            <React.Fragment>
+                                <MDBTable scrollY maxHeight="70vh" bordered striped responsive>
+                                    <MDBTableHead color="rgba-teal-strong" textWhite>
+                                        <tr>
+                                            <th colSpan="5" className="text-center font-weight-bold">{CONSTANTS.MESSAGE.MANAGER_EARNING}</th>
+                                        </tr>
+                                    </MDBTableHead>
+                                    <MDBTableBody>
+                                        {/* Total Earnings */}
+                                        <tr className="text-center">
+                                            <td rowSpan="2" className="font-weight-bold v-align-middle text-uppercase">{CONSTANTS.MESSAGE.TOTAL_EARNINGS}</td>
+                                            <td colSpan="4" className="font-weight-bold">{CONSTANTS.MESSAGE.SLP}: {this.numberWithCommas(this.state.managerEarnings.TOTAL.SLP)}</td>
+                                        </tr>
+                                        <tr className="text-center">
+                                            <td colSpan="4" className="font-weight-bold table-gray-bg"><span>&#8369; </span>{this.numberWithCommas((this.state.managerEarnings.TOTAL.PHP).toFixed(2))}</td>
+                                        </tr>
+                                        {/* Income by Categories */}
+                                        <tr className="text-center">
+                                            <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.BUY}</td>
+                                            <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.BREED}</td>
+                                            <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.ROI}</td>
+                                            <td colSpan="2" className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.INCOME}</td>
+                                        </tr>
+                                        <tr className="text-center">
+                                            <td>{this.numberWithCommas((this.state.managerEarnings.TOTAL.BUY).toFixed(2))}</td>
+                                            <td>{this.numberWithCommas((this.state.managerEarnings.TOTAL.BREED).toFixed(2))}</td>
+                                            <td className={this.state.managerEarnings.REACHEDROI ? "green-text" : "red-text"}>{this.numberWithCommas((this.state.managerEarnings.TOTAL.ROI).toFixed(2))}</td>
+                                            <td>{this.numberWithCommas((this.state.managerEarnings.TOTAL.INCOME).toFixed(2))}</td>
+                                        </tr>
+                                        {/* Earning per cash out */}
+                                        <tr className="rgba-teal-strong-bg">
+                                            <td colSpan="5" className="text-center font-weight-bold white-text">{CONSTANTS.MESSAGE.EARNINGS}</td>
+                                        </tr>
+                                        <tr className="text-center">
+                                            <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.DATE}</td>
+                                            <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.SLP}</td>
+                                            <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.SLP_PRICE}</td>
+                                            <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.EARNING}</td>
+                                        </tr>
+                                        {
+                                            Object.keys(this.state.managerEarnings.CLAIMED).length > 0 ? (
+                                                this.state.managerEarnings.CLAIMED.sort((a, b) =>  moment(b.EARNED_ON).unix() - moment(a.EARNED_ON).unix() ).map(items => (
+                                                    <tr key={items.ID} className="text-center">
+                                                        <td>{<Moment format="MMM DD, YYYY">{items.EARNED_ON}</Moment>}</td>
+                                                        <td>{items.SLPTOTAL}</td>
+                                                        <td className="text-uppercase">{items.SLPCURRENCY}</td>
+                                                        <td>{(items.PHPTOTAL).toLocaleString()}</td>
+                                                    </tr>
+                                                ))
+                                            ) : ("")
+                                        }
+                                    </MDBTableBody>
+                                </MDBTable>
+                            </React.Fragment>
+                        </MDBModalBody>
+                    </MDBModal>
+                </React.Fragment>
+            )
+        }
+    }
+
+    // Render Modal for viewing of Players Details
+    renderModalPlayerDetails() {
+        return (
+            <React.Fragment>
+                <MDBModal isOpen={this.state.isModalPlayerDetailsOpen} size="lg">
+                    <MDBModalHeader toggle={this.modalPlayerDetailsToggle("", "")}>
+                        {
+                            Object.keys(this.state.modalPlayerDetails).length > 0 ? (
+                                <React.Fragment>
+                                    {this.state.modalPlayerDetails[0].NAME}
+                                </React.Fragment>
+                            ) : (CONSTANTS.MESSAGE.DETAILS)
+                        }
+                    </MDBModalHeader>
+                    <MDBModalBody>
+                        {/* Header details */}
+                        {
+                            Object.keys(this.state.modalPlayerDetails).length > 0 ? (
+                                <React.Fragment>
+                                    <MDBRow between>
+                                        {/* Started playing */}
+                                        <MDBCol size="12" md="6" lg="6">
+                                            <MDBBox tag="span" className="d-block">
+                                                <strong>{CONSTANTS.MESSAGE.STARTED}:</strong> <Moment format="MMM DD, YYYY">{this.state.modalPlayerDetails[0].STARTED_ON}</Moment>
+                                            </MDBBox>
+                                        </MDBCol>
+                                        {/* Market Place link */}
+                                        <MDBCol size="12" md="6" lg="6">
+                                            <MDBBox tag="u" className="d-block d-md-none d-lg-none">
+                                                <a href={"https://marketplace.axieinfinity.com/profile/" + this.state.modalPlayerDetails[0].ADDRESS + "/axie"} target="_blank" rel="noreferrer" className="black-text">
+                                                    {CONSTANTS.MESSAGE.OPEN_MARKETPLACE_PROFILE}
+                                                </a>
+                                            </MDBBox>
+                                            <MDBBox tag="u" className="d-none d-md-block d-lg-block text-right">
+                                                <a href={"https://marketplace.axieinfinity.com/profile/" + this.state.modalPlayerDetails[0].ADDRESS + "/axie"} target="_blank" rel="noreferrer" className="black-text">
+                                                    {CONSTANTS.MESSAGE.OPEN_MARKETPLACE_PROFILE}
+                                                </a>
+                                            </MDBBox>
+                                        </MDBCol>
+                                        {/* Ronin Address */}
+                                            <MDBCol size="12">
+                                                <MDBBox tag="span" className="d-block selectable-text">
+                                                    <strong>{CONSTANTS.MESSAGE.RONIN}:</strong> {this.state.modalPlayerDetails[0].ADDRESS}
+                                                </MDBBox>
+                                            </MDBCol>
+                                        {/* Email */}
+                                        {
+                                            this.state.isUser === CONSTANTS.MESSAGE.MANAGER || !this.state.isUserEmail || (this.state.isUser).toLowerCase() === (this.state.modalPlayerDetails[0].EMAIL).toLowerCase() ? (
+                                                <MDBCol size="12">
+                                                    <MDBBox tag="span" className="d-block selectable-text">
+                                                        <strong>{CONSTANTS.MESSAGE.EMAIL}:</strong> {this.state.modalPlayerDetails[0].EMAIL}
+                                                    </MDBBox>
+                                                </MDBCol>
+                                            ) : ("")
+                                        }
+                                    </MDBRow>
+
+                                    {
+                                        this.state.isViewAxieTeam === CONSTANTS.MESSAGE.VIEW_AXIE_TEAM ? (
+                                            // View Gained SLP Chart
+                                            <React.Fragment>
+                                                {
+                                                    // Display only the view earnings for specific user
+                                                    this.state.isUser === CONSTANTS.MESSAGE.MANAGER || !this.state.isUserEmail || (this.state.isUser).toLowerCase() === (this.state.modalPlayerDetails[0].details.EMAIL).toLowerCase() ? (
+                                                        <MDBBox tag="u" className="d-block mb-2 cursor-pointer" onClick={this.onScholarEaningNActiveTeamHandle.bind(this)}>{CONSTANTS.MESSAGE.VIEW_EARNINGS}</MDBBox> // Opposite label x for hide and show
+                                                    ) : ("")
+                                                }
+
+                                                {
+                                                    // Display Active Axie Team
+                                                }
+                                            </React.Fragment>
+                                        ) : (
+                                            // View Earnings
+                                            <React.Fragment>
+                                                <MDBBox tag="u" className="d-block mb-2 cursor-pointer" onClick={this.onScholarEaningNActiveTeamHandle.bind(this)}>{CONSTANTS.MESSAGE.VIEW_AXIE_TEAM}</MDBBox> {/* Opposite label x for hide and show */}
+                                                {/* Table Details */}
+                                                <MDBTable scrollY maxHeight="70vh" bordered striped responsive className="mt-2">
+                                                    <MDBTableBody>
+                                                        {/* Total Income */}
+                                                        <tr>
+                                                            <td colSpan="4" className="text-center font-weight-bold rgba-teal-strong white-text">
+                                                                <span>{CONSTANTS.MESSAGE.TOTALINCOME}: &#8369; </span>
+                                                                {(this.state.modalPlayerDetails[0].WITHDRAWEARNING.TOTALINCOME).toLocaleString()}
+                                                            </td>
+                                                        </tr>
+                                                        <tr className="text-center">
+                                                            <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.DATE}</td>
+                                                            <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.SLP}</td>
+                                                            <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.SLP_PRICE}</td>
+                                                            <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.EARNING}</td>
+                                                        </tr>
+                                                        {
+                                                            
+                                                            this.state.modalPlayerDetails[0].WITHDRAWEARNING.CLAIMED !== undefined && 
+                                                            Object.keys(this.state.modalPlayerDetails[0].WITHDRAWEARNING.CLAIMED).length > 0 ? (
+                                                                (this.state.modalPlayerDetails[0].WITHDRAWEARNING.CLAIMED).sort((a, b) => moment(b.WITHDRAW_ON).unix() - moment(a.WITHDRAW_ON).unix()).map(items => (
+                                                                    <tr key={items.ID} className="text-center">
+                                                                        <td>{<Moment format="MMM DD, YYYY">{items.WITHDRAW_ON}</Moment>}</td>
+                                                                        <td>{items.SLPTOTAL}</td>
+                                                                        <td className="text-uppercase">{items.SLPCURRENCY}</td>
+                                                                        <td>{(items.PHPTOTAL).toLocaleString()}</td>
+                                                                    </tr>
+                                                                ))
+                                                            ) : ("")
+                                                        }
+                                                    </MDBTableBody>
+                                                </MDBTable>
+                                            </React.Fragment>
+                                        )
+                                    }
+                                </React.Fragment>
+                            ) : ("")
+                        }
+                    </MDBModalBody>
+                </MDBModal>
+            </React.Fragment>
+        )
+    }
+
+    // Render Modal for adding new team
+    renderModalIskoInputs() {
+        return (
+            <React.Fragment>
+                <MDBModal isOpen={this.state.isModalIskoInputsOpen} size="md">
+                    <MDBModalHeader toggle={this.modalIskoInputs("")} className="blue-whale">{CONSTANTS.MESSAGE.LOKI_INPUTS}</MDBModalHeader>
+                    <MDBModalBody>
+                        <MDBNav className="nav-tabs">
+                            <MDBNavItem>
+                                <span
+                                    className={this.state.tabIskoInputsActive === "1" ? "nav-link cursor-pointer active" : "nav-link cursor-pointer"}
+                                    onClick={this.tabsIskoInputs("1")}
+                                    role="tab" >
+                                    {CONSTANTS.MESSAGE.ADD_EDIT}
+                                </span>
+                            </MDBNavItem>
+                            <MDBNavItem>
+                                <span
+                                    className={this.state.tabIskoInputsActive === "2" ? "nav-link active cursor-pointer" : "nav-link cursor-pointer"}
+                                    onClick={this.tabsIskoInputs("2")}
+                                    role="tab" >
+                                    {CONSTANTS.MESSAGE.WITHDRAW}
+                                </span>
+                            </MDBNavItem>
+                            <MDBNavItem>
+                                <span
+                                    className={this.state.tabIskoInputsActive === "3" ? "nav-link active cursor-pointer" : "nav-link cursor-pointer"}
+                                    onClick={this.tabsIskoInputs("3")}
+                                    role="tab" >
+                                    {CONSTANTS.MESSAGE.MANAGER_EARNING}
+                                </span>
+                            </MDBNavItem>
+                        </MDBNav>
+                        <MDBTabContent activeItem={this.state.tabIskoInputsActive} >
+                            <MDBTabPane tabId="1" role="tabpanel">
+                                <form onSubmit={this.onAddEditRecordHandle.bind(this)} className="addEdit-inputHolder">
+                                    <MDBBox tag="div" className="grey-text">
+                                        <MDBBox tag="div" className="select-mdb-custom mt-3">
+                                            <MDBBox tag="select" className="select-mdb-content" onChange={this.handleAddEditIskoChange.bind(this)} value={this.state.slctAddEditId}>
+                                                <MDBBox tag="option" value="">{CONSTANTS.MESSAGE.ADDNEW_ISKO}</MDBBox>
+                                                {
+                                                    Object.keys(this.state.playerRecords).length > 0 ? (
+                                                        this.state.playerRecords.sort(function (a, b) {
+                                                            if (a.NAME > b.NAME) {
+                                                                return 1;
+                                                            } else if (a.NAME < b.NAME) {
+                                                                return -1;
+                                                            } else {
+                                                                return 0;
+                                                            }
+                                                        }).map((item) => (
+                                                            <MDBBox tag="option" key={item.ID} value={item.ID}>
+                                                                {item.NAME}
+                                                            </MDBBox>
+                                                        ))
+                                                    ) : ("")
+                                                }
+                                            </MDBBox>
+                                            <MDBBox tag="span" className="select-mdb-bar"></MDBBox>
+                                            <MDBBox tag="label" className="col select-mdb-label"></MDBBox>
+                                        </MDBBox>
+                                        <div className="md-form">
+                                            <i data-test="fa" className="fa fa-address-book prefix"></i>
+                                            <input data-test="input" type="text" className="form-control" name="ADDRESS" required />
+                                            <label className="active">{CONSTANTS.MESSAGE.RONIN_ADDRESS}</label>
+                                        </div>
+                                        <div className="md-form">
+                                            <i data-test="fa" className="fa fa-user prefix"></i>
+                                            <input data-test="input" type="text" className="form-control" name="NAME" required />
+                                            <label className="active">{CONSTANTS.MESSAGE.NAME}</label>
+                                        </div>
+                                        <div className="md-form">
+                                            <i data-test="fa" className="fa fa-envelope prefix"></i>
+                                            <input data-test="input" type="email" className="form-control" name="EMAIL" required />
+                                            <label className="active">{CONSTANTS.MESSAGE.EMAIL}</label>
+                                        </div>
+                                        <div className="md-form">
+                                            <i data-test="fa" className="fa fa-lock prefix"></i>
+                                            <input data-test="input" type="text" className="form-control" name="PASS" required />
+                                            <label className="active">{CONSTANTS.MESSAGE.PASSWORD}</label>
+                                        </div>
+                                        <MDBRow className="mt-1pt5rem-neg" between>
+                                            <MDBCol size="6">
+                                                <div className="md-form">
+                                                    <input data-test="input" type="number" className="form-control" name="SHR_MANAGER" min="0" max="100" required />
+                                                    <label className="active">{CONSTANTS.MESSAGE.MANAGER}</label>
+                                                </div>
+                                            </MDBCol>
+                                            <MDBCol size="6">
+                                                <div className="md-form">
+                                                    <input data-test="input" type="number" className="form-control" name="SHR_SCHOLAR" min="0" max="100" required />
+                                                    <label className="active">{CONSTANTS.MESSAGE.SCHOLAR}</label>
+                                                </div>
+                                            </MDBCol>
+                                        </MDBRow>
+                                        <MDBInput containerClass="md-form mt-2rem-neg checkbox-mdb-custom" label={CONSTANTS.MESSAGE.HASSPONSOR} type="checkbox" id="hasSponsor-checkbox" checked={this.state.hasSponsor} onChange={this.handleHasSponsorCheckChange.bind(this)} />
+                                        {
+                                            this.state.hasSponsor ? (
+                                                <MDBRow className="mt-1pt5rem-neg" between>
+                                                    <MDBCol size="6">
+                                                        <div className="md-form">
+                                                            <i data-test="fa" className="fa fa-user prefix"></i>
+                                                            <input data-test="input" type="text" className="form-control" name="SPONSOR_NAME" required />
+                                                            <label className="active">{CONSTANTS.MESSAGE.SPONSOR_NAME}</label>
+                                                        </div>
+                                                    </MDBCol>
+                                                    <MDBCol size="6">
+                                                        <div className="md-form">
+                                                            <input data-test="input" type="number" className="form-control" name="SHR_SPONSOR" min="0" max="100" required />
+                                                            <label className="active">{CONSTANTS.MESSAGE.SPONSOR_SHARE}</label>
+                                                        </div>
+                                                    </MDBCol>
+                                                </MDBRow>
+                                            ) : ("")
+                                        }
+                                        <MDBInput containerClass="md-form mt-2rem-neg checkbox-mdb-custom redLabel" label={CONSTANTS.MESSAGE.DELETE} type="checkbox" id="isDelete-checkbox" checked={this.state.isDeleted} onChange={this.handleIsDeleteCheckChange.bind(this)} />
+                                        <MDBBox tag="div" className={this.state.isValidAddTeam === 0 ? "d-none" : this.state.isValidAddTeam ? "d-none" : "invalid-feedback mt-0pt3rem-neg mb-2 px-3 d-block"}>{this.state.errorMsg}</MDBBox>
+                                    </MDBBox>
+                                    <MDBBox tag="div" className="text-center">
+                                        <button className="btn btn-default waves-effect waves-light">
+                                            <MDBIcon icon="paper-plane" className="mr-1" />
+                                            {CONSTANTS.MESSAGE.SUBMIT}
+                                        </button>
+                                    </MDBBox>
+                                </form>
+                            </MDBTabPane>
+                            <MDBTabPane tabId="2" role="tabpanel">
+                                <MDBBox tag="div" className="select-mdb-custom mt-3">
+                                    <MDBBox tag="select" className="select-mdb-content" onChange={this.handleClaimChange.bind(this)} value={this.state.slctClaimId}>
+                                        <MDBBox tag="option" value="">{CONSTANTS.MESSAGE.SELECT_NAME}</MDBBox>
+                                        {
+                                            Object.keys(this.state.playerRecords).length > 0 ? (
+                                                this.state.playerRecords.sort(function (a, b) {
+                                                    if (a.NAME > b.NAME) {
+                                                        return 1;
+                                                    } else if (a.NAME < b.NAME) {
+                                                        return -1;
+                                                    } else {
+                                                        return 0;
+                                                    }
+                                                }).map((item) => (
+                                                    <MDBBox tag="option" key={item.ID} value={item.ID}>
+                                                        {item.NAME}
+                                                    </MDBBox>
+                                                ))
+                                            ) : ("")
+                                        }
+                                    </MDBBox>
+                                    <MDBBox tag="span" className="select-mdb-bar"></MDBBox>
+                                    <MDBBox tag="label" className="col select-mdb-label"></MDBBox>
+                                </MDBBox>
+                                <form onSubmit={this.onWithdrawHandle.bind(this)} className="claim-inputHolder">
+                                    <MDBBox tag="div" className="grey-text">
+                                        <MDBInput label={CONSTANTS.MESSAGE.RONIN_ADDRESS} name="ADDRESS" type="text" required disabled />
+                                        <div className="md-form">
+                                            <input data-test="input" type="number" min="0" className="form-control" name="SLPCURRENCY" step="0.01" required />
+                                            <label className="active">{CONSTANTS.MESSAGE.SLP_CURRENCY}</label>
+                                        </div>
+                                        <div className="md-form">
+                                            <input data-test="input" type="number" min="0" className="form-control" name="SHR_MANAGER" required />
+                                            <label className="active">{CONSTANTS.MESSAGE.MANAGER_SLP}</label>
+                                        </div>
+                                        <div className="md-form">
+                                            <input data-test="input" type="number" min="0" className="form-control" name="SHR_SCHOLAR" required />
+                                            <label className="active">{CONSTANTS.MESSAGE.SCHOLAR_SLP}</label>
+                                        </div>
+                                        <div className="md-form">
+                                            <input data-test="input" type="number" min="0" className="form-control" name="SHR_SPONSOR" required />
+                                            <label className="active">{CONSTANTS.MESSAGE.SPONSOR_SLP}</label>
+                                        </div>
+                                        <div className="md-form">
+                                            <input data-test="input" type="date" className="form-control" name="WITHDRAW_ON" required />
+                                            <label className="active">{CONSTANTS.MESSAGE.WITHDRAWON}</label>
+                                        </div>
+                                    </MDBBox>
+                                    <MDBBox tag="div" className={this.state.isValidWithdraw === 0 ? "d-none" : this.state.isValidWithdraw ? "d-none" : "invalid-feedback mt-1pt5rem-neg mb-2 px-3 d-block"}>{this.state.errorMsg}</MDBBox>
+                                    <MDBBox tag="div" className="text-center">
+                                        <button className="btn btn-default waves-effect waves-light" disabled>
+                                            <MDBIcon icon="paper-plane" className="mr-1" />
+                                            {CONSTANTS.MESSAGE.SUBMIT}
+                                        </button>
+                                    </MDBBox>
+                                </form>
+                            </MDBTabPane>
+                            <MDBTabPane tabId="3" role="tabpanel">
+                                <form onSubmit={this.onManagerEarnedHandle.bind(this)} className="managerEarn-inputHolder">
+                                    <MDBBox tag="div" className="grey-text">
+                                        <MDBInput label={CONSTANTS.MESSAGE.TOTAL_SLP} name="SLPTOTAL" type="number" min="0" required />
+                                        <MDBInput label={CONSTANTS.MESSAGE.SLP_CURRENCY} name="SLPCURRENCY" type="number" step="0.01" min="0" required />
+                                        <MDBBox tag="div" className="select-mdb-custom mt-2">
+                                            <MDBBox tag="select" className="select-mdb-content">
+                                                <MDBBox tag="option" value={CONSTANTS.MESSAGE.BUY}>{CONSTANTS.MESSAGE.BUY}</MDBBox>
+                                                <MDBBox tag="option" value={CONSTANTS.MESSAGE.BREED}>{CONSTANTS.MESSAGE.BREED}</MDBBox>
+                                                <MDBBox tag="option" value={CONSTANTS.MESSAGE.WITHDRAW}>{CONSTANTS.MESSAGE.WITHDRAW}</MDBBox>
+                                            </MDBBox>
+                                            <MDBBox tag="span" className="select-mdb-bar"></MDBBox>
+                                            <MDBBox tag="label" className="col select-mdb-label"></MDBBox>
+                                        </MDBBox>
+                                        <div className="md-form">
+                                            <input data-test="input" type="date" className="form-control" name="EARNED_ON" required />
+                                            <label className="active">{CONSTANTS.MESSAGE.EARNEDON}</label>
+                                        </div>
+                                    </MDBBox>
+                                    <MDBBox tag="div" className={this.state.isValidManagerEarn === 0 ? "d-none" : this.state.isValidManagerEarn ? "d-none" : "invalid-feedback mt-1pt5rem-neg mb-2 px-3 d-block"}>{this.state.errorMsg}</MDBBox>
+                                    <MDBBox tag="div" className="text-center">
+                                        <button className="btn btn-default waves-effect waves-light">
+                                            <MDBIcon icon="paper-plane" className="mr-1" />
+                                            {CONSTANTS.MESSAGE.SUBMIT}
+                                        </button>
+                                    </MDBBox>
+                                </form>
+                            </MDBTabPane>
+                        </MDBTabContent>
                     </MDBModalBody>
                 </MDBModal>
             </React.Fragment>
@@ -1010,6 +1990,29 @@ class Home extends React.Component {
         document.title = CONSTANTS.MESSAGE.HOMETITLE;
         return (
             <MDBBox tag="div" className="home-wrapper">
+                <MDBAnimation type="bounce" className="z-index-1 position-fixed guides-btn">
+                    {
+                        this.state.isUser === CONSTANTS.MESSAGE.MANAGER ? (
+                            <React.Fragment>
+                                {/* Scholar's input */}
+                                <button type="button" className="btn btn-default waves-effect waves-light d-block iskoInputs"
+                                    onClick={this.modalIskoInputs()}>
+                                    <MDBIcon icon="graduation-cap" className="fa-2x" />
+                                </button>
+
+                                {
+                                    //  Object.keys(this.state.exportData).length > 0 ? (
+                                    //     <React.Fragment>
+                                    //         {/* Export Data */}
+                                    //         <ExportCSV csvData={this.state.exportData} fileName={CONSTANTS.MESSAGE.TEAMLOKI + "_" + moment().format("MMDDYYYY_HHmmss")}/>
+                                    //     </React.Fragment>
+                                    // ) : ("")
+                                }
+                            </React.Fragment>
+                        ) : ("")
+                    }
+                </MDBAnimation>
+                
                 {
                     !this.state.isLoaded ? (
                         // Loading
@@ -1076,6 +2079,9 @@ class Home extends React.Component {
 
                 {/* Render Modal */}
                 {this.renderModalLeaderboard()}
+                {this.renderModalManagerEarnings()}
+                {this.renderModalPlayerDetails()}
+                {this.renderModalIskoInputs()}
             </MDBBox>
         )
     }

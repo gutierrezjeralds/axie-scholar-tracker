@@ -144,6 +144,7 @@ const MESSAGE = {
     HASSPONSOR: "Has Sponsor?",
     YESTERDAYSLP: "Yesterday SLP",
     VIEW_GAINEDSLP_CHART: "View Gained SLP Chart",
+    VIEW_AXIE_TEAM: "View Active Axie Team",
     VIEW_EARNINGS: "View Earnings",
     REWARDS_SLP: "Rewards SLP",
     PHP: "PHP",

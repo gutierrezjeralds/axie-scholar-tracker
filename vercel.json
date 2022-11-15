@@ -1,0 +1,15 @@
+{
+    "version": 2,
+    "builds": [
+      {
+        "src": "server/herokuPostgresql.js",
+        "use": "@now/node"
+      }
+    ],
+    "routes": [
+      {
+        "src": "/(.*)",
+        "dest": "server/herokuPostgresql.js"
+      }
+    ]
+  }

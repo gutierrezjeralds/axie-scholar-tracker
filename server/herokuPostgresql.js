@@ -649,7 +649,7 @@ app.post("/api/withdraw", async (req, res) => {
         const payload = req.body;
 
         // Execute Query x insert new team record
-        const query = `${CONSTANTS.QUERY.INSERT.WITHDRAW} ("ADDRESS", "SHR_MANAGER", "SHR_SCHOLAR", "SHR_SPONSOR", "SLPCURRENCY", "WITHDRAW_ON") VALUES ('${payload.ADDRESS}', '${payload.SHR_MANAGER}', '${payload.SHR_SCHOLAR}', '${payload.SHR_SPONSOR}', '${payload.SLPCURRENCY}', '${payload.WITHDRAW_ON}')`;
+        const query = `${CONSTANTS.QUERY.INSERT.WITHDRAW} ("ADDRESS", "SLPTOTAL", "SLPCURRENCY", "WITHDRAW_ON") VALUES ('${payload.ADDRESS}', '${payload.SLPTOTAL}', '${payload.SLPCURRENCY}', '${payload.WITHDRAW_ON}')`;
         client.query(query, (error, result) => {
             logger(CONSTANTS.MESSAGE.WITHDRAW, CONSTANTS.MESSAGE.STARTED_INSERTQUERY);
             // End Connection

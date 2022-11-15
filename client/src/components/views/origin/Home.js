@@ -18,6 +18,7 @@ const momentToday = moment().tz('Asia/Manila');
 const unixMomentToday = new Date(momentToday).getTime();
 console.log("Default", moments().format("YYYY-MM-DD HH:mm:ss"));
 console.log("Timezone", momentToday.format("YYYY-MM-DD HH:mm:ss"));
+console.log("Unix Timezone", unixMomentToday);
 
 // Global InGame SLP Default
 const _INGAMESLP = {
@@ -93,9 +94,20 @@ class Home extends React.Component {
     // Page reload
     pageRefresh = (time) => {
         setTimeout( () => {
+            if (!this.state.isModalIskoInputsOpen) { // Dont reload when other modal is open
+                return window.location.reload();
+            }
             // Return
             return true;
         }, time);
+
+        // Guide information button Bounce every 5 seconds
+        setInterval(function() {
+            $(".guides-btn").removeClass("bounce").removeAttr("style");
+            setTimeout(function() {
+                $(".guides-btn").addClass("bounce").css({"animation-name": "bounce", "visibility": "visible", "animation-iteration-count": "1"});
+            }, 1000);
+        }, 5000);
     }
 
     // API reload
@@ -145,7 +157,7 @@ class Home extends React.Component {
         });
     }
 
-    // Hide and Show Player Earnings and SLP Chart
+    // Hide and Show Player Earnings and Active Axie Team
     onScholarEaningNActiveTeamHandle(event) {
         if (event.target.innerText === CONSTANTS.MESSAGE.VIEW_EARNINGS) {
             this.setState({
@@ -174,19 +186,6 @@ class Home extends React.Component {
         } else {
             this.setState({
                 isViewMangerEarning: CONSTANTS.MESSAGE.VIEW_CURRENT_EARNINGS,
-            })
-        }
-    }
-
-    // Hide and Show Player Earnings and Active Axie Team
-    onScholarEaningNActiveTeamHandle(event) {
-        if (event.target.innerText === CONSTANTS.MESSAGE.VIEW_EARNINGS) {
-            this.setState({
-                isViewSLPChart: CONSTANTS.MESSAGE.VIEW_EARNINGS,
-            })
-        } else {
-            this.setState({
-                isViewSLPChart: CONSTANTS.MESSAGE.VIEW_GAINEDSLP_CHART,
             })
         }
     }
@@ -386,26 +385,20 @@ class Home extends React.Component {
             if (dataSet.length > 0) {
                 // Update input fields
                 $(".claim-inputHolder input[name=ADDRESS]").val(dataSet[0].ADDRESS).attr("value", dataSet[0].ADDRESS).trigger("change").siblings('label').addClass('active');
-                // $(".claim-inputHolder input[name=SHR_MANAGER]").val(dataSet[0].sharedManagerSLP).attr("value", dataSet[0].sharedManagerSLP).trigger("change");
-                // $(".claim-inputHolder input[name=SHR_SCHOLAR]").val(dataSet[0].scholarSLP).attr("value", dataSet[0].scholarSLP).trigger("change");
-                // $(".claim-inputHolder input[name=SHR_SPONSOR]").val(dataSet[0].sharedSponsorSLP).attr("value", dataSet[0].sharedSponsorSLP).trigger("change");
+                $(".claim-inputHolder input[name=SLPTOTAL]").val(dataSet[0].SHAREDSLP).attr("value", dataSet[0].SHAREDSLP).trigger("change");
                 // Enable Button Submit
                 $(".claim-inputHolder button").removeAttr("disabled");
             } else {
                 // Clear data in input fields
                 $(".claim-inputHolder input[name=ADDRESS]").val("").trigger("change").siblings('label').removeClass('active');
-                $(".claim-inputHolder input[name=SHR_MANAGER]").val("").trigger("change");
-                $(".claim-inputHolder input[name=SHR_SCHOLAR]").val("").trigger("change");
-                $(".claim-inputHolder input[name=SHR_SPONSOR]").val("").trigger("change");
+                $(".claim-inputHolder input[name=SLPTOTAL]").val("").trigger("change");
                 // Disabled Button Submit
                 $(".claim-inputHolder button").attr("disabled", "disabled");
             }
         } else {
             // Clear data in input fields
             $(".claim-inputHolder input[name=ADDRESS]").val("").trigger("change");
-            $(".claim-inputHolder input[name=SHR_MANAGER]").val("").trigger("change");
-            $(".claim-inputHolder input[name=SHR_SCHOLAR]").val("").trigger("change");
-            $(".claim-inputHolder input[name=SHR_SPONSOR]").val("").trigger("change");
+            $(".claim-inputHolder input[name=SLPTOTAL]").val("").trigger("change");
             // Disabled Button Submit
             $(".claim-inputHolder button").attr("disabled", "disabled");
         }
@@ -422,18 +415,14 @@ class Home extends React.Component {
         })
 
         const roninAddress = event.target.ADDRESS.value ? event.target.ADDRESS.value : "";
-        const shrManager = event.target.SHR_MANAGER.value ? event.target.SHR_MANAGER.value : "0";
-        const shrScholar = event.target.SHR_SCHOLAR.value ? event.target.SHR_SCHOLAR.value : "0";
-        const shrSponsor = event.target.SHR_SPONSOR.value ? event.target.SHR_SPONSOR.value : "0";
+        const slpTotal = event.target.SLPTOTAL.value ? event.target.SLPTOTAL.value : "0";
         const slpCurrency = Number(event.target.SLPCURRENCY.value) && Number(event.target.SLPCURRENCY.value) !== 0 ? event.target.SLPCURRENCY.value : this.state.currencySLP;
         const withdrawOn = event.target.WITHDRAW_ON.value ? moment(event.target.WITHDRAW_ON.value).format("YYYY-MM-DD HH:mm:ss") : momentToday.format("YYYY-MM-DD HH:mm:ss");
-        if ((Number(shrManager) > 0 || Number(shrScholar) > 0 || Number(shrSponsor) > 0) && roninAddress) {
+        if ((Number(slpTotal) > 0) && roninAddress) {
             // Continue with the process
             const datas = {
                 ADDRESS: roninAddress,
-                SHR_MANAGER: shrManager,
-                SHR_SCHOLAR: shrScholar,
-                SHR_SPONSOR: shrSponsor,
+                SLPTOTAL: slpTotal,
                 SLPCURRENCY: slpCurrency,
                 WITHDRAW_ON: withdrawOn
             }
@@ -1161,8 +1150,7 @@ class Home extends React.Component {
                     }
                     // Get specific data based on ronin address in dataWithdraw
                     dataWithdraw.filter(item => item.ADDRESS === details.ADDRESS).map(data => {
-                        // Adding SLP and PHP Earning
-                        data.SLPTOTAL = (details.SHR_MANAGER).toString() === "100" ? data.SHR_MANAGER : data.SHR_SCHOLAR;
+                        // Adding PHP Earning
                         data.PHPTOTAL = Number(data.SLPTOTAL) * Number(data.SLPCURRENCY);
 
                         // Update Total Income
@@ -1299,7 +1287,7 @@ class Home extends React.Component {
                             if (result.balances && Object.keys(result.balances).length > 0) {
                                 // Sucess Return x Setup property key and value
                                 const dataSet = {
-                                    slp: result.balances.SLP.balance,
+                                    slp: (result.balances.SLP.balance).length <= 6 ? result.balances.SLP.balance : 0,
                                     axs: Number(result.balances.AXS.balance).toFixed(4),
                                     ron: Number(result.balances.RON.balance).toFixed(4)
                                 }
@@ -1907,20 +1895,12 @@ class Home extends React.Component {
                                     <MDBBox tag="div" className="grey-text">
                                         <MDBInput label={CONSTANTS.MESSAGE.RONIN_ADDRESS} name="ADDRESS" type="text" required disabled />
                                         <div className="md-form">
+                                            <input data-test="input" type="number" min="0" className="form-control" name="SLPTOTAL" required />
+                                            <label className="active">{CONSTANTS.MESSAGE.TOTAL_SLP}</label>
+                                        </div>
+                                        <div className="md-form">
                                             <input data-test="input" type="number" min="0" className="form-control" name="SLPCURRENCY" step="0.01" required />
                                             <label className="active">{CONSTANTS.MESSAGE.SLP_CURRENCY}</label>
-                                        </div>
-                                        <div className="md-form">
-                                            <input data-test="input" type="number" min="0" className="form-control" name="SHR_MANAGER" required />
-                                            <label className="active">{CONSTANTS.MESSAGE.MANAGER_SLP}</label>
-                                        </div>
-                                        <div className="md-form">
-                                            <input data-test="input" type="number" min="0" className="form-control" name="SHR_SCHOLAR" required />
-                                            <label className="active">{CONSTANTS.MESSAGE.SCHOLAR_SLP}</label>
-                                        </div>
-                                        <div className="md-form">
-                                            <input data-test="input" type="number" min="0" className="form-control" name="SHR_SPONSOR" required />
-                                            <label className="active">{CONSTANTS.MESSAGE.SPONSOR_SLP}</label>
                                         </div>
                                         <div className="md-form">
                                             <input data-test="input" type="date" className="form-control" name="WITHDRAW_ON" required />

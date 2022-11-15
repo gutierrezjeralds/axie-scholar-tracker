@@ -46,9 +46,14 @@ const logger = (message, subMessage = "", addedMessage = "", isDevMode = false) 
     }
 }
 
+// Address the Client side
+app.get('/',(req,res)=>{
+    res.sendFile(path.resolve(__dirname,'client','build','index.html'))
+})
+
 // Get Method x Test server
 app.get("/api", (req, res) => {
-    res.sendFile(path.resolve(__dirname,'client','build','index.html'))
+    res.json({ message: "Hello from server!" });
 });
 
 // All other GET requests not handled before will return our React app

@@ -154,13 +154,80 @@ const MESSAGE = {
     HIGH_SLPGAINED: "Highest Gained SLP",
     BATTELOG_ISDISPLAY: "Show Battle Log?",
     RESET_DAILYSLP: "Reset Daily SLP",
-    CANT_GEN_TOKEN_RANDOMMSG: "Could not generate AccessToken Random Message",
-    CANT_GEN_TOKEN_SIGNRONINMSG: "Could not Sign Ronin Message",
-    CANT_GEN_TOKEN_ACCESSMSG: "Could not Create Access Token",
     PROCESS_COUNT: "Process Count",
-    RUN_TOKEN: "Running Access Token"
+    RUN_TOKEN: "Running Access Token",
+    ERROR_JSONPARSE: "Error in JSON Parsing",
+    BAD_REQUEST: "400 Bad Request",
+    INTERNAL_SERVER_ERROR: "Internal Server Error",
+    EMPTYPAYLOAD: "Empty Payload",
+    ERROR_PROCEDURE: "Error in QUERY Procedure",
+    STARTED_SELECTQUERY: "SELECT QUERY Started!",
+    END_SELECTQUERY: "SELECT QUERY END!",
+    STARTED_INSERTQUERY: "INSERT QUERY Started!",
+    END_INSERTQUERY: "INSERT QUERY END!",
+    STARTED_UPDATEQUERY: "UPDATE QUERY Started!",
+    END_UPDATEQUERY: "UPDATE QUERY END!",
+    STARTED_DELETEQUERY: "DELETE QUERY Started!",
+    END_DELETEQUERY: "DELETE QUERY END!",
+    STARTEDPOST: "POST Started!",
+    ENDPOST: "POST QUERY END!",
+    TEAMRECORD: "Team Record",
+    MANAGER_EARNED: "Manager Earned",
+    STARTED_GENERATE_TOKEN: "Generate Access Token Started",
+    ERROR_GENERATE_TOKEN: "Error in Generation of Access Token",
+    END_GENERATE_TOKEN: "Generate Access Token End",
+    STARTED_GENERATE_RANDOMMSG: "Generate Access Token Random Message Started",
+    CANT_GEN_TOKEN_RANDOMMSG: "Could not generate Access Token Random Message",
+    STARTED_GENERATE_SIGNRONINMSG: "Generate Sign Ronin Message Started",
+    CANT_GEN_TOKEN_SIGNRONINMSG: "Could not Sign Ronin Message",
+    STARTED_CREATE_ACCESSMSG: "Create Access Token Started",
+    CANT_GEN_TOKEN_ACCESSMSG: "Could not Create Access Token",
+    STARTED_AUTHLOGIN: "Auth Login Started",
+    END_AUTHLOGIN: "Auth Login End",
+    ERROR_AUTHLOGIN: "Error in Auth Login",
+    STARTED_INGAMESLP_API: "Origin InGame SLP API Started",
+    STARTED_INGAMESLP: "Origin InGame SLP Started",
+    END_INGAMESLP: "Origin InGame SLP End",
+    ERROR_INGAMESLP: "Error in Origin InGame SLP",
+    STARTED_CRYPTOCOINS_API: "Crypto Coins API Started",
+    STARTED_CRYPTOCOINS: "Crypto Coins Started",
+    END_CRYPTOCOINS: "Crypto Coins End",
+    ERROR_CRYPTOCOINS: "Error in Crypto Coins",
 }
 
-export const CONSTANTS = {
-    MESSAGE
+const TABLE = {
+    USERPROFILE: `public."TB_USERPROFILE"`,
+    WITHDRAW: `public."TB_WITHDRAW"`,
+    DAILYSLP: `public."TB_DAILYSLP"`,
 }
+
+const QUERY = {
+    SELECT: {
+        USERPROFILE: `SELECT * FROM public."TB_USERPROFILE"`,
+        DAILYSLP: `SELECT * FROM public."DAILYSLP"`,
+        WITHDRAW: `SELECT * FROM public."TB_WITHDRAW"`,
+        MANAGEREARNED: `SELECT * FROM public."TB_MANAGEREARNED"`,
+        YESTERDAYSLP: `SELECT * FROM public."TB_YESTERDAYSLP"`
+    },
+    INSERT: {
+        USERPROFILE: `INSERT INTO public."TB_USERPROFILE"`,
+        DAILYSLP: `INSERT INTO public."TB_DAILYSLP"`,
+        WITHDRAW: `INSERT INTO public."TB_WITHDRAW"`,
+        MANAGEREARNED: `INSERT INTO public."TB_MANAGEREARNED"`,
+        YESTERDAYSLP: `INSERT INTO public."TB_YESTERDAYSLP"`
+    },
+    UPDATE: {
+        USERPROFILE: `UPDATE public."TB_USERPROFILE"`,
+        DAILYSLP: `UPDATE public."TB_DAILYSLP"`
+    },
+    DELETE: {
+        YESTERDAYSLP: `DELETE FROM public."TB_YESTERDAYSLP"`
+    }
+}
+
+// Export the function
+module.exports = {
+    MESSAGE,
+    TABLE,
+    QUERY
+};

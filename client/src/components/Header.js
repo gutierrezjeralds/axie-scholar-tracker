@@ -1,5 +1,5 @@
 import React from 'react'
-import { CONSTANTS } from './Constants';
+import { MESSAGE } from './Constants';
 import {
     MDBBox, MDBNavbar, MDBNavbarBrand, MDBNavbarNav, MDBNavItem, MDBNavbarToggler, MDBCollapse, MDBContainer,
     MDBDropdown, MDBDropdownToggle, MDBDropdownMenu, MDBDropdownItem
@@ -40,7 +40,7 @@ class Header extends React.Component {
                     <MDBContainer>
                         <MDBNavbarBrand>
                             <a href="/">
-                                <MDBBox tag="span" className="d-dlock m-0 text-center font-size-1pt5rem z-depth-0 rounded-circle">{CONSTANTS.MESSAGE.TEAMLOKI}</MDBBox>
+                                <MDBBox tag="span" className="d-dlock m-0 text-center font-size-1pt5rem z-depth-0 rounded-circle">{MESSAGE.TEAMLOKI}</MDBBox>
                             </a>
                         </MDBNavbarBrand>
                         <MDBNavbarToggler onClick={this.toggleCollapse} />
@@ -49,10 +49,10 @@ class Header extends React.Component {
                                 <MDBNavItem active>
                                     <MDBDropdown>
                                         <MDBDropdownToggle nav caret>
-                                            <MDBBox tag="span" className="mr-2">{CONSTANTS.MESSAGE.TOTHE_MOON}</MDBBox>
+                                            <MDBBox tag="span" className="mr-2">{MESSAGE.TOTHE_MOON}</MDBBox>
                                         </MDBDropdownToggle>
                                         <MDBDropdownMenu>
-                                            <MDBDropdownItem onClick={this.onLogoutHandle.bind(this)}>{CONSTANTS.MESSAGE.LOGOUT}</MDBDropdownItem>
+                                            <MDBDropdownItem onClick={this.onLogoutHandle.bind(this)}>{MESSAGE.LOGOUT}</MDBDropdownItem>
                                         </MDBDropdownMenu>
                                     </MDBDropdown>
                                 </MDBNavItem>

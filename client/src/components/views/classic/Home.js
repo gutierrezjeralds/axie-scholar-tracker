@@ -1,6 +1,6 @@
 import React from "react";
 import $ from 'jquery';
-import { CONSTANTS } from '../../Constants';
+import { MESSAGE } from '../../Constants';
 import { 
     MDBBox, MDBContainer, MDBRow, MDBCol, MDBCard, MDBCardBody,
     MDBTable, MDBTableBody, MDBTableHead,
@@ -62,7 +62,7 @@ class Home extends React.Component {
             managerPHPReachedROI: false,
             slpCurrentValue: 0,
             axsCurrentValue: 0,
-            currentValueFrm: CONSTANTS.MESSAGE.COINGECKO,
+            currentValueFrm: MESSAGE.COINGECKO,
             apiCoinRunningCounter: 0, // 0 can be rerun another api x 1 discard the running set the default
             isRecordLoaded: false,
             isPlayerLoaded: false,
@@ -89,7 +89,7 @@ class Home extends React.Component {
             topSLP: 0, // For condition of getting top user
             topUserMMR: "",
             topUserSLP: "",
-            isViewMangerEarning: CONSTANTS.MESSAGE.VIEW_CURRENT_EARNINGS,
+            isViewMangerEarning: MESSAGE.VIEW_CURRENT_EARNINGS,
             totalManagerAllSLP: 0,
             totalManagerAllPHP: 0,
             modalManagerAllEarning: [],
@@ -99,13 +99,13 @@ class Home extends React.Component {
             isValidAddTeam: 0,
             isValidWithdraw: 0,
             isValidManagerEarn: 0,
-            errorMsg: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
+            errorMsg: MESSAGE.UNEXPECTED_ERROR,
             PVPENERGY_DEFAULT: 20,
             tabIskoInputsActive: "1",
             slctClaimId: "",
             slctAddEditId: "",
             hasSponsor: false,
-            isViewSLPChart: CONSTANTS.MESSAGE.VIEW_GAINEDSLP_CHART,
+            isViewSLPChart: MESSAGE.VIEW_GAINEDSLP_CHART,
             isBonusSLPRewardOn: false, // Indicator if the display of SLP Rewards is vissible to other user
             isDeleted: false,
             isBattleLogEnable: Cookies.get("isBattleLogEnable") ? Cookies.get("isBattleLogEnable") === "1" ? true : false : false, // Indicator if the battle log display and logic is visable and functioning
@@ -176,7 +176,7 @@ class Home extends React.Component {
         this.setState({
             isModalPlayerDetailsOpen: !this.state.isModalPlayerDetailsOpen,
             modalPlayerDetails: details,
-            isViewSLPChart: CONSTANTS.MESSAGE.VIEW_GAINEDSLP_CHART
+            isViewSLPChart: MESSAGE.VIEW_GAINEDSLP_CHART
         });
     }
 
@@ -189,26 +189,26 @@ class Home extends React.Component {
 
     // Hide and Show Manager Total Earning
     onManagerEarningHandle(event) {
-        if (event.target.innerText === CONSTANTS.MESSAGE.VIEW_ALL_EARNINGS) {
+        if (event.target.innerText === MESSAGE.VIEW_ALL_EARNINGS) {
             this.setState({
-                isViewMangerEarning: CONSTANTS.MESSAGE.VIEW_ALL_EARNINGS,
+                isViewMangerEarning: MESSAGE.VIEW_ALL_EARNINGS,
             })
         } else {
             this.setState({
-                isViewMangerEarning: CONSTANTS.MESSAGE.VIEW_CURRENT_EARNINGS,
+                isViewMangerEarning: MESSAGE.VIEW_CURRENT_EARNINGS,
             })
         }
     }
 
     // Hide and Show Player Earnings and SLP Chart
     onScholarEaningNChartHandle(event) {
-        if (event.target.innerText === CONSTANTS.MESSAGE.VIEW_EARNINGS) {
+        if (event.target.innerText === MESSAGE.VIEW_EARNINGS) {
             this.setState({
-                isViewSLPChart: CONSTANTS.MESSAGE.VIEW_EARNINGS,
+                isViewSLPChart: MESSAGE.VIEW_EARNINGS,
             })
         } else {
             this.setState({
-                isViewSLPChart: CONSTANTS.MESSAGE.VIEW_GAINEDSLP_CHART,
+                isViewSLPChart: MESSAGE.VIEW_GAINEDSLP_CHART,
             })
         }
     }
@@ -311,7 +311,7 @@ class Home extends React.Component {
                     }
                             
                     this.setState({
-                        currentValueFrm: CONSTANTS.MESSAGE.BINANCE,
+                        currentValueFrm: MESSAGE.BINANCE,
                         slpCurrentValue: isSLPValue,
                         axsCurrentValue: isAXSValue
                     })
@@ -320,7 +320,7 @@ class Home extends React.Component {
                         // Get Coingecko data / json
                         this.getCoingecko();
                         this.setState({
-                            currentValueFrm: CONSTANTS.MESSAGE.COINGECKO,
+                            currentValueFrm: MESSAGE.COINGECKO,
                             apiCoinRunningCounter: 1
                         })
                     } else {
@@ -340,7 +340,7 @@ class Home extends React.Component {
                     // Get Coingecko data / json
                     this.getCoingecko();
                     this.setState({
-                        currentValueFrm: CONSTANTS.MESSAGE.COINGECKO,
+                        currentValueFrm: MESSAGE.COINGECKO,
                         apiCoinRunningCounter: 1
                     })
                 } else {
@@ -351,7 +351,7 @@ class Home extends React.Component {
                     })
                 }
                     
-                console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, error)
+                console.error(MESSAGE.ERROR_OCCURED, error)
             }
         )
         .catch(
@@ -360,7 +360,7 @@ class Home extends React.Component {
                     // Get Coingecko data / json
                     this.getCoingecko();
                     this.setState({
-                        currentValueFrm: CONSTANTS.MESSAGE.COINGECKO,
+                        currentValueFrm: MESSAGE.COINGECKO,
                         apiCoinRunningCounter: 1
                     })
                 } else {
@@ -371,7 +371,7 @@ class Home extends React.Component {
                     })
                 }
                     
-                console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
+                console.error(MESSAGE.ERROR_OCCURED, err)
             }
         )
         .done(() => {
@@ -391,7 +391,7 @@ class Home extends React.Component {
         .then(
             (result) => {
                 this.setState({
-                    currentValueFrm: CONSTANTS.MESSAGE.COINGECKO,
+                    currentValueFrm: MESSAGE.COINGECKO,
                     slpCurrentValue: result["smooth-love-potion"].php,
                     axsCurrentValue: result["axie-infinity"].php
                 })
@@ -404,7 +404,7 @@ class Home extends React.Component {
                     // Get Binance data / json
                     this.getBinance();
                     this.setState({
-                        currentValueFrm: CONSTANTS.MESSAGE.BINANCE,
+                        currentValueFrm: MESSAGE.BINANCE,
                         apiCoinRunningCounter: 1
                     })
                 } else {
@@ -415,7 +415,7 @@ class Home extends React.Component {
                     })
                 }
 
-                console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, error)
+                console.error(MESSAGE.ERROR_OCCURED, error)
             }
         )
         .catch(
@@ -424,7 +424,7 @@ class Home extends React.Component {
                     // Get Binance data / json
                     this.getBinance();
                     this.setState({
-                        currentValueFrm: CONSTANTS.MESSAGE.BINANCE,
+                        currentValueFrm: MESSAGE.BINANCE,
                         apiCoinRunningCounter: 1
                     })
                 } else {
@@ -435,7 +435,7 @@ class Home extends React.Component {
                     })
                 }
 
-                console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
+                console.error(MESSAGE.ERROR_OCCURED, err)
             }
         )
         .done(() => {
@@ -470,7 +470,7 @@ class Home extends React.Component {
                 }
             )
         }).catch(err => {
-            console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
+            console.error(MESSAGE.ERROR_OCCURED, err)
             return err;
         });
     }
@@ -485,7 +485,7 @@ class Home extends React.Component {
                 template_params: {
                     "from_name": name,
                     "to_email": email,
-                    "subject": CONSTANTS.MESSAGE.EMAIL_LOWMMR_SUBJECT,
+                    "subject": MESSAGE.EMAIL_LOWMMR_SUBJECT,
                     "message": message,
                     "mmr": this.numberWithCommas(mmr)
                 },
@@ -554,7 +554,7 @@ class Home extends React.Component {
 
         if (event.target.value) {
             // Update Select Option text
-            // $(".addEdit-inputHolder").find("select").text(`${CONSTANTS.MESSAGE.EDIT}: ${event.target.value}`);
+            // $(".addEdit-inputHolder").find("select").text(`${MESSAGE.EDIT}: ${event.target.value}`);
             const dataSet = this.state.playerRecords.filter(item => item.cliend_id === event.target.value || item.name === event.target.value); // Filter valid data
             if (dataSet.length > 0) {
                 // Check if item has sponsor
@@ -641,7 +641,7 @@ class Home extends React.Component {
                 SPONSOR_NAME: sponsorName,
                 STARTED_ON: dateToday,
                 DELETEIND: this.state.isDeleted ? "X" : "",
-                ACTION: this.state.slctAddEditId ? CONSTANTS.MESSAGE.UPDATE : CONSTANTS.MESSAGE.INSERT // Empty addEdit id from select will be insert
+                ACTION: this.state.slctAddEditId ? MESSAGE.UPDATE : MESSAGE.INSERT // Empty addEdit id from select will be insert
             }
 
             // Run Ajax
@@ -661,7 +661,7 @@ class Home extends React.Component {
                         // Has error
                         this.setState({
                             isValidAddTeam: false,
-                            errorMsg: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
+                            errorMsg: MESSAGE.UNEXPECTED_ERROR,
                             isLoaded: true,
                             isModalIskoInputsOpen: true // Open modal after processing with error
                         })
@@ -671,10 +671,10 @@ class Home extends React.Component {
                 // instead of a catch() block so that we don't swallow
                 // exceptions from actual bugs in components.
                 (error) => {
-                    console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, error)
+                    console.error(MESSAGE.ERROR_OCCURED, error)
                     this.setState({
                         isValidAddTeam: false,
-                        errorMsg: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
+                        errorMsg: MESSAGE.UNEXPECTED_ERROR,
                         isLoaded: true,
                         isModalIskoInputsOpen: true // Open modal after processing with error
                     })
@@ -682,10 +682,10 @@ class Home extends React.Component {
             )
             .catch(
                 (err) => {
-                    console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
+                    console.error(MESSAGE.ERROR_OCCURED, err)
                     this.setState({
                         isValidAddTeam: false,
-                        errorMsg: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
+                        errorMsg: MESSAGE.UNEXPECTED_ERROR,
                         isLoaded: true,
                         isModalIskoInputsOpen: true // Open modal after processing with error
                     })
@@ -695,7 +695,7 @@ class Home extends React.Component {
             // Invalid total of Share
             this.setState({
                 isValidAddTeam: false,
-                errorMsg: CONSTANTS.MESSAGE.SHARELIMIT,
+                errorMsg: MESSAGE.SHARELIMIT,
                 isLoaded: true,
                 isModalIskoInputsOpen: true // Open modal after processing with error
             })
@@ -785,7 +785,7 @@ class Home extends React.Component {
                         // Has error
                         this.setState({
                             isValidWithdraw: false,
-                            errorMsg: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
+                            errorMsg: MESSAGE.UNEXPECTED_ERROR,
                             isLoaded: true,
                             isModalIskoInputsOpen: true // Open modal after processing with error
                         })
@@ -795,11 +795,11 @@ class Home extends React.Component {
                 // instead of a catch() block so that we don't swallow
                 // exceptions from actual bugs in components.
                 (error) => {
-                    console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, error)
+                    console.error(MESSAGE.ERROR_OCCURED, error)
                     // Has error
                     this.setState({
                         isValidWithdraw: false,
-                        errorMsg: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
+                        errorMsg: MESSAGE.UNEXPECTED_ERROR,
                         isLoaded: true,
                         isModalIskoInputsOpen: true // Open modal after processing with error
                     })
@@ -807,11 +807,11 @@ class Home extends React.Component {
             )
             .catch(
                 (err) => {
-                    console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
+                    console.error(MESSAGE.ERROR_OCCURED, err)
                     // Has error
                     this.setState({
                         isValidWithdraw: false,
-                        errorMsg: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
+                        errorMsg: MESSAGE.UNEXPECTED_ERROR,
                         isLoaded: true,
                         isModalIskoInputsOpen: true // Open modal after processing with error
                     })
@@ -821,7 +821,7 @@ class Home extends React.Component {
             // Invalid data
             this.setState({
                 isValidAddTeam: false,
-                errorMsg: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
+                errorMsg: MESSAGE.UNEXPECTED_ERROR,
                 isLoaded: true,
                 isModalIskoInputsOpen: true // Open modal after processing with error
             })
@@ -868,7 +868,7 @@ class Home extends React.Component {
                         // Has error
                         this.setState({
                             isValidManagerEarn: false,
-                            errorMsg: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
+                            errorMsg: MESSAGE.UNEXPECTED_ERROR,
                             isLoaded: true,
                             isModalIskoInputsOpen: true // Open modal after processing with error
                         })
@@ -878,11 +878,11 @@ class Home extends React.Component {
                 // instead of a catch() block so that we don't swallow
                 // exceptions from actual bugs in components.
                 (error) => {
-                    console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, error)
+                    console.error(MESSAGE.ERROR_OCCURED, error)
                     // Has error
                     this.setState({
                         isValidManagerEarn: false,
-                        errorMsg: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
+                        errorMsg: MESSAGE.UNEXPECTED_ERROR,
                         isLoaded: true,
                         isModalIskoInputsOpen: true // Open modal after processing with error
                     })
@@ -890,11 +890,11 @@ class Home extends React.Component {
             )
             .catch(
                 (err) => {
-                    console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
+                    console.error(MESSAGE.ERROR_OCCURED, err)
                     // Has error
                     this.setState({
                         isValidManagerEarn: false,
-                        errorMsg: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
+                        errorMsg: MESSAGE.UNEXPECTED_ERROR,
                         isLoaded: true,
                         isModalIskoInputsOpen: true // Open modal after processing with error
                     })
@@ -904,7 +904,7 @@ class Home extends React.Component {
             // Invalid data
             this.setState({
                 isValidAddTeam: false,
-                errorMsg: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
+                errorMsg: MESSAGE.UNEXPECTED_ERROR,
                 isLoaded: true,
                 isModalIskoInputsOpen: true // Open modal after processing with error
             })
@@ -928,12 +928,12 @@ class Home extends React.Component {
             // instead of a catch() block so that we don't swallow
             // exceptions from actual bugs in components.
             (error) => {
-                console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, error)
+                console.error(MESSAGE.ERROR_OCCURED, error)
             }
         )
         .catch(
             (err) => {
-                console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
+                console.error(MESSAGE.ERROR_OCCURED, err)
             }
         )
     }
@@ -955,12 +955,12 @@ class Home extends React.Component {
             // instead of a catch() block so that we don't swallow
             // exceptions from actual bugs in components.
             (error) => {
-                console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, error)
+                console.error(MESSAGE.ERROR_OCCURED, error)
             }
         )
         .catch(
             (err) => {
-                console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
+                console.error(MESSAGE.ERROR_OCCURED, err)
             }
         )
     }
@@ -982,12 +982,12 @@ class Home extends React.Component {
             // instead of a catch() block so that we don't swallow
             // exceptions from actual bugs in components.
             (error) => {
-                console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, error)
+                console.error(MESSAGE.ERROR_OCCURED, error)
             }
         )
         .catch(
             (err) => {
-                console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
+                console.error(MESSAGE.ERROR_OCCURED, err)
             }
         )
     }
@@ -1074,7 +1074,7 @@ class Home extends React.Component {
                                 }
     
                                 // Display data
-                                if (this.state.isUser === CONSTANTS.MESSAGE.MANAGER || this.state.isUserEmail) {
+                                if (this.state.isUser === MESSAGE.MANAGER || this.state.isUserEmail) {
                                     if (!dataItem.isDelete) { // Display not deleted player
                                         initDisplay.push(dataItem.data); // Data for initial display x display all
                                     }
@@ -1125,7 +1125,7 @@ class Home extends React.Component {
                                 }
 
                                 // Display data
-                                if (!dataItem.isDelete && (this.state.isUser === CONSTANTS.MESSAGE.MANAGER || this.state.isUserEmail)) {
+                                if (!dataItem.isDelete && (this.state.isUser === MESSAGE.MANAGER || this.state.isUserEmail)) {
                                     // Data for Manager Earnings in Modal x Pushed specific data
                                     managerEarningsDisplay.push({
                                         name: dataItem.data.name,
@@ -1166,46 +1166,46 @@ class Home extends React.Component {
 
                             // Default Columns for Player Datatable
                             let playerDataTableColums = [
-                                {label: CONSTANTS.MESSAGE.NAME, field: "nameSub"},
-                                {label: CONSTANTS.MESSAGE.DAILYSLP, field: "dailySLP"},
-                                {label: CONSTANTS.MESSAGE.AVG_SLP_PERDAY, field: "averageSLP"},
-                                {label: CONSTANTS.MESSAGE.INGAME_SLP, field: "ingameSLP"},
-                                {label: CONSTANTS.MESSAGE.SHARED_SLP, field: "sharedScholarSLP"},
-                                {label: CONSTANTS.MESSAGE.RONIN_SLP, field: "roninSLP"},
-                                {label: CONSTANTS.MESSAGE.TOTAL_SLP_PHP, field: "totalScholarEarningPHPSLP"},
-                                {label: CONSTANTS.MESSAGE.CLAIMON, field: "claimOn"},
-                                {label: CONSTANTS.MESSAGE.MMR, field: "mmrRank"}
+                                {label: MESSAGE.NAME, field: "nameSub"},
+                                {label: MESSAGE.DAILYSLP, field: "dailySLP"},
+                                {label: MESSAGE.AVG_SLP_PERDAY, field: "averageSLP"},
+                                {label: MESSAGE.INGAME_SLP, field: "ingameSLP"},
+                                {label: MESSAGE.SHARED_SLP, field: "sharedScholarSLP"},
+                                {label: MESSAGE.RONIN_SLP, field: "roninSLP"},
+                                {label: MESSAGE.TOTAL_SLP_PHP, field: "totalScholarEarningPHPSLP"},
+                                {label: MESSAGE.CLAIMON, field: "claimOn"},
+                                {label: MESSAGE.MMR, field: "mmrRank"}
                             ];
 
                             // Adding additional Column for Player Datatable x Reward Bonus SLP Column x Battlelog and SLPBonusReward should not display both at the same time
-                            if (!this.state.isBattleLogEnable && this.state.isBonusSLPRewardOn && (this.state.isUser === CONSTANTS.MESSAGE.MANAGER || this.state.isUserEmail)) {
+                            if (!this.state.isBattleLogEnable && this.state.isBonusSLPRewardOn && (this.state.isUser === MESSAGE.MANAGER || this.state.isUserEmail)) {
                                 playerDataTableColums = [
-                                    {label: CONSTANTS.MESSAGE.NAME, field: "nameSub"},
-                                    {label: CONSTANTS.MESSAGE.DAILYSLP, field: "dailySLP"},
-                                    {label: CONSTANTS.MESSAGE.AVG_SLP_PERDAY, field: "averageSLP"},
-                                    {label: CONSTANTS.MESSAGE.INGAME_SLP, field: "ingameSLP"},
-                                    {label: CONSTANTS.MESSAGE.SHARED_SLP, field: "sharedScholarSLP"},
-                                    {label: CONSTANTS.MESSAGE.RONIN_SLP, field: "roninSLP"},
-                                    {label: CONSTANTS.MESSAGE.TOTAL_SLP_PHP, field: "totalScholarEarningPHPSLP"},
-                                    {label: CONSTANTS.MESSAGE.REWARDS_SLP, field: "rewardSLP"}, // Additional Column
-                                    {label: CONSTANTS.MESSAGE.CLAIMON, field: "claimOn"},
-                                    {label: CONSTANTS.MESSAGE.MMR, field: "mmrRank"}
+                                    {label: MESSAGE.NAME, field: "nameSub"},
+                                    {label: MESSAGE.DAILYSLP, field: "dailySLP"},
+                                    {label: MESSAGE.AVG_SLP_PERDAY, field: "averageSLP"},
+                                    {label: MESSAGE.INGAME_SLP, field: "ingameSLP"},
+                                    {label: MESSAGE.SHARED_SLP, field: "sharedScholarSLP"},
+                                    {label: MESSAGE.RONIN_SLP, field: "roninSLP"},
+                                    {label: MESSAGE.TOTAL_SLP_PHP, field: "totalScholarEarningPHPSLP"},
+                                    {label: MESSAGE.REWARDS_SLP, field: "rewardSLP"}, // Additional Column
+                                    {label: MESSAGE.CLAIMON, field: "claimOn"},
+                                    {label: MESSAGE.MMR, field: "mmrRank"}
                                 ];
                             }
                             
                             // Adding PVP Energy Column when Battle log is enable x Battlelog and SLPBonusReward should not display both at the same time
                             if (this.state.isBattleLogEnable && !this.state.isBonusSLPRewardOn) {
                                 playerDataTableColums = [
-                                    {label: CONSTANTS.MESSAGE.NAME, field: "nameSub"},
-                                    {label: CONSTANTS.MESSAGE.DAILYSLP, field: "dailySLP"},
-                                    {label: CONSTANTS.MESSAGE.AVG_SLP_PERDAY, field: "averageSLP"},
-                                    {label: CONSTANTS.MESSAGE.INGAME_SLP, field: "ingameSLP"},
-                                    {label: CONSTANTS.MESSAGE.SHARED_SLP, field: "sharedScholarSLP"},
-                                    {label: CONSTANTS.MESSAGE.RONIN_SLP, field: "roninSLP"},
-                                    {label: CONSTANTS.MESSAGE.TOTAL_SLP_PHP, field: "totalScholarEarningPHPSLP"},
-                                    {label: CONSTANTS.MESSAGE.CLAIMON, field: "claimOn"},
-                                    {label: CONSTANTS.MESSAGE.PVP_ENERGY, field: "pvpEnergy"},
-                                    {label: CONSTANTS.MESSAGE.MMR, field: "mmrRank"}
+                                    {label: MESSAGE.NAME, field: "nameSub"},
+                                    {label: MESSAGE.DAILYSLP, field: "dailySLP"},
+                                    {label: MESSAGE.AVG_SLP_PERDAY, field: "averageSLP"},
+                                    {label: MESSAGE.INGAME_SLP, field: "ingameSLP"},
+                                    {label: MESSAGE.SHARED_SLP, field: "sharedScholarSLP"},
+                                    {label: MESSAGE.RONIN_SLP, field: "roninSLP"},
+                                    {label: MESSAGE.TOTAL_SLP_PHP, field: "totalScholarEarningPHPSLP"},
+                                    {label: MESSAGE.CLAIMON, field: "claimOn"},
+                                    {label: MESSAGE.PVP_ENERGY, field: "pvpEnergy"},
+                                    {label: MESSAGE.MMR, field: "mmrRank"}
                                 ];
                             }
     
@@ -1220,17 +1220,17 @@ class Home extends React.Component {
                                 mmrDatatable: {
                                     columns: [
                                         {label: "", field: "order"},
-                                        {label: CONSTANTS.MESSAGE.NAME, field: "name"},
-                                        {label: CONSTANTS.MESSAGE.MMR, field: "mmr"},
-                                        {label: CONSTANTS.MESSAGE.RANK, field: "rank", sort: "desc"}
+                                        {label: MESSAGE.NAME, field: "name"},
+                                        {label: MESSAGE.MMR, field: "mmr"},
+                                        {label: MESSAGE.RANK, field: "rank", sort: "desc"}
                                     ], rows: mmrDisplay
                                 },
                                 managerEarningDatatable: {
                                     columns: [
-                                        {label: CONSTANTS.MESSAGE.NAME, field: "name"},
-                                        {label: CONSTANTS.MESSAGE.INGAME_SLP, field: "ingameSLP"},
-                                        {label: CONSTANTS.MESSAGE.SHARED_SLP, field: "sharedManagerSLP"},
-                                        {label: CONSTANTS.MESSAGE.EARNINGS_PHP, field: "managerEarningsPHP"}
+                                        {label: MESSAGE.NAME, field: "name"},
+                                        {label: MESSAGE.INGAME_SLP, field: "ingameSLP"},
+                                        {label: MESSAGE.SHARED_SLP, field: "sharedManagerSLP"},
+                                        {label: MESSAGE.EARNINGS_PHP, field: "managerEarningsPHP"}
                                     ], rows: managerEarningsDisplay
                                 },
                                 exportData: disExportData
@@ -1243,7 +1243,7 @@ class Home extends React.Component {
                                 isLoaded: true,
                                 isNotif: true,
                                 notifCat: "error",
-                                notifStr: CONSTANTS.MESSAGE.NODATA_FOUND,
+                                notifStr: MESSAGE.NODATA_FOUND,
                                 error: true
                             })
                         }
@@ -1254,7 +1254,7 @@ class Home extends React.Component {
                         isLoaded: true,
                         isNotif: true,
                         notifCat: "error",
-                        notifStr: CONSTANTS.MESSAGE.NODATA_FOUND,
+                        notifStr: MESSAGE.NODATA_FOUND,
                         error: true
                     })
                 }
@@ -1267,11 +1267,11 @@ class Home extends React.Component {
                     isLoaded: true,
                     isNotif: true,
                     notifCat: "error",
-                    notifStr: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
+                    notifStr: MESSAGE.UNEXPECTED_ERROR,
                     error: true
                 })
                     
-                console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, error)
+                console.error(MESSAGE.ERROR_OCCURED, error)
             }
         )
         .catch(
@@ -1280,11 +1280,11 @@ class Home extends React.Component {
                     isLoaded: true,
                     isNotif: true,
                     notifCat: "error",
-                    notifStr: CONSTANTS.MESSAGE.UNEXPECTED_ERROR,
+                    notifStr: MESSAGE.UNEXPECTED_ERROR,
                     error: true
                 })
                     
-                console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
+                console.error(MESSAGE.ERROR_OCCURED, err)
             }
         )
     }
@@ -1322,7 +1322,7 @@ class Home extends React.Component {
                             return reject({error: true});
                         }
                     } else {
-                        console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, error)
+                        console.error(MESSAGE.ERROR_OCCURED, error)
                         return reject({error: true});
                     }
                 }
@@ -1339,13 +1339,13 @@ class Home extends React.Component {
                             return reject({error: true});
                         }
                     } else {
-                        console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
+                        console.error(MESSAGE.ERROR_OCCURED, err)
                         return reject({error: true});
                     }
                 }
             )
         }).catch(err => {
-            console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
+            console.error(MESSAGE.ERROR_OCCURED, err)
             return err;
         });
     }
@@ -1774,15 +1774,15 @@ class Home extends React.Component {
                     }
 
                     // Send Email if the MMR is low x for Scholar's only x send if user is manager
-                    if (this.state.isUser === CONSTANTS.MESSAGE.MANAGER) {
+                    if (this.state.isUser === MESSAGE.MANAGER) {
                         if (ranking.eloStatus === "danger") {
                             // Send an Email due to Lower MMR
-                            // this.sendMMRMessage(result.name, details.EMAIL, ranking.elo, CONSTANTS.MESSAGE.EMAIL_LOWMMR_MESSAGE);
+                            // this.sendMMRMessage(result.name, details.EMAIL, ranking.elo, MESSAGE.EMAIL_LOWMMR_MESSAGE);
                         }
 
                         if (ranking.eloStatus === "warning") {
                             // Send an Email due to Warning MMR
-                            // this.sendMMRMessage(result.name, details.EMAIL, ranking.elo, CONSTANTS.MESSAGE.EMAIL_WARNINGMMR_MESSAGE);
+                            // this.sendMMRMessage(result.name, details.EMAIL, ranking.elo, MESSAGE.EMAIL_WARNINGMMR_MESSAGE);
                         }
                     }
 
@@ -1817,9 +1817,9 @@ class Home extends React.Component {
                                         for (var i = 0; i < e.entries.length; i++) {
                                             content += "<b class='primary'>" + moment(e.entries[i].dataPoint.x).format('MMM DD') + "</b>";
                                             content += "<br/>";
-                                            content += CONSTANTS.MESSAGE.SLP + ": " + e.entries[i].dataPoint.y;
+                                            content += MESSAGE.SLP + ": " + e.entries[i].dataPoint.y;
                                             content += "<br/>";
-                                            content += CONSTANTS.MESSAGE.MMR + ": " + e.entries[i].dataPoint.z;
+                                            content += MESSAGE.MMR + ": " + e.entries[i].dataPoint.z;
                                         }
                                         return content;
                                     }
@@ -1896,7 +1896,7 @@ class Home extends React.Component {
                                         YESTERDAYDATE: yesterdayDate,
                                         TODAY: 0,
                                         TODATE: todayDate,
-                                        ACTION: CONSTANTS.MESSAGE.UPDATE,
+                                        ACTION: MESSAGE.UPDATE,
                                         MESSAGE: "UPDATE from energy reset and was claimed - true",
                                         UPDATEDON: todayDate,
                                         NAME: result.name,
@@ -1915,7 +1915,7 @@ class Home extends React.Component {
                                             YESTERDAYDATE: yesterdayDate,
                                             TODAY: 0,
                                             TODATE: todayDate,
-                                            ACTION: CONSTANTS.MESSAGE.UPDATE,
+                                            ACTION: MESSAGE.UPDATE,
                                             MESSAGE: "UPDATE from energy reset and error in daily slp",
                                             UPDATEDON: todayDate,
                                             NAME: result.name,
@@ -1934,7 +1934,7 @@ class Home extends React.Component {
                                                 YESTERDAYDATE: yesterdayDate,
                                                 TODAY: todaySLP,
                                                 TODATE: toDate,
-                                                ACTION: CONSTANTS.MESSAGE.UPDATE,
+                                                ACTION: MESSAGE.UPDATE,
                                                 MESSAGE: "UPDATE from isSameTODate true",
                                                 UPDATEDON: todayDate,
                                                 NAME: result.name,
@@ -1976,7 +1976,7 @@ class Home extends React.Component {
                                                 YESTERDAYDATE: yesterdayDate,
                                                 TODAY: todaysSLP,
                                                 TODATE: todayDate,
-                                                ACTION: CONSTANTS.MESSAGE.UPDATE,
+                                                ACTION: MESSAGE.UPDATE,
                                                 MESSAGE: "UPDATE from energy reset - with battle logs - has already start the game",
                                                 UPDATEDON: todayDate,
                                                 NAME: result.name,
@@ -1999,7 +1999,7 @@ class Home extends React.Component {
                                                 YESTERDAYDATE: yesterdayDate,
                                                 TODAY: todaysSLP,
                                                 TODATE: todayDate,
-                                                ACTION: CONSTANTS.MESSAGE.UPDATE,
+                                                ACTION: MESSAGE.UPDATE,
                                                 MESSAGE: "UPDATE from energy reset - with battle logs",
                                                 UPDATEDON: todayDate,
                                                 NAME: result.name,
@@ -2023,7 +2023,7 @@ class Home extends React.Component {
                                             YESTERDAYDATE: yesterdayDate,
                                             TODAY: todaysSLP,
                                             TODATE: todayDate,
-                                            ACTION: CONSTANTS.MESSAGE.UPDATE,
+                                            ACTION: MESSAGE.UPDATE,
                                             MESSAGE: "UPDATE from energy reset",
                                             UPDATEDON: todayDate,
                                             NAME: result.name,
@@ -2045,7 +2045,7 @@ class Home extends React.Component {
                                             YESTERDAYDATE: yesterdayDate,
                                             TODAY: todaySLP,
                                             TODATE: toDate,
-                                            ACTION: CONSTANTS.MESSAGE.UPDATE,
+                                            ACTION: MESSAGE.UPDATE,
                                             MESSAGE: "UPDATE from isSameTODate false",
                                             UPDATEDON: todayDate,
                                             NAME: result.name,
@@ -2149,12 +2149,12 @@ class Home extends React.Component {
                 const playerDataTableRes = {
                     name: result.name,
                     nameSub: result.name,
-                    averageSLP: <MDBBox data-th={CONSTANTS.MESSAGE.AVERAGE_SLP_PERDAY_V2} tag="span" className={result.dailyQuota.textStyle}>{result.averageSLPDay}</MDBBox>,
-                    dailySLP: <MDBBox data-th={CONSTANTS.MESSAGE.DAILYSLP} tag="span"><MDBBox tag="span" className={Number(result.dailySLP.YESTERDAYRES) > Number(result.dailySLP.TODAY) ? "green-text d-inline d-md-block d-lg-block" : "red-text d-inline d-md-block d-lg-block"}><strong>Y:</strong> {result.dailySLP.YESTERDAYRES}</MDBBox> <MDBBox tag="span" className={Number(result.dailySLP.YESTERDAYRES) > Number(result.dailySLP.TODAY) ? "red-text d-inline d-md-block d-lg-block" : "green-text d-inline d-md-block d-lg-block"}><strong>T:</strong> {result.dailySLP.TODAY}</MDBBox></MDBBox>,
-                    ingameSLP: <MDBBox data-th={CONSTANTS.MESSAGE.INGAME_SLP} tag="span">{this.numberWithCommas(result.inGameSLP)}</MDBBox>,
-                    sharedScholarSLP: <MDBBox data-th={CONSTANTS.MESSAGE.SHARED_SLP} tag="span" className="d-inline d-md-block d-lg-block">
+                    averageSLP: <MDBBox data-th={MESSAGE.AVERAGE_SLP_PERDAY_V2} tag="span" className={result.dailyQuota.textStyle}>{result.averageSLPDay}</MDBBox>,
+                    dailySLP: <MDBBox data-th={MESSAGE.DAILYSLP} tag="span"><MDBBox tag="span" className={Number(result.dailySLP.YESTERDAYRES) > Number(result.dailySLP.TODAY) ? "green-text d-inline d-md-block d-lg-block" : "red-text d-inline d-md-block d-lg-block"}><strong>Y:</strong> {result.dailySLP.YESTERDAYRES}</MDBBox> <MDBBox tag="span" className={Number(result.dailySLP.YESTERDAYRES) > Number(result.dailySLP.TODAY) ? "red-text d-inline d-md-block d-lg-block" : "green-text d-inline d-md-block d-lg-block"}><strong>T:</strong> {result.dailySLP.TODAY}</MDBBox></MDBBox>,
+                    ingameSLP: <MDBBox data-th={MESSAGE.INGAME_SLP} tag="span">{this.numberWithCommas(result.inGameSLP)}</MDBBox>,
+                    sharedScholarSLP: <MDBBox data-th={MESSAGE.SHARED_SLP} tag="span" className="d-inline d-md-block d-lg-block">
                                             {
-                                                this.state.isUser === CONSTANTS.MESSAGE.MANAGER || !this.state.isUserEmail || (this.state.isUser).toLowerCase() === (result.details.EMAIL).toLowerCase() ? (
+                                                this.state.isUser === MESSAGE.MANAGER || !this.state.isUserEmail || (this.state.isUser).toLowerCase() === (result.details.EMAIL).toLowerCase() ? (
                                                     <React.Fragment>
                                                         {this.numberWithCommas(result.sharedScholarSLP)}
                                                         <MDBBox tag="span" className="d-inline d-md-block d-lg-block">
@@ -2164,24 +2164,24 @@ class Home extends React.Component {
                                                 ) : (0) // If user is email x display 0 for other player
                                             }
                                         </MDBBox>,
-                    roninSLP: <MDBBox data-th={CONSTANTS.MESSAGE.RONIN_SLP} tag="span">{this.numberWithCommas(roninBalance)} <MDBBox tag="span" className="d-inline d-md-block d-lg-block red-text">{result.managerRoninClaimed ? "(" + this.numberWithCommas(playersStaticData.managerDebtClaimed) + ")" : ""}</MDBBox></MDBBox>,
-                    totalScholarEarningSLP: <MDBBox data-th={CONSTANTS.MESSAGE.TOTAL_SLP} tag="span">
+                    roninSLP: <MDBBox data-th={MESSAGE.RONIN_SLP} tag="span">{this.numberWithCommas(roninBalance)} <MDBBox tag="span" className="d-inline d-md-block d-lg-block red-text">{result.managerRoninClaimed ? "(" + this.numberWithCommas(playersStaticData.managerDebtClaimed) + ")" : ""}</MDBBox></MDBBox>,
+                    totalScholarEarningSLP: <MDBBox data-th={MESSAGE.TOTAL_SLP} tag="span">
                                                 {
-                                                    this.state.isUser === CONSTANTS.MESSAGE.MANAGER || !this.state.isUserEmail || (this.state.isUser).toLowerCase() === (result.details.EMAIL).toLowerCase() ? (
+                                                    this.state.isUser === MESSAGE.MANAGER || !this.state.isUserEmail || (this.state.isUser).toLowerCase() === (result.details.EMAIL).toLowerCase() ? (
                                                         this.numberWithCommas(result.totalScholarEarningSLP)
                                                     ) : (0) // If user is email x display 0 for other player
                                                 }
                                             </MDBBox>,
-                    totalScholarEarningPHP: <MDBBox data-th={CONSTANTS.MESSAGE.EARNINGS_PHP} tag="span">
+                    totalScholarEarningPHP: <MDBBox data-th={MESSAGE.EARNINGS_PHP} tag="span">
                                                 {
-                                                    this.state.isUser === CONSTANTS.MESSAGE.MANAGER || !this.state.isUserEmail || (this.state.isUser).toLowerCase() === (result.details.EMAIL).toLowerCase() ? (
+                                                    this.state.isUser === MESSAGE.MANAGER || !this.state.isUserEmail || (this.state.isUser).toLowerCase() === (result.details.EMAIL).toLowerCase() ? (
                                                         this.numberWithCommas((result.totalScholarEarningPHP).toFixed(2))
                                                     ) : (0) // If user is email x display 0 for other player
                                                 }
                                             </MDBBox>,
-                    totalScholarEarningPHPSLP: <MDBBox data-th={CONSTANTS.MESSAGE.TOTAL_SLP_PHP} tag="span">
+                    totalScholarEarningPHPSLP: <MDBBox data-th={MESSAGE.TOTAL_SLP_PHP} tag="span">
                                                 {
-                                                    this.state.isUser === CONSTANTS.MESSAGE.MANAGER || !this.state.isUserEmail || (this.state.isUser).toLowerCase() === (result.details.EMAIL).toLowerCase() ? (
+                                                    this.state.isUser === MESSAGE.MANAGER || !this.state.isUserEmail || (this.state.isUser).toLowerCase() === (result.details.EMAIL).toLowerCase() ? (
                                                         <React.Fragment>
                                                                 {this.numberWithCommas(result.totalScholarEarningSLP)}
                                                                 <MDBBox tag="span" className="d-block">
@@ -2191,27 +2191,27 @@ class Home extends React.Component {
                                                     ) : (0) // If user is email x display 0 for other player
                                                 }
                                             </MDBBox>,
-                    claimOn: <MDBBox data-th={CONSTANTS.MESSAGE.CLAIMON} tag="span" className={result.isClaimable ? "green-text d-block" : "d-block"}>
+                    claimOn: <MDBBox data-th={MESSAGE.CLAIMON} tag="span" className={result.isClaimable ? "green-text d-block" : "d-block"}>
                                 {result.claim_at}
                                 <MDBBox tag="span" className="d-block">
-                                    {result.claim_on_days} {CONSTANTS.MESSAGE.DAYS}
+                                    {result.claim_on_days} {MESSAGE.DAYS}
                                 </MDBBox>
                             </MDBBox>,
-                    mmr: <MDBBox data-th={CONSTANTS.MESSAGE.MMR} tag="span" className={ranking.textStyle}>{this.numberWithCommas(ranking.elo)}</MDBBox>,
-                    rank: <MDBBox data-th={CONSTANTS.MESSAGE.RANK} tag="span">{this.numberWithCommas(ranking.rank)}</MDBBox>,
-                    mmrRank: <MDBBox data-th={CONSTANTS.MESSAGE.MMR} tag="span"><MDBBox tag="span" className={ranking.textStyle}>{this.numberWithCommas(ranking.elo)}</MDBBox> <MDBBox tag="span" className="d-inline d-md-block d-lg-block">{ranking.rank > 0 ? ("(" + this.numberWithCommas(ranking.rank) + ")") : ("")}</MDBBox></MDBBox>,
-                    sharedManagerSLP: <MDBBox data-th={CONSTANTS.MESSAGE.SHARED_SLP} tag="span">{this.numberWithCommas(result.sharedManagerSLP)}</MDBBox>,
-                    managerEarningsPHP: <MDBBox data-th={CONSTANTS.MESSAGE.EARNINGS_PHP} tag="span">{this.numberWithCommas((result.totalManagerEarningPHP).toFixed(2))}</MDBBox>,
-                    sharedSponsorSLP: <MDBBox data-th={CONSTANTS.MESSAGE.SHARED_SLP} tag="span">{this.numberWithCommas(result.sharedSponsorSLP)}</MDBBox>,
-                    sponsorEarningsPHP: <MDBBox data-th={CONSTANTS.MESSAGE.EARNINGS_PHP} tag="span">{this.numberWithCommas((result.totalSponsorEarningPHP).toFixed(2))}</MDBBox>,
+                    mmr: <MDBBox data-th={MESSAGE.MMR} tag="span" className={ranking.textStyle}>{this.numberWithCommas(ranking.elo)}</MDBBox>,
+                    rank: <MDBBox data-th={MESSAGE.RANK} tag="span">{this.numberWithCommas(ranking.rank)}</MDBBox>,
+                    mmrRank: <MDBBox data-th={MESSAGE.MMR} tag="span"><MDBBox tag="span" className={ranking.textStyle}>{this.numberWithCommas(ranking.elo)}</MDBBox> <MDBBox tag="span" className="d-inline d-md-block d-lg-block">{ranking.rank > 0 ? ("(" + this.numberWithCommas(ranking.rank) + ")") : ("")}</MDBBox></MDBBox>,
+                    sharedManagerSLP: <MDBBox data-th={MESSAGE.SHARED_SLP} tag="span">{this.numberWithCommas(result.sharedManagerSLP)}</MDBBox>,
+                    managerEarningsPHP: <MDBBox data-th={MESSAGE.EARNINGS_PHP} tag="span">{this.numberWithCommas((result.totalManagerEarningPHP).toFixed(2))}</MDBBox>,
+                    sharedSponsorSLP: <MDBBox data-th={MESSAGE.SHARED_SLP} tag="span">{this.numberWithCommas(result.sharedSponsorSLP)}</MDBBox>,
+                    sponsorEarningsPHP: <MDBBox data-th={MESSAGE.EARNINGS_PHP} tag="span">{this.numberWithCommas((result.totalSponsorEarningPHP).toFixed(2))}</MDBBox>,
                     nameMmr: `${result.name} (${ranking.elo})`,
                     nameInGameSLP: `${result.name} (${result.inGameSLP})`,
-                    pvpEnergy: <MDBBox data-th={CONSTANTS.MESSAGE.PVP_ENERGY} tag="span">{result.pvp_energy}</MDBBox>,
-                    rewardSLP: <MDBBox data-th={CONSTANTS.MESSAGE.REWARDS_SLP} tag="span">
+                    pvpEnergy: <MDBBox data-th={MESSAGE.PVP_ENERGY} tag="span">{result.pvp_energy}</MDBBox>,
+                    rewardSLP: <MDBBox data-th={MESSAGE.REWARDS_SLP} tag="span">
                                     {result.isBonusSLPReward ? 
                                         <React.Fragment>
-                                            <MDBBox tag="span" className="d-block">{CONSTANTS.MESSAGE.MGR}: {this.numberWithCommas(result.totalSLPManagerClaim)}</MDBBox>
-                                            <MDBBox tag="span" className="d-block">{CONSTANTS.MESSAGE.SCH}: {this.numberWithCommas(result.totalSLPRewards)}</MDBBox>
+                                            <MDBBox tag="span" className="d-block">{MESSAGE.MGR}: {this.numberWithCommas(result.totalSLPManagerClaim)}</MDBBox>
+                                            <MDBBox tag="span" className="d-block">{MESSAGE.SCH}: {this.numberWithCommas(result.totalSLPRewards)}</MDBBox>
                                             <MDBBox tag="span" className="d-block">&#8369; {this.numberWithCommas((result.totalPHPRewards).toFixed(2))}</MDBBox>
                                         </React.Fragment>
                                     : 0}
@@ -2251,7 +2251,7 @@ class Home extends React.Component {
                 return reject({error: true});
             }
         }).catch(err => {
-            console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
+            console.error(MESSAGE.ERROR_OCCURED, err)
             return err;
         });
     }
@@ -2283,20 +2283,20 @@ class Home extends React.Component {
                 // instead of a catch() block so that we don't swallow
                 // exceptions from actual bugs in components.
                 async (error) => {
-                    console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, error)
+                    console.error(MESSAGE.ERROR_OCCURED, error)
                     // Get Sub Player ranking base on https://game-api.axie.technology/
                     return resolve(await this.getPlayerRankingSub(details, ethAddress));
                 }
             )
             .catch(
                 async (err) => {
-                    console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
+                    console.error(MESSAGE.ERROR_OCCURED, err)
                     // Get Sub Player ranking base on https://game-api.axie.technology/
                     return resolve(await this.getPlayerRankingSub(details, ethAddress));
                 }
             )
         }).catch(err => {
-            console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
+            console.error(MESSAGE.ERROR_OCCURED, err)
             return err;
         });
     }
@@ -2334,18 +2334,18 @@ class Home extends React.Component {
                 // instead of a catch() block so that we don't swallow
                 // exceptions from actual bugs in components.
                 (error) => {
-                    console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, error)
+                    console.error(MESSAGE.ERROR_OCCURED, error)
                     return reject({error: true})
                 }
             )
             .catch(
                 (err) => {
-                    console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
+                    console.error(MESSAGE.ERROR_OCCURED, err)
                     return reject({error: true});
                 }
             )
         }).catch(err => {
-            console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
+            console.error(MESSAGE.ERROR_OCCURED, err)
             return err;
         });
     }
@@ -2378,7 +2378,7 @@ class Home extends React.Component {
                                 if (isToday && todayTimeChecker >= Number("080000")) {
                                     if (logs.winner === ethAddress) {
                                         winTotal = winTotal + 1;
-                                    } else if ((logs.winner).toLowerCase() === (CONSTANTS.MESSAGE.DRAW).toLowerCase()) {
+                                    } else if ((logs.winner).toLowerCase() === (MESSAGE.DRAW).toLowerCase()) {
                                         drawTotal = drawTotal + 1;
                                     } else {
                                         loseTotal = loseTotal + 1;
@@ -2392,7 +2392,7 @@ class Home extends React.Component {
                                 if ((isYesterday && yesterdayTimeChecker >= Number("080000")) || (isToday && battleTimeChecker < Number("080000"))) {
                                     if (logs.winner === ethAddress) {
                                         winTotal = winTotal + 1;
-                                    } else if ((logs.winner).toLowerCase() === (CONSTANTS.MESSAGE.DRAW).toLowerCase()) {
+                                    } else if ((logs.winner).toLowerCase() === (MESSAGE.DRAW).toLowerCase()) {
                                         drawTotal = drawTotal + 1;
                                     } else {
                                         loseTotal = loseTotal + 1;
@@ -2425,18 +2425,18 @@ class Home extends React.Component {
                 // instead of a catch() block so that we don't swallow
                 // exceptions from actual bugs in components.
                 (error) => {
-                    console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, error)
+                    console.error(MESSAGE.ERROR_OCCURED, error)
                     return reject({error: true})
                 }
             )
             .catch(
                 (err) => {
-                    console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
+                    console.error(MESSAGE.ERROR_OCCURED, err)
                     return reject({error: true});
                 }
             )
         }).catch(err => {
-            console.error(CONSTANTS.MESSAGE.ERROR_OCCURED, err)
+            console.error(MESSAGE.ERROR_OCCURED, err)
             return err;
         });
     }
@@ -2449,21 +2449,21 @@ class Home extends React.Component {
                     <MDBCol size="12" className="mb-3">
                         <MDBBox tag="div" className="py-3 px-2 text-center currency-details">
                             <MDBBox tag="span">
-                                {CONSTANTS.MESSAGE.PRICE_BASEON}
+                                {MESSAGE.PRICE_BASEON}
                                 
                                 {
-                                    this.state.currentValueFrm === CONSTANTS.MESSAGE.BINANCE ? (
-                                        <a href="https://www.binance.com/en/trade/SLP_USDT" target="_blank" rel="noreferrer"> {CONSTANTS.MESSAGE.BINANCE}. </a>
+                                    this.state.currentValueFrm === MESSAGE.BINANCE ? (
+                                        <a href="https://www.binance.com/en/trade/SLP_USDT" target="_blank" rel="noreferrer"> {MESSAGE.BINANCE}. </a>
                                     ) : (
-                                        <a href="https://www.coingecko.com/en/coins/smooth-love-potion" target="_blank" rel="noreferrer"> {CONSTANTS.MESSAGE.COINGECKO}. </a>
+                                        <a href="https://www.coingecko.com/en/coins/smooth-love-potion" target="_blank" rel="noreferrer"> {MESSAGE.COINGECKO}. </a>
                                     )
                                 }
                                 
-                                {CONSTANTS.MESSAGE.CURRENT_EXCHANGERATE}:
+                                {MESSAGE.CURRENT_EXCHANGERATE}:
                                 <MDBBox tag="span">
-                                    <strong> 1 {CONSTANTS.MESSAGE.SLP} = {this.state.slpCurrentValue} </strong>
+                                    <strong> 1 {MESSAGE.SLP} = {this.state.slpCurrentValue} </strong>
                                     and
-                                    <strong> 1 {CONSTANTS.MESSAGE.AXS} = {this.state.axsCurrentValue}</strong>
+                                    <strong> 1 {MESSAGE.AXS} = {this.state.axsCurrentValue}</strong>
                                 </MDBBox>
                             </MDBBox>
                         </MDBBox>
@@ -2476,15 +2476,15 @@ class Home extends React.Component {
     // Render Top scholar x ELO Ranking and SLP Earning
     renderTopScholar() {
         if ( this.state.isPlayerLoaded && this.state.isLoaded && !this.state.error ) {
-            if (this.state.isUser !== CONSTANTS.MESSAGE.MANAGER && !this.state.isUserEmail && Object.keys(this.state.playerRecords).length > 0) {
+            if (this.state.isUser !== MESSAGE.MANAGER && !this.state.isUserEmail && Object.keys(this.state.playerRecords).length > 0) {
                 return (
                     <React.Fragment>
                         <MDBCol size="12" className="mb-3">
                             <MDBBox tag="div" className="py-3 px-2 text-center player-details cursor-pointer" onClick={this.modalMMRRankToggle(this.state.playerRecords)}>
                                 {/* Top ELO / MMR Rank */}
-                                <MDBBox tag="span" className="d-block d-md-inline d-lg-inline">{CONSTANTS.MESSAGE.TOP_MMR}: <strong>{this.state.topUserMMR}</strong></MDBBox>
+                                <MDBBox tag="span" className="d-block d-md-inline d-lg-inline">{MESSAGE.TOP_MMR}: <strong>{this.state.topUserMMR}</strong></MDBBox>
                                 {/* Top In Game SLP */}
-                                <MDBBox tag="span" className="d-block d-md-inline d-lg-inline ml-2">{CONSTANTS.MESSAGE.TOP_INGAME_SLP}: <strong>{this.state.topUserSLP}</strong></MDBBox>
+                                <MDBBox tag="span" className="d-block d-md-inline d-lg-inline ml-2">{MESSAGE.TOP_INGAME_SLP}: <strong>{this.state.topUserSLP}</strong></MDBBox>
                             </MDBBox>
                         </MDBCol>
                     </React.Fragment>
@@ -2498,7 +2498,7 @@ class Home extends React.Component {
         return (
             <React.Fragment>
                 <MDBModal isOpen={this.state.isModalMMRRankOpen} size="lg">
-                    <MDBModalHeader toggle={this.modalMMRRankToggle("")}>{CONSTANTS.MESSAGE.MMR_RANKING}</MDBModalHeader>
+                    <MDBModalHeader toggle={this.modalMMRRankToggle("")}>{MESSAGE.MMR_RANKING}</MDBModalHeader>
                     <MDBModalBody>
                         <MDBDataTable
                             striped bordered hover responsive noBottomColumns
@@ -2517,22 +2517,22 @@ class Home extends React.Component {
     // Render Highest SLP Gained
     renderHighSLPGained() {
         if ( this.state.isPlayerLoaded && this.state.isLoaded && !this.state.error ) {
-            if (this.state.isUser !== CONSTANTS.MESSAGE.MANAGER && !this.state.isUserEmail && Object.keys(this.state.playerRecords).length > 0 && Number(this.state.highestGainedSLP.SLP) > 0) {
+            if (this.state.isUser !== MESSAGE.MANAGER && !this.state.isUserEmail && Object.keys(this.state.playerRecords).length > 0 && Number(this.state.highestGainedSLP.SLP) > 0) {
                 return (
                     <React.Fragment>
                         <MDBCol size="12" className="mb-3">
                             <MDBBox tag="div" className="py-3 px-2 text-center player-details">
                                 <MDBBox tag="span" className="d-block d-md-inline d-lg-inline mr-1">
-                                    {CONSTANTS.MESSAGE.HIGH_SLPGAINED}:
+                                    {MESSAGE.HIGH_SLPGAINED}:
                                 </MDBBox>
                                 <MDBBox tag="span" className="d-block d-md-inline d-lg-inline mr-1">
-                                    <strong>{CONSTANTS.MESSAGE.NAME}:</strong> {this.state.highestGainedSLP.Name}
+                                    <strong>{MESSAGE.NAME}:</strong> {this.state.highestGainedSLP.Name}
                                 </MDBBox>
                                 <MDBBox tag="span" className="d-block d-md-inline d-lg-inline mr-1">
-                                    <strong>{CONSTANTS.MESSAGE.SLP}:</strong> {this.state.highestGainedSLP.SLP}
+                                    <strong>{MESSAGE.SLP}:</strong> {this.state.highestGainedSLP.SLP}
                                 </MDBBox>
                                 <MDBBox tag="span" className="d-block d-md-inline d-lg-inline">
-                                    <strong>{CONSTANTS.MESSAGE.DATE}:</strong> <Moment format="MMM DD, YYYY">{this.state.highestGainedSLP.Date}</Moment>
+                                    <strong>{MESSAGE.DATE}:</strong> <Moment format="MMM DD, YYYY">{this.state.highestGainedSLP.Date}</Moment>
                                 </MDBBox>
                             </MDBBox>
                         </MDBCol>
@@ -2545,7 +2545,7 @@ class Home extends React.Component {
     // Render Total Earnings of Manager, Scholar and Sponsor
     renderEarnings() {
         if ( this.state.isPlayerLoaded && this.state.isLoaded && !this.state.error ) {
-            if (this.state.isUser === CONSTANTS.MESSAGE.MANAGER || this.state.isUserEmail) {
+            if (this.state.isUser === MESSAGE.MANAGER || this.state.isUserEmail) {
                 return (
                     <React.Fragment>
                         {/* Top MMR and SLP */}
@@ -2554,10 +2554,10 @@ class Home extends React.Component {
                                 <MDBCardBody className="black-text cursor-pointer d-flex-center" onClick={this.modalMMRRankToggle(this.state.playerRecords)}>
                                     <MDBBox tag="div" className="text-center">
                                         {/* Top ELO / MMR Rank */}
-                                        <MDBBox tag="span" className="d-block">{CONSTANTS.MESSAGE.TOP_MMR}</MDBBox>
+                                        <MDBBox tag="span" className="d-block">{MESSAGE.TOP_MMR}</MDBBox>
                                         <MDBBox tag="span" className="d-block font-size-1rem font-weight-bold"><strong>{this.state.topUserMMR}</strong></MDBBox>
                                         {/* Top In Game SLP */}
-                                        <MDBBox tag="span" className="d-block mt-3">{CONSTANTS.MESSAGE.TOP_INGAME_SLP}</MDBBox>
+                                        <MDBBox tag="span" className="d-block mt-3">{MESSAGE.TOP_INGAME_SLP}</MDBBox>
                                         <MDBBox tag="span" className="d-block font-size-1rem font-weight-bold"><strong>{this.state.topUserSLP}</strong></MDBBox>
                                     </MDBBox>
                                 </MDBCardBody>
@@ -2571,7 +2571,7 @@ class Home extends React.Component {
                                     <MDBCard className="z-depth-2 player-details h-180px">
                                         <MDBCardBody className="black-text d-flex-center">
                                             <MDBBox tag="div" className="text-center">
-                                                <MDBBox tag="span" className="d-block">{CONSTANTS.MESSAGE.HIGH_SLPGAINED}</MDBBox>
+                                                <MDBBox tag="span" className="d-block">{MESSAGE.HIGH_SLPGAINED}</MDBBox>
                                                 <MDBBox tag="span" className="d-block font-size-1pt3rem font-weight-bold">
                                                     <img src="/assets/images/smooth-love-potion.png" className="w-24px mr-1 mt-0pt3rem-neg" alt="SLP" />
                                                     {this.numberWithCommas(this.state.highestGainedSLP.SLP)}
@@ -2588,7 +2588,7 @@ class Home extends React.Component {
                                     <MDBCard className="z-depth-2 player-details h-180px">
                                         <MDBCardBody className="black-text d-flex-center">
                                             <MDBBox tag="div" className="text-center">
-                                                <MDBBox tag="span" className="d-block">{CONSTANTS.MESSAGE.TOTAL_AVERAGE_SLP}</MDBBox>
+                                                <MDBBox tag="span" className="d-block">{MESSAGE.TOTAL_AVERAGE_SLP}</MDBBox>
                                                 <MDBBox tag="span" className="d-block font-size-1pt3rem font-weight-bold">
                                                     <img src="/assets/images/smooth-love-potion.png" className="w-24px mr-1 mt-0pt3rem-neg" alt="SLP" />
                                                     {this.numberWithCommas(Math.floor(this.state.totalAverageSLP / this.state.playerRecords.length))}
@@ -2606,7 +2606,7 @@ class Home extends React.Component {
                             <MDBCard className="z-depth-2 player-details h-180px">
                                 <MDBCardBody className="black-text d-flex-center">
                                     <MDBBox tag="div" className="text-center">
-                                        <MDBBox tag="span" className="d-block">{CONSTANTS.MESSAGE.TOTAL_INGAME_SLP}</MDBBox>
+                                        <MDBBox tag="span" className="d-block">{MESSAGE.TOTAL_INGAME_SLP}</MDBBox>
                                         <MDBBox tag="span" className="d-block font-size-1pt3rem font-weight-bold">
                                             <img src="/assets/images/smooth-love-potion.png" className="w-24px mr-1 mt-0pt3rem-neg" alt="SLP" />
                                             {this.numberWithCommas(this.state.totalInGameSLP)}
@@ -2621,19 +2621,19 @@ class Home extends React.Component {
                         <MDBCol size="6" md="4" lg="2" className="my-2">
                             <MDBCard className="z-depth-2 player-details h-180px">
                                 <MDBCardBody 
-                                    className={this.state.isUser === CONSTANTS.MESSAGE.MANAGER ? "black-text cursor-pointer d-flex-center" : "black-text d-flex-center"}
-                                    onClick={this.state.isUser === CONSTANTS.MESSAGE.MANAGER ? this.modalEarningToggle(CONSTANTS.MESSAGE.MANAGER_EARNING, CONSTANTS.MESSAGE.MANAGER, this.state.managerEarningDatatable) : () => {}} >
+                                    className={this.state.isUser === MESSAGE.MANAGER ? "black-text cursor-pointer d-flex-center" : "black-text d-flex-center"}
+                                    onClick={this.state.isUser === MESSAGE.MANAGER ? this.modalEarningToggle(MESSAGE.MANAGER_EARNING, MESSAGE.MANAGER, this.state.managerEarningDatatable) : () => {}} >
                                     <MDBBox tag="div" className="text-center">
-                                        <MDBBox tag="span" className="d-block">{CONSTANTS.MESSAGE.TOTAL_MANAGERCLAIMABLE_SLP}</MDBBox>
+                                        <MDBBox tag="span" className="d-block">{MESSAGE.TOTAL_MANAGERCLAIMABLE_SLP}</MDBBox>
                                         <MDBBox tag="span" className="d-block font-size-1pt3rem font-weight-bold">
                                             <img src="/assets/images/smooth-love-potion.png" className="w-24px mr-1 mt-0pt3rem-neg" alt="SLP" />
                                             {
-                                                this.state.isUser === CONSTANTS.MESSAGE.MANAGER ? (
+                                                this.state.isUser === MESSAGE.MANAGER ? (
                                                     this.numberWithCommas(this.state.totalManagerClaimableSLP)
                                                 ) : (0)
                                             }
                                         </MDBBox>
-                                        <MDBBox tag="span" className="d-block font-size-1pt3rem font-weight-bold">&#8369; {this.state.isUser === CONSTANTS.MESSAGE.MANAGER ? (this.numberWithCommas((this.state.totalManagerClaimableSLP * this.state.slpCurrentValue).toFixed(2))) : ("0.00")}</MDBBox>
+                                        <MDBBox tag="span" className="d-block font-size-1pt3rem font-weight-bold">&#8369; {this.state.isUser === MESSAGE.MANAGER ? (this.numberWithCommas((this.state.totalManagerClaimableSLP * this.state.slpCurrentValue).toFixed(2))) : ("0.00")}</MDBBox>
                                     </MDBBox>
                                 </MDBCardBody>
                             </MDBCard>
@@ -2644,7 +2644,7 @@ class Home extends React.Component {
                             <MDBCard className="z-depth-2 player-details h-180px">
                                 <MDBCardBody className="black-text d-flex-center">
                                     <MDBBox tag="div" className="text-center">
-                                        <MDBBox tag="span" className="d-block">{CONSTANTS.MESSAGE.TOTAL_SPONSOR_SLP}</MDBBox>
+                                        <MDBBox tag="span" className="d-block">{MESSAGE.TOTAL_SPONSOR_SLP}</MDBBox>
                                         <MDBBox tag="span" className="d-block font-size-1pt3rem font-weight-bold">
                                             <img src="/assets/images/smooth-love-potion.png" className="w-24px mr-1 mt-0pt3rem-neg" alt="SLP" />
                                             {this.numberWithCommas(this.state.totalSponsorSLP)}
@@ -2660,7 +2660,7 @@ class Home extends React.Component {
                             <MDBCard className="z-depth-2 player-details h-180px">
                                 <MDBCardBody className="black-text d-flex-center">
                                     <MDBBox tag="div" className="text-center">
-                                        <MDBBox tag="span" className="d-block">{CONSTANTS.MESSAGE.TOTAL_SCHOLAR_SLP}</MDBBox>
+                                        <MDBBox tag="span" className="d-block">{MESSAGE.TOTAL_SCHOLAR_SLP}</MDBBox>
                                         <MDBBox tag="span" className="d-block font-size-1pt3rem font-weight-bold">
                                             <img src="/assets/images/smooth-love-potion.png" className="w-24px mr-1 mt-0pt3rem-neg" alt="SLP" />
                                             {this.numberWithCommas(this.state.totalScholarSLP)}
@@ -2684,8 +2684,8 @@ class Home extends React.Component {
                                     {
                                         // Display Sponsor's Earing
                                         this.state.totalSponsorSLP > 0 ? (
-                                            <MDBBox tag="span" className="blue-whale d-block cursor-pointer" onClick={this.modalEarningToggle(CONSTANTS.MESSAGE.VIEW_SPONSOR_EARNING, CONSTANTS.MESSAGE.SPONSOR, this.state.playerRecords)}>
-                                                {CONSTANTS.MESSAGE.SPONSOR_EARNING}: {CONSTANTS.MESSAGE.SLP} {this.state.totalSponsorSLP} (&#8369; {this.numberWithCommas((this.state.totalSponsorSLP * this.state.slpCurrentValue).toFixed(2))})
+                                            <MDBBox tag="span" className="blue-whale d-block cursor-pointer" onClick={this.modalEarningToggle(MESSAGE.VIEW_SPONSOR_EARNING, MESSAGE.SPONSOR, this.state.playerRecords)}>
+                                                {MESSAGE.SPONSOR_EARNING}: {MESSAGE.SLP} {this.state.totalSponsorSLP} (&#8369; {this.numberWithCommas((this.state.totalSponsorSLP * this.state.slpCurrentValue).toFixed(2))})
                                             </MDBBox>
                                         ) : ("")
                                     }
@@ -2707,21 +2707,21 @@ class Home extends React.Component {
                     <MDBModalHeader toggle={this.modalEarningToggle("", "", "")}>{this.state.modalEarningTitle}</MDBModalHeader>
                     <MDBModalBody>
                         {
-                            this.state.isViewMangerEarning === CONSTANTS.MESSAGE.VIEW_CURRENT_EARNINGS ? (
+                            this.state.isViewMangerEarning === MESSAGE.VIEW_CURRENT_EARNINGS ? (
                                 // Manager Current Earnings
                                 <React.Fragment>
-                                    <MDBBox tag="u" className="d-block mb-2 cursor-pointer" onClick={this.onManagerEarningHandle.bind(this)}>{CONSTANTS.MESSAGE.VIEW_ALL_EARNINGS}</MDBBox> {/* Opposite label x for hide and show */}
+                                    <MDBBox tag="u" className="d-block mb-2 cursor-pointer" onClick={this.onManagerEarningHandle.bind(this)}>{MESSAGE.VIEW_ALL_EARNINGS}</MDBBox> {/* Opposite label x for hide and show */}
                                     <MDBBox tag="span" className="d-block mb-2">
-                                        {CONSTANTS.MESSAGE.TOTAL_CURRENT_EARNINGS}:
+                                        {MESSAGE.TOTAL_CURRENT_EARNINGS}:
                                         <MDBBox tag="span" className="d-block d-md-inline d-lg-inline">
                                             <MDBBox tag="span">
                                                 <img src="/assets/images/smooth-love-potion.png" className="w-24px mr-1 mt-0pt3rem-neg" alt="SLP" />
-                                                <strong>{this.state.modalEarningFilter === CONSTANTS.MESSAGE.MANAGER ? this.state.totalManagerSLP : this.state.totalSponsorSLP}</strong>
+                                                <strong>{this.state.modalEarningFilter === MESSAGE.MANAGER ? this.state.totalManagerSLP : this.state.totalSponsorSLP}</strong>
                                             </MDBBox>
                                             <MDBBox tag="span"> 
                                                 <span> &#8776; &#8369; </span>
                                                 <strong>
-                                                    {this.state.modalEarningFilter === CONSTANTS.MESSAGE.MANAGER ? (
+                                                    {this.state.modalEarningFilter === MESSAGE.MANAGER ? (
                                                         // Manager's Earning
                                                         this.numberWithCommas((this.state.totalManagerSLP * this.state.slpCurrentValue).toFixed(2))
                                                     ) : (
@@ -2745,28 +2745,28 @@ class Home extends React.Component {
                             ) : (
                                 // Manager All Earnings
                                 <React.Fragment>
-                                    <MDBBox tag="u" className="d-block mb-2 cursor-pointer" onClick={this.onManagerEarningHandle.bind(this)}>{CONSTANTS.MESSAGE.VIEW_CURRENT_EARNINGS}</MDBBox> {/* Opposite label x for hide and show */}
+                                    <MDBBox tag="u" className="d-block mb-2 cursor-pointer" onClick={this.onManagerEarningHandle.bind(this)}>{MESSAGE.VIEW_CURRENT_EARNINGS}</MDBBox> {/* Opposite label x for hide and show */}
                                     <MDBTable scrollY maxHeight="70vh" bordered striped responsive>
                                         <MDBTableHead color="rgba-teal-strong" textWhite>
                                             <tr>
-                                                <th colSpan="5" className="text-center font-weight-bold">{CONSTANTS.MESSAGE.MANAGER_EARNING}</th>
+                                                <th colSpan="5" className="text-center font-weight-bold">{MESSAGE.MANAGER_EARNING}</th>
                                             </tr>
                                         </MDBTableHead>
                                         <MDBTableBody>
                                             {/* Total Earnings */}
                                             <tr className="text-center">
-                                                <td rowSpan="2" className="font-weight-bold v-align-middle text-uppercase">{CONSTANTS.MESSAGE.TOTAL_EARNINGS}</td>
-                                                <td colSpan="4" className="font-weight-bold">{CONSTANTS.MESSAGE.SLP}: {this.numberWithCommas(this.state.totalManagerAllSLP)}</td>
+                                                <td rowSpan="2" className="font-weight-bold v-align-middle text-uppercase">{MESSAGE.TOTAL_EARNINGS}</td>
+                                                <td colSpan="4" className="font-weight-bold">{MESSAGE.SLP}: {this.numberWithCommas(this.state.totalManagerAllSLP)}</td>
                                             </tr>
                                             <tr className="text-center">
                                                 <td colSpan="4" className="font-weight-bold table-gray-bg"><span>&#8369; </span>{this.numberWithCommas((this.state.totalManagerAllPHP).toFixed(2))}</td>
                                             </tr>
                                             {/* Income by Categories */}
                                             <tr className="text-center">
-                                                <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.BUY}</td>
-                                                <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.BREED}</td>
-                                                <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.ROI}</td>
-                                                <td colSpan="2" className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.INCOME}</td>
+                                                <td className="font-weight-bold text-uppercase">{MESSAGE.BUY}</td>
+                                                <td className="font-weight-bold text-uppercase">{MESSAGE.BREED}</td>
+                                                <td className="font-weight-bold text-uppercase">{MESSAGE.ROI}</td>
+                                                <td colSpan="2" className="font-weight-bold text-uppercase">{MESSAGE.INCOME}</td>
                                             </tr>
                                             <tr className="text-center">
                                                 <td>{this.numberWithCommas((this.state.managerPHPBuy).toFixed(2))}</td>
@@ -2776,13 +2776,13 @@ class Home extends React.Component {
                                             </tr>
                                             {/* Earning per cash out */}
                                             <tr className="rgba-teal-strong-bg">
-                                                <td colSpan="5" className="text-center font-weight-bold white-text">{CONSTANTS.MESSAGE.EARNINGS}</td>
+                                                <td colSpan="5" className="text-center font-weight-bold white-text">{MESSAGE.EARNINGS}</td>
                                             </tr>
                                             <tr className="text-center">
-                                                <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.DATE}</td>
-                                                <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.SLP}</td>
-                                                <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.SLP_PRICE}</td>
-                                                <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.EARNING}</td>
+                                                <td className="font-weight-bold text-uppercase">{MESSAGE.DATE}</td>
+                                                <td className="font-weight-bold text-uppercase">{MESSAGE.SLP}</td>
+                                                <td className="font-weight-bold text-uppercase">{MESSAGE.SLP_PRICE}</td>
+                                                <td className="font-weight-bold text-uppercase">{MESSAGE.EARNING}</td>
                                             </tr>
                                             {
                                                 Object.keys(this.state.modalManagerAllEarning).length > 0 ? (
@@ -2818,7 +2818,7 @@ class Home extends React.Component {
                                 <React.Fragment>
                                     {this.state.modalPlayerDetails[0].name}
                                 </React.Fragment>
-                            ) : (CONSTANTS.MESSAGE.DETAILS)
+                            ) : (MESSAGE.DETAILS)
                         }
                     </MDBModalHeader>
                     <MDBModalBody>
@@ -2830,34 +2830,34 @@ class Home extends React.Component {
                                         {/* Started playing */}
                                         <MDBCol size="12" md="6" lg="6">
                                             <MDBBox tag="span" className="d-block">
-                                                <strong>{CONSTANTS.MESSAGE.STARTED}:</strong> <Moment format="MMM DD, YYYY">{this.state.modalPlayerDetails[0].details.STARTED_ON}</Moment>
+                                                <strong>{MESSAGE.STARTED}:</strong> <Moment format="MMM DD, YYYY">{this.state.modalPlayerDetails[0].details.STARTED_ON}</Moment>
                                             </MDBBox>
                                         </MDBCol>
                                         {/* Market Place link */}
                                         <MDBCol size="12" md="6" lg="6">
                                             <MDBBox tag="u" className="d-block d-md-none d-lg-none">
                                                 <a href={"https://marketplace.axieinfinity.com/profile/" + this.state.modalPlayerDetails[0].details.ADDRESS + "/axie"} target="_blank" rel="noreferrer" className="black-text">
-                                                    {CONSTANTS.MESSAGE.OPEN_MARKETPLACE_PROFILE}
+                                                    {MESSAGE.OPEN_MARKETPLACE_PROFILE}
                                                 </a>
                                             </MDBBox>
                                             <MDBBox tag="u" className="d-none d-md-block d-lg-block text-right">
                                                 <a href={"https://marketplace.axieinfinity.com/profile/" + this.state.modalPlayerDetails[0].details.ADDRESS + "/axie"} target="_blank" rel="noreferrer" className="black-text">
-                                                    {CONSTANTS.MESSAGE.OPEN_MARKETPLACE_PROFILE}
+                                                    {MESSAGE.OPEN_MARKETPLACE_PROFILE}
                                                 </a>
                                             </MDBBox>
                                         </MDBCol>
                                         {/* Ronin Address */}
                                             <MDBCol size="12">
                                                 <MDBBox tag="span" className="d-block selectable-text">
-                                                    <strong>{CONSTANTS.MESSAGE.RONIN}:</strong> {this.state.modalPlayerDetails[0].details.ADDRESS}
+                                                    <strong>{MESSAGE.RONIN}:</strong> {this.state.modalPlayerDetails[0].details.ADDRESS}
                                                 </MDBBox>
                                             </MDBCol>
                                         {/* Email */}
                                         {
-                                            this.state.isUser === CONSTANTS.MESSAGE.MANAGER || !this.state.isUserEmail || (this.state.isUser).toLowerCase() === (this.state.modalPlayerDetails[0].details.EMAIL).toLowerCase() ? (
+                                            this.state.isUser === MESSAGE.MANAGER || !this.state.isUserEmail || (this.state.isUser).toLowerCase() === (this.state.modalPlayerDetails[0].details.EMAIL).toLowerCase() ? (
                                                 <MDBCol size="12">
                                                     <MDBBox tag="span" className="d-block selectable-text">
-                                                        <strong>{CONSTANTS.MESSAGE.EMAIL}:</strong> {this.state.modalPlayerDetails[0].details.EMAIL}
+                                                        <strong>{MESSAGE.EMAIL}:</strong> {this.state.modalPlayerDetails[0].details.EMAIL}
                                                     </MDBBox>
                                                 </MDBCol>
                                             ) : ("")
@@ -2865,19 +2865,19 @@ class Home extends React.Component {
                                         {/* High Gained SLP */}
                                             <MDBCol size="12">
                                                 <MDBBox tag="span" className="d-block">
-                                                    <strong>{CONSTANTS.MESSAGE.HIGH_SLPGAINED}:</strong> {this.state.modalPlayerDetails[0].details.HIGH_SLP_GAIN} (<Moment format="MMM DD, YYYY">{this.state.modalPlayerDetails[0].details.HIGH_SLP_DATE}</Moment>)
+                                                    <strong>{MESSAGE.HIGH_SLPGAINED}:</strong> {this.state.modalPlayerDetails[0].details.HIGH_SLP_GAIN} (<Moment format="MMM DD, YYYY">{this.state.modalPlayerDetails[0].details.HIGH_SLP_DATE}</Moment>)
                                                 </MDBBox>
                                             </MDBCol>
                                     </MDBRow>
 
                                     {
-                                        this.state.isViewSLPChart === CONSTANTS.MESSAGE.VIEW_GAINEDSLP_CHART ? (
+                                        this.state.isViewSLPChart === MESSAGE.VIEW_GAINEDSLP_CHART ? (
                                             // View Gained SLP Chart
                                             <React.Fragment>
                                                 {
                                                     // Display only the view earnings for specific user
-                                                    this.state.isUser === CONSTANTS.MESSAGE.MANAGER || !this.state.isUserEmail || (this.state.isUser).toLowerCase() === (this.state.modalPlayerDetails[0].details.EMAIL).toLowerCase() ? (
-                                                        <MDBBox tag="u" className="d-block mb-2 cursor-pointer" onClick={this.onScholarEaningNChartHandle.bind(this)}>{CONSTANTS.MESSAGE.VIEW_EARNINGS}</MDBBox> // Opposite label x for hide and show
+                                                    this.state.isUser === MESSAGE.MANAGER || !this.state.isUserEmail || (this.state.isUser).toLowerCase() === (this.state.modalPlayerDetails[0].details.EMAIL).toLowerCase() ? (
+                                                        <MDBBox tag="u" className="d-block mb-2 cursor-pointer" onClick={this.onScholarEaningNChartHandle.bind(this)}>{MESSAGE.VIEW_EARNINGS}</MDBBox> // Opposite label x for hide and show
                                                     ) : ("")
                                                 }
                                                 {
@@ -2886,13 +2886,13 @@ class Home extends React.Component {
                                                         <MDBTable scrollY maxHeight="70vh" small bordered striped responsive className="mt-2">
                                                             <MDBTableBody>
                                                                 {/* <tr>
-                                                                    <td colSpan="4" className="text-center font-weight-bold rgba-teal-strong white-text">{CONSTANTS.MESSAGE.ARENAGAME_STATUS}</td>
+                                                                    <td colSpan="4" className="text-center font-weight-bold rgba-teal-strong white-text">{MESSAGE.ARENAGAME_STATUS}</td>
                                                                 </tr> */}
                                                                 <tr className="text-center">
-                                                                    <td className="font-weight-bold text-uppercase table-gray-bg">{CONSTANTS.MESSAGE.WIN}</td>
-                                                                    <td className="font-weight-bold text-uppercase table-gray-bg">{CONSTANTS.MESSAGE.LOSE}</td>
-                                                                    <td className="font-weight-bold text-uppercase table-gray-bg">{CONSTANTS.MESSAGE.DRAW}</td>
-                                                                    <td className="font-weight-bold text-uppercase table-gray-bg">{CONSTANTS.MESSAGE.WIN_RATE}</td>
+                                                                    <td className="font-weight-bold text-uppercase table-gray-bg">{MESSAGE.WIN}</td>
+                                                                    <td className="font-weight-bold text-uppercase table-gray-bg">{MESSAGE.LOSE}</td>
+                                                                    <td className="font-weight-bold text-uppercase table-gray-bg">{MESSAGE.DRAW}</td>
+                                                                    <td className="font-weight-bold text-uppercase table-gray-bg">{MESSAGE.WIN_RATE}</td>
                                                                 </tr>
                                                                 {
                                                                     Object.keys(this.state.modalPlayerDetails).length > 0 ? (
@@ -2920,22 +2920,22 @@ class Home extends React.Component {
                                         ) : (
                                             // View Earnings
                                             <React.Fragment>
-                                                <MDBBox tag="u" className="d-block mb-2 cursor-pointer" onClick={this.onScholarEaningNChartHandle.bind(this)}>{CONSTANTS.MESSAGE.VIEW_GAINEDSLP_CHART}</MDBBox> {/* Opposite label x for hide and show */}
+                                                <MDBBox tag="u" className="d-block mb-2 cursor-pointer" onClick={this.onScholarEaningNChartHandle.bind(this)}>{MESSAGE.VIEW_GAINEDSLP_CHART}</MDBBox> {/* Opposite label x for hide and show */}
                                                 {/* Table Details */}
                                                 <MDBTable scrollY maxHeight="70vh" bordered striped responsive className="mt-2">
                                                     <MDBTableBody>
                                                         {/* Total Income */}
                                                         <tr>
                                                             <td colSpan="4" className="text-center font-weight-bold rgba-teal-strong white-text">
-                                                                <span>{CONSTANTS.MESSAGE.TOTALINCOME}: &#8369; </span>
+                                                                <span>{MESSAGE.TOTALINCOME}: &#8369; </span>
                                                                 {(this.state.modalPlayerDetails[0].details.totalIncome).toLocaleString()}
                                                             </td>
                                                         </tr>
                                                         <tr className="text-center">
-                                                            <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.DATE}</td>
-                                                            <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.SLP}</td>
-                                                            <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.SLP_PRICE}</td>
-                                                            <td className="font-weight-bold text-uppercase">{CONSTANTS.MESSAGE.EARNING}</td>
+                                                            <td className="font-weight-bold text-uppercase">{MESSAGE.DATE}</td>
+                                                            <td className="font-weight-bold text-uppercase">{MESSAGE.SLP}</td>
+                                                            <td className="font-weight-bold text-uppercase">{MESSAGE.SLP_PRICE}</td>
+                                                            <td className="font-weight-bold text-uppercase">{MESSAGE.EARNING}</td>
                                                         </tr>
                                                         {
                                                             
@@ -2970,7 +2970,7 @@ class Home extends React.Component {
         return (
             <React.Fragment>
                 <MDBModal isOpen={this.state.isModalIskoInputsOpen} size="md">
-                    <MDBModalHeader toggle={this.modalIskoInputs("")} className="blue-whale">{CONSTANTS.MESSAGE.LOKI_INPUTS}</MDBModalHeader>
+                    <MDBModalHeader toggle={this.modalIskoInputs("")} className="blue-whale">{MESSAGE.LOKI_INPUTS}</MDBModalHeader>
                     <MDBModalBody>
                         <MDBNav className="nav-tabs">
                             <MDBNavItem>
@@ -2978,7 +2978,7 @@ class Home extends React.Component {
                                     className={this.state.tabIskoInputsActive === "1" ? "nav-link cursor-pointer active" : "nav-link cursor-pointer"}
                                     onClick={this.tabsIskoInputs("1")}
                                     role="tab" >
-                                    {CONSTANTS.MESSAGE.ADD_EDIT}
+                                    {MESSAGE.ADD_EDIT}
                                 </span>
                             </MDBNavItem>
                             <MDBNavItem>
@@ -2986,7 +2986,7 @@ class Home extends React.Component {
                                     className={this.state.tabIskoInputsActive === "2" ? "nav-link active cursor-pointer" : "nav-link cursor-pointer"}
                                     onClick={this.tabsIskoInputs("2")}
                                     role="tab" >
-                                    {CONSTANTS.MESSAGE.WITHDRAW}
+                                    {MESSAGE.WITHDRAW}
                                 </span>
                             </MDBNavItem>
                             <MDBNavItem>
@@ -2994,7 +2994,7 @@ class Home extends React.Component {
                                     className={this.state.tabIskoInputsActive === "3" ? "nav-link active cursor-pointer" : "nav-link cursor-pointer"}
                                     onClick={this.tabsIskoInputs("3")}
                                     role="tab" >
-                                    {CONSTANTS.MESSAGE.MANAGER_EARNING}
+                                    {MESSAGE.MANAGER_EARNING}
                                 </span>
                             </MDBNavItem>
                         </MDBNav>
@@ -3004,7 +3004,7 @@ class Home extends React.Component {
                                     <MDBBox tag="div" className="grey-text">
                                         <MDBBox tag="div" className="select-mdb-custom mt-3">
                                             <MDBBox tag="select" className="select-mdb-content" onChange={this.handleAddEditIskoChange.bind(this)} value={this.state.slctAddEditId}>
-                                                <MDBBox tag="option" value="">{CONSTANTS.MESSAGE.ADDNEW_ISKO}</MDBBox>
+                                                <MDBBox tag="option" value="">{MESSAGE.ADDNEW_ISKO}</MDBBox>
                                                 {
                                                     Object.keys(this.state.playerRecords).length > 0 ? (
                                                         this.state.playerRecords.sort(function (a, b) {
@@ -3029,38 +3029,38 @@ class Home extends React.Component {
                                         <div className="md-form">
                                             <i data-test="fa" className="fa fa-address-book prefix"></i>
                                             <input data-test="input" type="text" className="form-control" name="ADDRESS" required />
-                                            <label className="active">{CONSTANTS.MESSAGE.RONIN_ADDRESS}</label>
+                                            <label className="active">{MESSAGE.RONIN_ADDRESS}</label>
                                         </div>
                                         <div className="md-form">
                                             <i data-test="fa" className="fa fa-user prefix"></i>
                                             <input data-test="input" type="text" className="form-control" name="NAME" required />
-                                            <label className="active">{CONSTANTS.MESSAGE.NAME}</label>
+                                            <label className="active">{MESSAGE.NAME}</label>
                                         </div>
                                         <div className="md-form">
                                             <i data-test="fa" className="fa fa-envelope prefix"></i>
                                             <input data-test="input" type="email" className="form-control" name="EMAIL" required />
-                                            <label className="active">{CONSTANTS.MESSAGE.EMAIL}</label>
+                                            <label className="active">{MESSAGE.EMAIL}</label>
                                         </div>
                                         <div className="md-form">
                                             <i data-test="fa" className="fa fa-lock prefix"></i>
                                             <input data-test="input" type="text" className="form-control" name="PASS" required />
-                                            <label className="active">{CONSTANTS.MESSAGE.PASSWORD}</label>
+                                            <label className="active">{MESSAGE.PASSWORD}</label>
                                         </div>
                                         <MDBRow className="mt-1pt5rem-neg" between>
                                             <MDBCol size="6">
                                                 <div className="md-form">
                                                     <input data-test="input" type="number" className="form-control" name="SHR_MANAGER" min="0" max="100" required />
-                                                    <label className="active">{CONSTANTS.MESSAGE.MANAGER}</label>
+                                                    <label className="active">{MESSAGE.MANAGER}</label>
                                                 </div>
                                             </MDBCol>
                                             <MDBCol size="6">
                                                 <div className="md-form">
                                                     <input data-test="input" type="number" className="form-control" name="SHR_SCHOLAR" min="0" max="100" required />
-                                                    <label className="active">{CONSTANTS.MESSAGE.SCHOLAR}</label>
+                                                    <label className="active">{MESSAGE.SCHOLAR}</label>
                                                 </div>
                                             </MDBCol>
                                         </MDBRow>
-                                        <MDBInput containerClass="md-form mt-2rem-neg checkbox-mdb-custom" label={CONSTANTS.MESSAGE.HASSPONSOR} type="checkbox" id="hasSponsor-checkbox" checked={this.state.hasSponsor} onChange={this.handleHasSponsorCheckChange.bind(this)} />
+                                        <MDBInput containerClass="md-form mt-2rem-neg checkbox-mdb-custom" label={MESSAGE.HASSPONSOR} type="checkbox" id="hasSponsor-checkbox" checked={this.state.hasSponsor} onChange={this.handleHasSponsorCheckChange.bind(this)} />
                                         {
                                             this.state.hasSponsor ? (
                                                 <MDBRow className="mt-1pt5rem-neg" between>
@@ -3068,25 +3068,25 @@ class Home extends React.Component {
                                                         <div className="md-form">
                                                             <i data-test="fa" className="fa fa-user prefix"></i>
                                                             <input data-test="input" type="text" className="form-control" name="SPONSOR_NAME" required />
-                                                            <label className="active">{CONSTANTS.MESSAGE.SPONSOR_NAME}</label>
+                                                            <label className="active">{MESSAGE.SPONSOR_NAME}</label>
                                                         </div>
                                                     </MDBCol>
                                                     <MDBCol size="6">
                                                         <div className="md-form">
                                                             <input data-test="input" type="number" className="form-control" name="SHR_SPONSOR" min="0" max="100" required />
-                                                            <label className="active">{CONSTANTS.MESSAGE.SPONSOR_SHARE}</label>
+                                                            <label className="active">{MESSAGE.SPONSOR_SHARE}</label>
                                                         </div>
                                                     </MDBCol>
                                                 </MDBRow>
                                             ) : ("")
                                         }
-                                        <MDBInput containerClass="md-form mt-2rem-neg checkbox-mdb-custom redLabel" label={CONSTANTS.MESSAGE.DELETE} type="checkbox" id="isDelete-checkbox" checked={this.state.isDeleted} onChange={this.handleIsDeleteCheckChange.bind(this)} />
+                                        <MDBInput containerClass="md-form mt-2rem-neg checkbox-mdb-custom redLabel" label={MESSAGE.DELETE} type="checkbox" id="isDelete-checkbox" checked={this.state.isDeleted} onChange={this.handleIsDeleteCheckChange.bind(this)} />
                                         <MDBBox tag="div" className={this.state.isValidAddTeam === 0 ? "d-none" : this.state.isValidAddTeam ? "d-none" : "invalid-feedback mt-0pt3rem-neg mb-2 px-3 d-block"}>{this.state.errorMsg}</MDBBox>
                                     </MDBBox>
                                     <MDBBox tag="div" className="text-center">
                                         <button className="btn btn-default waves-effect waves-light">
                                             <MDBIcon icon="paper-plane" className="mr-1" />
-                                            {CONSTANTS.MESSAGE.SUBMIT}
+                                            {MESSAGE.SUBMIT}
                                         </button>
                                     </MDBBox>
                                 </form>
@@ -3094,7 +3094,7 @@ class Home extends React.Component {
                             <MDBTabPane tabId="2" role="tabpanel">
                                 <MDBBox tag="div" className="select-mdb-custom mt-3">
                                     <MDBBox tag="select" className="select-mdb-content" onChange={this.handleClaimChange.bind(this)} value={this.state.slctClaimId}>
-                                        <MDBBox tag="option" value="">{CONSTANTS.MESSAGE.SELECT_NAME}</MDBBox>
+                                        <MDBBox tag="option" value="">{MESSAGE.SELECT_NAME}</MDBBox>
                                         {
                                             Object.keys(this.state.playerRecords).length > 0 ? (
                                                 this.state.playerRecords.sort(function (a, b) {
@@ -3118,33 +3118,33 @@ class Home extends React.Component {
                                 </MDBBox>
                                 <form onSubmit={this.onWithdrawHandle.bind(this)} className="claim-inputHolder">
                                     <MDBBox tag="div" className="grey-text">
-                                        <MDBInput label={CONSTANTS.MESSAGE.RONIN_ADDRESS} name="ADDRESS" type="text" required disabled />
+                                        <MDBInput label={MESSAGE.RONIN_ADDRESS} name="ADDRESS" type="text" required disabled />
                                         <div className="md-form">
                                             <input data-test="input" type="number" min="0" className="form-control" name="SLPCURRENCY" step="0.01" required />
-                                            <label className="active">{CONSTANTS.MESSAGE.SLP_CURRENCY}</label>
+                                            <label className="active">{MESSAGE.SLP_CURRENCY}</label>
                                         </div>
                                         <div className="md-form">
                                             <input data-test="input" type="number" min="0" className="form-control" name="SHR_MANAGER" required />
-                                            <label className="active">{CONSTANTS.MESSAGE.MANAGER_SLP}</label>
+                                            <label className="active">{MESSAGE.MANAGER_SLP}</label>
                                         </div>
                                         <div className="md-form">
                                             <input data-test="input" type="number" min="0" className="form-control" name="SHR_SCHOLAR" required />
-                                            <label className="active">{CONSTANTS.MESSAGE.SCHOLAR_SLP}</label>
+                                            <label className="active">{MESSAGE.SCHOLAR_SLP}</label>
                                         </div>
                                         <div className="md-form">
                                             <input data-test="input" type="number" min="0" className="form-control" name="SHR_SPONSOR" required />
-                                            <label className="active">{CONSTANTS.MESSAGE.SPONSOR_SLP}</label>
+                                            <label className="active">{MESSAGE.SPONSOR_SLP}</label>
                                         </div>
                                         <div className="md-form">
                                             <input data-test="input" type="date" className="form-control" name="WITHDRAW_ON" required />
-                                            <label className="active">{CONSTANTS.MESSAGE.WITHDRAWON}</label>
+                                            <label className="active">{MESSAGE.WITHDRAWON}</label>
                                         </div>
                                     </MDBBox>
                                     <MDBBox tag="div" className={this.state.isValidWithdraw === 0 ? "d-none" : this.state.isValidWithdraw ? "d-none" : "invalid-feedback mt-1pt5rem-neg mb-2 px-3 d-block"}>{this.state.errorMsg}</MDBBox>
                                     <MDBBox tag="div" className="text-center">
                                         <button className="btn btn-default waves-effect waves-light" disabled>
                                             <MDBIcon icon="paper-plane" className="mr-1" />
-                                            {CONSTANTS.MESSAGE.SUBMIT}
+                                            {MESSAGE.SUBMIT}
                                         </button>
                                     </MDBBox>
                                 </form>
@@ -3152,27 +3152,27 @@ class Home extends React.Component {
                             <MDBTabPane tabId="3" role="tabpanel">
                                 <form onSubmit={this.onManagerEarnedHandle.bind(this)} className="managerEarn-inputHolder">
                                     <MDBBox tag="div" className="grey-text">
-                                        <MDBInput label={CONSTANTS.MESSAGE.TOTAL_SLP} name="SLPTOTAL" type="number" min="0" required />
-                                        <MDBInput label={CONSTANTS.MESSAGE.SLP_CURRENCY} name="SLPCURRENCY" type="number" step="0.01" min="0" required />
+                                        <MDBInput label={MESSAGE.TOTAL_SLP} name="SLPTOTAL" type="number" min="0" required />
+                                        <MDBInput label={MESSAGE.SLP_CURRENCY} name="SLPCURRENCY" type="number" step="0.01" min="0" required />
                                         <MDBBox tag="div" className="select-mdb-custom mt-2">
                                             <MDBBox tag="select" className="select-mdb-content">
-                                                <MDBBox tag="option" value={CONSTANTS.MESSAGE.BUY}>{CONSTANTS.MESSAGE.BUY}</MDBBox>
-                                                <MDBBox tag="option" value={CONSTANTS.MESSAGE.BREED}>{CONSTANTS.MESSAGE.BREED}</MDBBox>
-                                                <MDBBox tag="option" value={CONSTANTS.MESSAGE.WITHDRAW}>{CONSTANTS.MESSAGE.WITHDRAW}</MDBBox>
+                                                <MDBBox tag="option" value={MESSAGE.BUY}>{MESSAGE.BUY}</MDBBox>
+                                                <MDBBox tag="option" value={MESSAGE.BREED}>{MESSAGE.BREED}</MDBBox>
+                                                <MDBBox tag="option" value={MESSAGE.WITHDRAW}>{MESSAGE.WITHDRAW}</MDBBox>
                                             </MDBBox>
                                             <MDBBox tag="span" className="select-mdb-bar"></MDBBox>
                                             <MDBBox tag="label" className="col select-mdb-label"></MDBBox>
                                         </MDBBox>
                                         <div className="md-form">
                                             <input data-test="input" type="date" className="form-control" name="EARNED_ON" required />
-                                            <label className="active">{CONSTANTS.MESSAGE.EARNEDON}</label>
+                                            <label className="active">{MESSAGE.EARNEDON}</label>
                                         </div>
                                     </MDBBox>
                                     <MDBBox tag="div" className={this.state.isValidManagerEarn === 0 ? "d-none" : this.state.isValidManagerEarn ? "d-none" : "invalid-feedback mt-1pt5rem-neg mb-2 px-3 d-block"}>{this.state.errorMsg}</MDBBox>
                                     <MDBBox tag="div" className="text-center">
                                         <button className="btn btn-default waves-effect waves-light">
                                             <MDBIcon icon="paper-plane" className="mr-1" />
-                                            {CONSTANTS.MESSAGE.SUBMIT}
+                                            {MESSAGE.SUBMIT}
                                         </button>
                                     </MDBBox>
                                 </form>
@@ -3190,8 +3190,8 @@ class Home extends React.Component {
                 <MDBRow className="justify-content-center align-self-center">
                     <MDBCol size="12" className="justify-content-center align-self-center text-center">
                         <img src="/assets/images/axie_char.png" className="w-200px mt-5" alt="No Data Found" />
-                        <MDBBox tag="span" className="d-block py-3 font-size-3rem font-family-architects-daughter red-text">{CONSTANTS.MESSAGE.SOMETHING_WENT_WRONG}</MDBBox>
-                        <MDBBox tag="span" className="d-block font-size-3rem font-family-architects-daughter orange-text">{CONSTANTS.MESSAGE.NODATA_FOUND}</MDBBox>
+                        <MDBBox tag="span" className="d-block py-3 font-size-3rem font-family-architects-daughter red-text">{MESSAGE.SOMETHING_WENT_WRONG}</MDBBox>
+                        <MDBBox tag="span" className="d-block font-size-3rem font-family-architects-daughter orange-text">{MESSAGE.NODATA_FOUND}</MDBBox>
                     </MDBCol>
                 </MDBRow>
             </React.Fragment>
@@ -3199,12 +3199,12 @@ class Home extends React.Component {
     }
 
     render() {
-        document.title = CONSTANTS.MESSAGE.HOMETITLE;
+        document.title = MESSAGE.HOMETITLE;
         return (
             <MDBBox tag="div" className="home-wrapper">
                 <MDBAnimation type="bounce" className="z-index-1 position-fixed guides-btn">
                     {
-                        this.state.isUser === CONSTANTS.MESSAGE.MANAGER ? (
+                        this.state.isUser === MESSAGE.MANAGER ? (
                             <React.Fragment>
                                 {/* Scholar's input */}
                                 <button type="button" className="btn btn-default waves-effect waves-light d-block iskoInputs"
@@ -3216,7 +3216,7 @@ class Home extends React.Component {
                                     //  Object.keys(this.state.exportData).length > 0 ? (
                                     //     <React.Fragment>
                                     //         {/* Export Data */}
-                                    //         <ExportCSV csvData={this.state.exportData} fileName={CONSTANTS.MESSAGE.TEAMLOKI + "_" + moment().format("MMDDYYYY_HHmmss")}/>
+                                    //         <ExportCSV csvData={this.state.exportData} fileName={MESSAGE.TEAMLOKI + "_" + moment().format("MMDDYYYY_HHmmss")}/>
                                     //     </React.Fragment>
                                     // ) : ("")
                                 }
@@ -3237,7 +3237,7 @@ class Home extends React.Component {
                     <MDBBox tag="div" className="loader-section">
                         <MDBBox tag="div" className="position-fixed z-index-9999 l-0 t-0 r-0 b-0 m-auto overflow-visible flex-center">
                             <MDBBox tag="span" className="loader-spin-dual-ring"></MDBBox>
-                            <MDBBox tag="span" className="ml-2 font-size-1rem white-text">{CONSTANTS.MESSAGE.LOADING_TEXT}</MDBBox>
+                            <MDBBox tag="span" className="ml-2 font-size-1rem white-text">{MESSAGE.LOADING_TEXT}</MDBBox>
                         </MDBBox>
                         <MDBBox tag="div" className="loader-backdrop position-fixed z-index-1040 l-0 t-0 r-0 b-0 black"></MDBBox>
                     </MDBBox>
@@ -3277,7 +3277,7 @@ class Home extends React.Component {
                                                 {/* Display checkbox for Battle Log show */}
                                                 <MDBCol size="12" className="float-right text-right">
                                                     <MDBBox tag="div" className="isBattleLogShow">
-                                                        <MDBInput containerClass="md-form mt-2rem-neg checkbox-mdb-custom whiteLabel" label={CONSTANTS.MESSAGE.BATTELOG_ISDISPLAY} type="checkbox" id="isBattleLogShow-checkbox" checked={this.state.isBattleLogEnable} onChange={this.handleIsBattleLogShowCheckChange.bind(this)} />
+                                                        <MDBInput containerClass="md-form mt-2rem-neg checkbox-mdb-custom whiteLabel" label={MESSAGE.BATTELOG_ISDISPLAY} type="checkbox" id="isBattleLogShow-checkbox" checked={this.state.isBattleLogEnable} onChange={this.handleIsBattleLogShowCheckChange.bind(this)} />
                                                     </MDBBox>
                                                 </MDBCol>
                                                 {/* Display all data */}

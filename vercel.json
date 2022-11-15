@@ -9,7 +9,7 @@
     "routes": [
       {
         "src": "/(.*)",
-        "dest": "server/herokuPostgresql.js"
+        "dest": "client/src/components/Main.js"
       }
     ]
   }

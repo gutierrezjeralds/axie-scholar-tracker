@@ -2,7 +2,7 @@ const request = require("request");
 const Web3 = require("web3");
 
 // Dependencies
-const { MESSAGE } = require("../client/src/components/Constants")
+const { MESSAGE } = require("../../client/src/components/Constants")
 
 /*
     * Generate Access Token via GraphQl
@@ -351,7 +351,7 @@ async function getCryptoCoins(logger) {
 async function getCoingecko(logger) {
     return new Promise(async(resolve, reject) => {
         try {
-            // Get Crypto Coins from Binance
+            // Get Crypto Coins from Coinggecko
             logger(MESSAGE.STARTED_CRYPTOCOINS);
             request.get(
                 {

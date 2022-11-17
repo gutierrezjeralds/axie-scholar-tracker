@@ -81,7 +81,9 @@ const MESSAGE = {
     NOTIFBAR_CLICKABLE: "Notification bar is Clickable.",
     SLP_PRICE: "SLP Price",
     DATE: "Date",
+    STARTED_ON: "Started On",
     STARTED: "Started",
+    END: "END",
     TOTAL_INGAME_SLP: "Total InGame SLP",
     TOTAL_AVERAGE_SLP: "Total Average SLP",
     TOTAL_MANAGER_SLP: "Total Manager SLP",
@@ -195,39 +197,80 @@ const MESSAGE = {
     ERROR_CRYPTOCOINS: "Error in Crypto Coins",
 }
 
-const TABLE = {
-    USERPROFILE: `public."TB_USERPROFILE"`,
-    WITHDRAW: `public."TB_WITHDRAW"`,
-    DAILYSLP: `public."TB_DAILYSLP"`,
+const TABLES = {
+    TBUSERPROFILE: "TB_USERPROFILE",
+    TBMANAGEREARNED: "TB_MANAGEREARNED",
+    TBWITHDRAW: "TB_WITHDRAW",
+    TBDAILYSLP: "TB_DAILYSLP",
+    TBYESTERDAYSLP: "TB_YESTERDAYSLP"
 }
 
-const QUERY = {
-    SELECT: {
-        USERPROFILE: `SELECT * FROM public."TB_USERPROFILE"`,
-        DAILYSLP: `SELECT * FROM public."DAILYSLP"`,
-        WITHDRAW: `SELECT * FROM public."TB_WITHDRAW"`,
-        MANAGEREARNED: `SELECT * FROM public."TB_MANAGEREARNED"`,
-        YESTERDAYSLP: `SELECT * FROM public."TB_YESTERDAYSLP"`
+const HEROKU = {
+    TABLE: {
+        USERPROFILE: `public."TB_USERPROFILE"`,
+        WITHDRAW: `public."TB_WITHDRAW"`,
+        DAILYSLP: `public."TB_DAILYSLP"`
     },
-    INSERT: {
-        USERPROFILE: `INSERT INTO public."TB_USERPROFILE"`,
-        DAILYSLP: `INSERT INTO public."TB_DAILYSLP"`,
-        WITHDRAW: `INSERT INTO public."TB_WITHDRAW"`,
-        MANAGEREARNED: `INSERT INTO public."TB_MANAGEREARNED"`,
-        YESTERDAYSLP: `INSERT INTO public."TB_YESTERDAYSLP"`
+    QUERY: {
+        SELECT: {
+            USERPROFILE: `SELECT * FROM public."TB_USERPROFILE"`,
+            DAILYSLP: `SELECT * FROM public."DAILYSLP"`,
+            WITHDRAW: `SELECT * FROM public."TB_WITHDRAW"`,
+            MANAGEREARNED: `SELECT * FROM public."TB_MANAGEREARNED"`,
+            YESTERDAYSLP: `SELECT * FROM public."TB_YESTERDAYSLP"`
+        },
+        INSERT: {
+            USERPROFILE: `INSERT INTO public."TB_USERPROFILE"`,
+            DAILYSLP: `INSERT INTO public."TB_DAILYSLP"`,
+            WITHDRAW: `INSERT INTO public."TB_WITHDRAW"`,
+            MANAGEREARNED: `INSERT INTO public."TB_MANAGEREARNED"`,
+            YESTERDAYSLP: `INSERT INTO public."TB_YESTERDAYSLP"`
+        },
+        UPDATE: {
+            USERPROFILE: `UPDATE public."TB_USERPROFILE"`,
+            DAILYSLP: `UPDATE public."TB_DAILYSLP"`
+        },
+        DELETE: {
+            YESTERDAYSLP: `DELETE FROM public."TB_YESTERDAYSLP"`
+        }
+    }
+}
+
+const DB4FREE = {
+    TABLE: {
+        USERPROFILE: "TB_USERPROFILE",
+        WITHDRAW: "TB_WITHDRAW",
+        DAILYSLP: "TB_DAILYSLP"
     },
-    UPDATE: {
-        USERPROFILE: `UPDATE public."TB_USERPROFILE"`,
-        DAILYSLP: `UPDATE public."TB_DAILYSLP"`
-    },
-    DELETE: {
-        YESTERDAYSLP: `DELETE FROM public."TB_YESTERDAYSLP"`
+    QUERY: {
+        SELECT: {
+            USERPROFILE: `SELECT * FROM TB_USERPROFILE`,
+            DAILYSLP: `SELECT * FROM DAILYSLP`,
+            WITHDRAW: `SELECT * FROM TB_WITHDRAW`,
+            MANAGEREARNED: `SELECT * FROM TB_MANAGEREARNED`,
+            YESTERDAYSLP: `SELECT * FROM TB_YESTERDAYSLP`
+        },
+        INSERT: {
+            USERPROFILE: `INSERT INTO TB_USERPROFILE`,
+            DAILYSLP: `INSERT INTO TB_DAILYSLP`,
+            WITHDRAW: `INSERT INTO TB_WITHDRAW`,
+            MANAGEREARNED: `INSERT INTO TB_MANAGEREARNED`,
+            YESTERDAYSLP: `INSERT INTO TB_YESTERDAYSLP`
+        },
+        UPDATE: {
+            USERPROFILE: `UPDATE TB_USERPROFILE`,
+            DAILYSLP: `UPDATE TB_DAILYSLP`
+        },
+        DELETE: {
+            YESTERDAYSLP: `DELETE FROM TB_YESTERDAYSLP`
+        }
     }
 }
 
 // Export the function
 module.exports = {
     MESSAGE,
-    TABLE,
-    QUERY
+    TABLES,
+    HEROKU,
+    DB4FREE
 };

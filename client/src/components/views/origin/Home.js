@@ -141,10 +141,10 @@ class Home extends React.Component {
     }
 
     // Modal Toggle for view of Players details
-    modalPlayerDetailsToggle = (id, playerDetails) => async () => {
+    modalPlayerDetailsToggle = (address, playerDetails) => async () => {
         let details = [];
-        if (id && playerDetails.length > 0) {
-            const findDetail = playerDetails.find(items => items.ID === id);
+        if (address && playerDetails.length > 0) {
+            const findDetail = playerDetails.find(items => items.ADDRESS === address);
             if (Object.keys(findDetail).length > 0) {
                 details = [findDetail];
             }
@@ -224,7 +224,7 @@ class Home extends React.Component {
         if (event.target.value) {
             // Update Select Option text
             // $(".addEdit-inputHolder").find("select").text(`${MESSAGE.EDIT}: ${event.target.value}`);
-            const dataSet = this.state.playerRecords.filter(item => (item.ID).toString() === (event.target.value).toString() || item.NAME === event.target.value); // Filter valid data
+            const dataSet = this.state.playerRecords.filter(item => (item.ADDRESS).toString() === (event.target.value).toString() || item.NAME === event.target.value); // Filter valid data
             if (dataSet.length > 0) {
                 // Check if item has sponsor
                 if (Number(dataSet[0].SHR_SPONSOR) > 0) {
@@ -315,7 +315,7 @@ class Home extends React.Component {
 
             // Run Ajax
             $.ajax({
-                url: "/api/addEditScholar",
+                url: "/mongodb/api/addEditScholar",
                 type: "POST",
                 data: JSON.stringify(datas),
                 contentType: 'application/json',
@@ -381,7 +381,7 @@ class Home extends React.Component {
         $(".claim-inputHolder input[name=SLPCURRENCY]").val(this.state.currencySLP).attr("value", this.state.currencySLP).trigger("change");
         // Continue with the process
         if (event.target.value) {
-            const dataSet = this.state.playerRecords.filter(item => (item.ID).toString() === (event.target.value).toString() || item.NAME === event.target.value); // Filter valid data
+            const dataSet = this.state.playerRecords.filter(item => (item.ADDRESS).toString() === (event.target.value).toString() || item.NAME === event.target.value); // Filter valid data
             if (dataSet.length > 0) {
                 // Update input fields
                 $(".claim-inputHolder input[name=ADDRESS]").val(dataSet[0].ADDRESS).attr("value", dataSet[0].ADDRESS).trigger("change").siblings('label').addClass('active');
@@ -429,7 +429,7 @@ class Home extends React.Component {
 
             // Run api
             $.ajax({
-                url: "/api/withdraw",
+                url: "/mongodb/api/withdraw",
                 type: "POST",
                 data: JSON.stringify(datas),
                 contentType: 'application/json',
@@ -512,7 +512,7 @@ class Home extends React.Component {
                 
             // Run api
             $.ajax({
-                url: "/api/managerEarned",
+                url: "/mongodb/api/managerEarned",
                 type: "POST",
                 data: JSON.stringify(datas),
                 contentType: 'application/json',
@@ -573,7 +573,7 @@ class Home extends React.Component {
     // Get SLP and AXS Crypto Coins
     getCryptoCoins = () => {
         $.ajax({
-            url: "/api/getCryptoCoins",
+            url: "/mongodb/api/getCryptoCoins",
             dataType: "json",
             cache: false
         })
@@ -624,7 +624,7 @@ class Home extends React.Component {
         return new Promise((resolve, reject) => {
             // Run api
             $.ajax({
-                url: "/api/authLogin",
+                url: "/mongodb/api/authLogin",
                 type: "POST",
                 data: JSON.stringify(credentials),
                 contentType: 'application/json',
@@ -673,7 +673,7 @@ class Home extends React.Component {
     // Process of details by fetching all data in different api
     recordProcess = () => {
         $.ajax({
-            url: "/api/records",
+            url: "/mongodb/api/records",
             type: "GET",
             contentType: 'application/json',
             cache: false,
@@ -914,7 +914,7 @@ class Home extends React.Component {
     getPlayerDetails = async (details, detailsLength, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned) => {
         return new Promise((resolve, reject) => {
             $.ajax({
-                url: "/api/getInGameSLP",
+                url: "/mongodb/api/getInGameSLP",
                 type: "POST",
                 data: JSON.stringify({
                     token: details.accessToken
@@ -1081,22 +1081,23 @@ class Home extends React.Component {
                     }
                 }
 
+                // Default property key/value for Manager Earning
+                details.MANAGEREARNING = {
+                    TOTAL: {
+                        ROI: 0,
+                        INCOME: 0,
+                        BREED: 0,
+                        BUY: 0,
+                        SLP: 0,
+                        PHP: 0
+                    },
+                    CLAIMED: [],
+                    REACHEDROI: false, // For validation if ROI is completed
+                };
+
                 // Construct data for Manager All Income and Set value for Total Earning per claimed
                 if ((details.SHR_MANAGER).toString() === "100" && (dataManagerEarned !== undefined && dataManagerEarned.length > 0)) {
-                    details.MANAGEREARNING = { // Default Total Value
-                        TOTAL: {
-                            ROI: 0,
-                            INCOME: 0,
-                            BREED: 0,
-                            BUY: 0,
-                            SLP: 0,
-                            PHP: 0
-                        },
-                        CLAIMED: [],
-                        REACHEDROI: false, // For validation if ROI is completed
-                    };
-
-                    dataManagerEarned.map(data => {
+                    dataManagerEarned.map((data, idx) => {
                         // Adding PHP Earning
                         data.PHPTOTAL = Number(data.SLPTOTAL) * Number(data.SLPCURRENCY);
                         // Update Total Income and SLP
@@ -1129,6 +1130,7 @@ class Home extends React.Component {
                         }
 
                         // Push data
+                        data.INDEX = idx;
                         let managerData = Object.assign({}, data);
                         details.MANAGEREARNING.CLAIMED.push(managerData);
 
@@ -1142,14 +1144,16 @@ class Home extends React.Component {
                     })
                 }
 
+                // Default property key/value for Schoalr Withdraw
+                details.WITHDRAWEARNING = {
+                    TOTALINCOME: 0,
+                    CLAIMED: []
+                }
+
                 // Set new value for Team Total Income and Total Earning per withdraw
                 if (dataWithdraw !== undefined && dataWithdraw.length > 0) {
-                    details.WITHDRAWEARNING = { // Default Total Value
-                        TOTALINCOME: 0,
-                        CLAIMED: []
-                    }
                     // Get specific data based on ronin address in dataWithdraw
-                    dataWithdraw.filter(item => item.ADDRESS === details.ADDRESS).map(data => {
+                    dataWithdraw.filter(item => item.ADDRESS === details.ADDRESS).map((data, idx) => {
                         // Adding PHP Earning
                         data.PHPTOTAL = Number(data.SLPTOTAL) * Number(data.SLPCURRENCY);
 
@@ -1157,6 +1161,7 @@ class Home extends React.Component {
                         details.WITHDRAWEARNING.TOTALINCOME = details.WITHDRAWEARNING.TOTALINCOME + data.PHPTOTAL;
 
                         // Push data
+                        data.INDEX = idx;
                         let withdrawData = Object.assign({}, data);
                         details.WITHDRAWEARNING.CLAIMED.push(withdrawData);
 
@@ -1249,7 +1254,7 @@ class Home extends React.Component {
                     rank: <MDBBox data-th={MESSAGE.RANK} tag="span">{PLAYER.LEADERBOARD.rank + " " + PLAYER.LEADERBOARD.tier}</MDBBox>,
                     topRank: <MDBBox data-th={MESSAGE.RANK} tag="span">{this.numberWithCommas(PLAYER.LEADERBOARD.topRank)}</MDBBox>,
                     leaderboard: <MDBBox data-th={MESSAGE.LEADERBOARD} tag="span">{PLAYER.LEADERBOARD.rank + " " + PLAYER.LEADERBOARD.tier} <MDBBox tag="span" className="d-inline d-md-block d-lg-block">{PLAYER.LEADERBOARD.topRank > 0 ? ("(" + this.numberWithCommas(PLAYER.LEADERBOARD.topRank) + ")") : ("")}</MDBBox></MDBBox>,
-                    clickEvent: this.modalPlayerDetailsToggle(PLAYER.ID, [PLAYER])
+                    clickEvent: this.modalPlayerDetailsToggle(PLAYER.ADDRESS, [PLAYER])
                 };
                 
                 // Success return
@@ -1601,7 +1606,7 @@ class Home extends React.Component {
                                         {
                                             Object.keys(this.state.managerEarnings.CLAIMED).length > 0 ? (
                                                 this.state.managerEarnings.CLAIMED.sort((a, b) =>  moment(b.EARNED_ON).unix() - moment(a.EARNED_ON).unix() ).map(items => (
-                                                    <tr key={items.ID} className="text-center">
+                                                    <tr key={items.INDEX} className="text-center">
                                                         <td>{<Moment format="MMM DD, YYYY">{items.EARNED_ON}</Moment>}</td>
                                                         <td>{items.SLPTOTAL}</td>
                                                         <td className="text-uppercase">{items.SLPCURRENCY}</td>
@@ -1643,7 +1648,7 @@ class Home extends React.Component {
                                         {/* Started playing */}
                                         <MDBCol size="12" md="6" lg="6">
                                             <MDBBox tag="span" className="d-block">
-                                                <strong>{MESSAGE.STARTED}:</strong> <Moment format="MMM DD, YYYY">{this.state.modalPlayerDetails[0].STARTED_ON}</Moment>
+                                                <strong>{MESSAGE.STARTED_ON}:</strong> <Moment format="MMM DD, YYYY">{this.state.modalPlayerDetails[0].STARTED_ON}</Moment>
                                             </MDBBox>
                                         </MDBCol>
                                         {/* Market Place link */}
@@ -1717,7 +1722,7 @@ class Home extends React.Component {
                                                             this.state.modalPlayerDetails[0].WITHDRAWEARNING.CLAIMED !== undefined && 
                                                             Object.keys(this.state.modalPlayerDetails[0].WITHDRAWEARNING.CLAIMED).length > 0 ? (
                                                                 (this.state.modalPlayerDetails[0].WITHDRAWEARNING.CLAIMED).sort((a, b) => moment(b.WITHDRAW_ON).unix() - moment(a.WITHDRAW_ON).unix()).map(items => (
-                                                                    <tr key={items.ID} className="text-center">
+                                                                    <tr key={items.INDEX} className="text-center">
                                                                         <td>{<Moment format="MMM DD, YYYY">{items.WITHDRAW_ON}</Moment>}</td>
                                                                         <td>{items.SLPTOTAL}</td>
                                                                         <td className="text-uppercase">{items.SLPCURRENCY}</td>
@@ -1791,7 +1796,7 @@ class Home extends React.Component {
                                                                 return 0;
                                                             }
                                                         }).map((item) => (
-                                                            <MDBBox tag="option" key={item.ID} value={item.ID}>
+                                                            <MDBBox tag="option" key={item.ADDRESS} value={item.ADDRESS}>
                                                                 {item.NAME}
                                                             </MDBBox>
                                                         ))
@@ -1881,7 +1886,7 @@ class Home extends React.Component {
                                                         return 0;
                                                     }
                                                 }).map((item) => (
-                                                    <MDBBox tag="option" key={item.ID} value={item.ID}>
+                                                    <MDBBox tag="option" key={item.ADDRESS} value={item.ADDRESS}>
                                                         {item.NAME}
                                                     </MDBBox>
                                                 ))

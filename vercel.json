@@ -2,14 +2,14 @@
     "version": 2,
     "builds": [
       {
-        "src": "./server/herokuPostgresql.js",
+        "src": "./nodejs/server.js",
         "use": "@vercel/node"
       }
     ],
     "routes": [
       {
         "src": "/(.*)",
-        "dest": "server/herokuPostgresql.js"
+        "dest": "nodejs/server.js"
       }
     ]
   }

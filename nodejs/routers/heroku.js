@@ -1,25 +1,21 @@
-const path = require('path');
-const express = require("express");
-const { Client } = require('pg');
-const PORT = process.env.PORT || 3001;
+/*eslint no-console: 0*/
+"use strict";
 
-const app = express();
-app.use(express.json());
-
-// Have Node serve the files for our built React app
-app.use(express.static(path.resolve(__dirname, '../client/build')));
-
-/*
-    ReactJS Buildpack Heroku
-    ** https://buildpack-registry.s3.amazonaws.com/buildpacks/mars/create-react-app.tgz
-*/
+/**
+ * Heroku Postgresql Process
+ * Objective: Router for Team Loki data
+ */
 
 // Dependencies
-const { MESSAGE, TABLE, QUERY } = require("../client/src/components/Constants")
-const clientRequest = require("./clientReq");
+const express = require("express");
+const { Client } = require('pg');
+const router = express.Router();
+const clientRequest = require("../handlers/ClientRequest");
+const { MESSAGE, HEROKU } = require("../../client/src/components/Constants");
+
 
 const pgConn = {
-    connectionString: "postgres://jxbcqarlcxuwwt:9328a074960dae0975c57dc4a88fd21af6be26c4ef0708316df54368c565da83@ec2-23-23-199-57.compute-1.amazonaws.com:5432/d2kdqt4muprt6i",
+    connectionString: process.env.POSTGRES_URI,
     ssl: {
       rejectUnauthorized: false
     }
@@ -28,7 +24,7 @@ const pgConn = {
 /*
     Tables
     ** TB_USERPROFILE
-    **** ID, ADDRESS, NAME, EMAIL, SHR_MANAGER, SHR_SCHOLAR, SHR_SPONSOR, SPONSOR_NAME, STARTED_ON, SLP_CLAIMED, DELETEIND (X), HIGH_SLP_GAIN, HIGH_SLP_DATE
+    **** ID, ADDRESS, NAME, EMAIL, PASS, SHR_MANAGER, SHR_SCHOLAR, SHR_SPONSOR, SPONSOR_NAME, STARTED_ON, SLP_CLAIMED, DELETEIND (X), HIGH_SLP_GAIN, HIGH_SLP_DATE
     ** TB_WITHDRAW
     **** ID, ADDRESS, SLPTOTAL, SLPCURRENCY, WITHDRAW_ON
     ** TB_DAILYSLP
@@ -46,23 +42,13 @@ const logger = (message, subMessage = "", addedMessage = "", isDevMode = false) 
     }
 }
 
-// Address the Client side
-app.get('/',(req,res)=>{
-    res.sendFile(path.resolve(__dirname,'client','build','index.html'))
-})
-
-// Get Method x Test server
-app.get("/api", (req, res) => {
-    res.json({ message: "Hello from server!" });
-});
-
 // All other GET requests not handled before will return our React app
 // app.get('*', (req, res) => {
 //     res.sendFile(path.resolve(__dirname, '../client/build', 'index.html'));
 // });
 
 // POST Method x Get Access Token
-app.post("/api/authLogin", async (req, res) => {
+router.post("/authLogin", async (req, res) => {
     try {
         logger(MESSAGE.STARTED_GENERATE_TOKEN);
         
@@ -82,7 +68,7 @@ app.post("/api/authLogin", async (req, res) => {
 });
 
 // POST Method x Get In Game SLP
-app.post("/api/getInGameSLP", async (req, res) => {
+router.post("/getInGameSLP", async (req, res) => {
     try {
         logger(MESSAGE.STARTED_INGAMESLP_API);
         
@@ -102,7 +88,7 @@ app.post("/api/getInGameSLP", async (req, res) => {
 });
 
 // POST Method x Get In Game SLP
-app.get("/api/getCryptoCoins", async (req, res) => {
+router.get("/getCryptoCoins", async (req, res) => {
     try {
         logger(MESSAGE.STARTED_CRYPTOCOINS_API);
 
@@ -119,7 +105,7 @@ app.get("/api/getCryptoCoins", async (req, res) => {
 });
 
 // GET Method x Fetch User Profile x TB_USERPROFILE
-app.get("/api/userProfile", async (req, res) => {
+router.get("/userProfile", async (req, res) => {
     try {
         logger(MESSAGE.STARTED_SELECTQUERY);
 
@@ -128,7 +114,7 @@ app.get("/api/userProfile", async (req, res) => {
         client.connect();
 
         // Execute Query x JOIN table
-        const query = `${QUERY.SELECT.USERPROFILE}`;
+        const query = `${HEROKU.QUERY.SELECT.USERPROFILE}`;
         client.query(query, (error, result) => {
             logger(MESSAGE.END_SELECTQUERY);
             // End Connection
@@ -155,7 +141,7 @@ app.get("/api/userProfile", async (req, res) => {
 })
 
 // GET Method x Fetch User Profile x TB_USERPROFILE
-app.get("/api/userProfile/login", async (req, res) => {
+router.get("/login", async (req, res) => {
     try {
         logger(MESSAGE.STARTED_SELECTQUERY);
 
@@ -169,7 +155,7 @@ app.get("/api/userProfile/login", async (req, res) => {
             const access = (decodeURI(param.credential)).replace(/\s+/g, '+'); // Decode URL x replace space from "+" into value of "+"
 
             // Execute Query x JOIN table
-            const query = `${QUERY.SELECT.USERPROFILE} WHERE UPPER("NAME") = '${access}' OR UPPER("EMAIL") = '${access}' OR UPPER("SPONSOR_NAME") = '${access}'`;
+            const query = `${HEROKU.QUERY.SELECT.USERPROFILE} WHERE UPPER("NAME") = '${access}' OR UPPER("EMAIL") = '${access}' OR UPPER("SPONSOR_NAME") = '${access}'`;
             client.query(query, (error, result) => {
                 logger(MESSAGE.END_SELECTQUERY);
                 // End Connection
@@ -202,7 +188,7 @@ app.get("/api/userProfile/login", async (req, res) => {
 })
 
 // GET Method x Fetch records x TB_USERPROFILE + TB_WITHDRAW + TB_DAILYSLP
-app.get("/api/records", async (req, res) => {
+router.get("/records", async (req, res) => {
     try {
         logger(MESSAGE.STARTED_SELECTQUERY);
 
@@ -211,7 +197,7 @@ app.get("/api/records", async (req, res) => {
         client.connect();
 
         // Execute Query x JOIN table
-        const query = `SELECT "USER".*, "DAILY"."YESTERDAY", "DAILY"."YESTERDAYRES", "DAILY"."TODAY", "DAILY"."TODATE" FROM ${TABLE.USERPROFILE} AS "USER" JOIN ${TABLE.DAILYSLP} AS "DAILY" ON "USER"."ADDRESS" = "DAILY"."ADDRESS"`;
+        const query = `SELECT "USER".*, "DAILY"."YESTERDAY", "DAILY"."YESTERDAYRES", "DAILY"."TODAY", "DAILY"."TODATE" FROM ${HEROKU.TABLE.USERPROFILE} AS "USER" JOIN ${HEROKU.TABLE.DAILYSLP} AS "DAILY" ON "USER"."ADDRESS" = "DAILY"."ADDRESS"`;
         client.query(query, (error, result) => {
             if (error) {
                 logger(MESSAGE.END_SELECTQUERY);
@@ -223,7 +209,7 @@ app.get("/api/records", async (req, res) => {
                 });
             } else {
                 // Execute Query x TB_WITHDRAW
-                const query = `${QUERY.SELECT.WITHDRAW}`;
+                const query = `${HEROKU.QUERY.SELECT.WITHDRAW}`;
                 client.query(query, (err, dataWithdraw) => {
                     logger(MESSAGE.END_SELECTQUERY);
                     if (err) {
@@ -237,7 +223,7 @@ app.get("/api/records", async (req, res) => {
                         });
                     } else {
                         // Execute Query x TB_YESTERDAYSLP
-                        const query = `${QUERY.SELECT.YESTERDAYSLP}`;
+                        const query = `${HEROKU.QUERY.SELECT.YESTERDAYSLP}`;
                         client.query(query, (err, dataYesterday) => {
                             logger(MESSAGE.END_SELECTQUERY);
                             if (err) {
@@ -252,7 +238,7 @@ app.get("/api/records", async (req, res) => {
                                 });
                             } else {
                                 // Execute Query x TB_MANAGEREARNED
-                                const query = `${QUERY.SELECT.MANAGEREARNED}`;
+                                const query = `${HEROKU.QUERY.SELECT.MANAGEREARNED}`;
                                 client.query(query, (err, dataManager) => {
                                     logger(MESSAGE.END_SELECTQUERY);
                                     // End Connection
@@ -291,7 +277,7 @@ app.get("/api/records", async (req, res) => {
 })
 
 // POST Method x Saving process of adding new scholar
-app.post("/api/addEditScholar", async (req, res) => {
+router.post("/addEditScholar", async (req, res) => {
     try {
         logger(MESSAGE.STARTED_INSERTQUERY);
 
@@ -304,7 +290,7 @@ app.post("/api/addEditScholar", async (req, res) => {
 
         if (payload.ACTION === MESSAGE.INSERT) {
             // Execute Query x insert new team record
-            const query = `${QUERY.INSERT.USERPROFILE} ("ADDRESS", "NAME", "EMAIL", "PASS", "SHR_MANAGER", "SHR_SCHOLAR", "SHR_SPONSOR", "SPONSOR_NAME", "STARTED_ON", "SLP_CLAIMED", "DELETEIND") VALUES ('${payload.ADDRESS}', '${payload.NAME}', '${payload.EMAIL}', '${payload.PASS}', '${payload.SHR_MANAGER}', '${payload.SHR_SCHOLAR}', '${payload.SHR_SPONSOR}', '${payload.SPONSOR_NAME}', '${payload.STARTED_ON}', '0', '')`;
+            const query = `${HEROKU.QUERY.INSERT.USERPROFILE} ("ADDRESS", "NAME", "EMAIL", "PASS", "SHR_MANAGER", "SHR_SCHOLAR", "SHR_SPONSOR", "SPONSOR_NAME", "STARTED_ON", "SLP_CLAIMED", "DELETEIND") VALUES ('${payload.ADDRESS}', '${payload.NAME}', '${payload.EMAIL}', '${payload.PASS}', '${payload.SHR_MANAGER}', '${payload.SHR_SCHOLAR}', '${payload.SHR_SPONSOR}', '${payload.SPONSOR_NAME}', '${payload.STARTED_ON}', '0', '')`;
             client.query(query, (error) => {
                 logger(MESSAGE.TEAMRECORD, MESSAGE.STARTED_INSERTQUERY);
                 if (error) {
@@ -317,7 +303,7 @@ app.post("/api/addEditScholar", async (req, res) => {
                     });
                 } else {
                     // Execute Query x insert new daily slp record
-                    const query = `${QUERY.INSERT.DAILYSLP} ("ADDRESS", "YESTERDAY", "YESTERDAYRES", "TODAY", "TODATE") VALUES ('${payload.ADDRESS}', '0', '0', '0','${payload.STARTED_ON}')`;
+                    const query = `${HEROKU.QUERY.INSERT.DAILYSLP} ("ADDRESS", "YESTERDAY", "YESTERDAYRES", "TODAY", "TODATE") VALUES ('${payload.ADDRESS}', '0', '0', '0','${payload.STARTED_ON}')`;
                     client.query(query, (err, result) => {
                         logger(MESSAGE.DAILYSLP, MESSAGE.STARTED_INSERTQUERY);
                         // End Connection
@@ -340,7 +326,7 @@ app.post("/api/addEditScholar", async (req, res) => {
             });
         } else if (payload.ACTION === MESSAGE.UPDATE) {
             // Execute Query x update team record
-            const query = `${QUERY.UPDATE.USERPROFILE} SET "ADDRESS" = '${payload.ADDRESS}', "NAME" = '${payload.NAME}', "EMAIL" = '${payload.EMAIL}', "PASS" = '${payload.PASS}', "SHR_MANAGER" = '${payload.SHR_MANAGER}', "SHR_SCHOLAR" = '${payload.SHR_SCHOLAR}', "SHR_SPONSOR" = '${payload.SHR_SPONSOR}', "SPONSOR_NAME" = '${payload.SPONSOR_NAME}', "DELETEIND" = '${payload.DELETEIND}' WHERE "ADDRESS" = '${payload.ADDRESS}'`;
+            const query = `${HEROKU.QUERY.UPDATE.USERPROFILE} SET "ADDRESS" = '${payload.ADDRESS}', "NAME" = '${payload.NAME}', "EMAIL" = '${payload.EMAIL}', "PASS" = '${payload.PASS}', "SHR_MANAGER" = '${payload.SHR_MANAGER}', "SHR_SCHOLAR" = '${payload.SHR_SCHOLAR}', "SHR_SPONSOR" = '${payload.SHR_SPONSOR}', "SPONSOR_NAME" = '${payload.SPONSOR_NAME}', "DELETEIND" = '${payload.DELETEIND}' WHERE "ADDRESS" = '${payload.ADDRESS}'`;
             client.query(query, (error, result) => {
                 logger(MESSAGE.STARTED_UPDATEQUERY, payload.ADDRESS);
                 // End Connection
@@ -375,7 +361,7 @@ app.post("/api/addEditScholar", async (req, res) => {
 });
 
 // POST Method x Saving process of Daily SLP x Yesterday and Today
-app.post("/api/dailySLP", async (req, res) => {
+router.post("/dailySLP", async (req, res) => {
     try {
         logger(MESSAGE.STARTED_INSERTQUERY);
 
@@ -391,9 +377,9 @@ app.post("/api/dailySLP", async (req, res) => {
 
                 // Execute Query for Daily SLP
                 logger(MESSAGE.STARTED_UPDATEQUERY, items.ADDRESS);
-                let query = `${QUERY.UPDATE.DAILYSLP} SET "YESTERDAY" = '${items.YESTERDAY}', "YESTERDAYRES" = '${items.YESTERDAYRES}', "TODAY" = '${items.TODAY}', "TODATE" = '${items.TODATE}' WHERE "ADDRESS" = '${items.ADDRESS}'`;
+                let query = `${HEROKU.QUERY.UPDATE.DAILYSLP} SET "YESTERDAY" = '${items.YESTERDAY}', "YESTERDAYRES" = '${items.YESTERDAYRES}', "TODAY" = '${items.TODAY}', "TODATE" = '${items.TODATE}' WHERE "ADDRESS" = '${items.ADDRESS}'`;
                 if (!items.ALLFIELDS) { // False, only TODATE SLP will be updating
-                    query = `${QUERY.UPDATE.DAILYSLP} SET "TODAY" = '${items.TODAY}' WHERE "ADDRESS" = '${items.ADDRESS}'`;
+                    query = `${HEROKU.QUERY.UPDATE.DAILYSLP} SET "TODAY" = '${items.TODAY}' WHERE "ADDRESS" = '${items.ADDRESS}'`;
                 }
 
                 client.query(query, (error) => {
@@ -406,7 +392,7 @@ app.post("/api/dailySLP", async (req, res) => {
                         if (items.TBINSERTYESTERDAY) {
                             if (Number(items.YESTERDAYRES) > 0 && Number(items.YESTERDAYRES) <= Number(items.MAXGAINSLP)) { // Insert all positive value x greater than zero
                                 // Execute Query for insert Yesterday SLP
-                                const insertQuery = `${QUERY.INSERT.YESTERDAYSLP} ("ADDRESS", "YESTERDAY", "DATE_ON", "MMR") VALUES ('${items.ADDRESS}', '${items.YESTERDAYRES}', '${items.YESTERDAYDATE}', '${items.MMR}')`;
+                                const insertQuery = `${HEROKU.QUERY.INSERT.YESTERDAYSLP} ("ADDRESS", "YESTERDAY", "DATE_ON", "MMR") VALUES ('${items.ADDRESS}', '${items.YESTERDAYRES}', '${items.YESTERDAYDATE}', '${items.MMR}')`;
                                 client.query(insertQuery, (error) => {
                                     logger(MESSAGE.END_INSERTQUERY, items.ADDRESS);
                                     // End Connection
@@ -422,7 +408,7 @@ app.post("/api/dailySLP", async (req, res) => {
                         } else if (items.TBUPDATEHIGHSLP) { // Update High SLP Gained
                             // Execute Query x update team record
                             if (Number(items.HIGHSLPGAIN) > 0 && Number(items.HIGHSLPGAIN) <= Number(items.MAXGAINSLP)) { // Insert all positive value x greater than zero
-                                const query = `${QUERY.UPDATE.USERPROFILE} SET "HIGH_SLP_GAIN" = '${items.HIGHSLPGAIN}', "HIGH_SLP_DATE" = '${items.HIGHSLPDATE}' WHERE "ADDRESS" = '${items.ADDRESS}'`;
+                                const query = `${HEROKU.QUERY.UPDATE.USERPROFILE} SET "HIGH_SLP_GAIN" = '${items.HIGHSLPGAIN}', "HIGH_SLP_DATE" = '${items.HIGHSLPDATE}' WHERE "ADDRESS" = '${items.ADDRESS}'`;
                                 client.query(query, (error) => {
                                     logger(MESSAGE.STARTED_UPDATEQUERY, items.ADDRESS);
                                     // End Connection
@@ -464,7 +450,7 @@ app.post("/api/dailySLP", async (req, res) => {
 });
 
 // POST Method x Saving process of Update SLP Claimed in USER PROFILE Table
-app.post("/api/updateSLPClaimed", async (req, res) => {
+router.post("/updateSLPClaimed", async (req, res) => {
     try {
         logger(MESSAGE.STARTED_INSERTQUERY);
 
@@ -480,7 +466,7 @@ app.post("/api/updateSLPClaimed", async (req, res) => {
 
                 // Execute Query for Daily SLP
                 logger(MESSAGE.STARTED_UPDATEQUERY, items.ADDRESS);
-                query = `${QUERY.UPDATE.USERPROFILE} SET "SLP_CLAIMED" = '${items.SLP_CLAIMED}' WHERE "ADDRESS" = '${items.ADDRESS}'`;
+                query = `${HEROKU.QUERY.UPDATE.USERPROFILE} SET "SLP_CLAIMED" = '${items.SLP_CLAIMED}' WHERE "ADDRESS" = '${items.ADDRESS}'`;
                 client.query(query, (error) => {
                     logger(MESSAGE.END_UPDATEQUERY, items.ADDRESS);
                     // End Connection
@@ -515,7 +501,7 @@ app.post("/api/updateSLPClaimed", async (req, res) => {
 });
 
 // POST Method x Deletion process of YESTERDAY SLP x Delete the old data
-app.post("/api/deleteYesterdaySLP", async (req, res) => {
+router.post("/deleteYesterdaySLP", async (req, res) => {
     try {
         logger(MESSAGE.STARTED_DELETEQUERY);
 
@@ -531,7 +517,7 @@ app.post("/api/deleteYesterdaySLP", async (req, res) => {
 
                 // Execute Query for Daily SLP
                 logger(MESSAGE.STARTED_DELETEQUERY, items.ADDRESS);
-                query = `${QUERY.DELETE.YESTERDAYSLP} WHERE "ID" = '${items.ID}'`;
+                query = `${HEROKU.QUERY.DELETE.YESTERDAYSLP} WHERE "ID" = '${items.ID}'`;
                 client.query(query, (error) => {
                     logger(MESSAGE.END_DELETEQUERY, items.ADDRESS);
                     // End Connection
@@ -566,7 +552,7 @@ app.post("/api/deleteYesterdaySLP", async (req, res) => {
 });
 
 // POST Method x Saving process of team withdraw
-app.post("/api/withdraw", async (req, res) => {
+router.post("/withdraw", async (req, res) => {
     try {
         logger(MESSAGE.STARTED_INSERTQUERY);
 
@@ -578,7 +564,7 @@ app.post("/api/withdraw", async (req, res) => {
         const payload = req.body;
 
         // Execute Query x insert new team record
-        const query = `${QUERY.INSERT.WITHDRAW} ("ADDRESS", "SLPTOTAL", "SLPCURRENCY", "WITHDRAW_ON") VALUES ('${payload.ADDRESS}', '${payload.SLPTOTAL}', '${payload.SLPCURRENCY}', '${payload.WITHDRAW_ON}')`;
+        const query = `${HEROKU.QUERY.INSERT.WITHDRAW} ("ADDRESS", "SLPTOTAL", "SLPCURRENCY", "WITHDRAW_ON") VALUES ('${payload.ADDRESS}', '${payload.SLPTOTAL}', '${payload.SLPCURRENCY}', '${payload.WITHDRAW_ON}')`;
         client.query(query, (error, result) => {
             logger(MESSAGE.WITHDRAW, MESSAGE.STARTED_INSERTQUERY);
             // End Connection
@@ -607,7 +593,7 @@ app.post("/api/withdraw", async (req, res) => {
 });
 
 // POST Method x Saving process of manager earned
-app.post("/api/managerEarned", async (req, res) => {
+router.post("/managerEarned", async (req, res) => {
     try {
         logger(MESSAGE.STARTED_INSERTQUERY);
 
@@ -619,7 +605,7 @@ app.post("/api/managerEarned", async (req, res) => {
         const payload = req.body;
 
         // Execute Query x insert new team record
-        const query = `${QUERY.INSERT.MANAGEREARNED} ("SLPTOTAL", "SLPCURRENCY", "CATEGORY", "EARNED_ON") VALUES ('${payload.SLPTOTAL}', '${payload.SLPCURRENCY}', '${payload.CATEGORY}', '${payload.EARNED_ON}')`;
+        const query = `${HEROKU.QUERY.INSERT.MANAGEREARNED} ("SLPTOTAL", "SLPCURRENCY", "CATEGORY", "EARNED_ON") VALUES ('${payload.SLPTOTAL}', '${payload.SLPCURRENCY}', '${payload.CATEGORY}', '${payload.EARNED_ON}')`;
         client.query(query, (error, result) => {
             logger(MESSAGE.MANAGER_EARNED, MESSAGE.STARTED_INSERTQUERY);
             // End Connection
@@ -647,6 +633,5 @@ app.post("/api/managerEarned", async (req, res) => {
     }
 });
 
-app.listen(PORT, () => {
-    logger(`Server listening on ${PORT}`);
-});
+// Export the API container
+module.exports = router;

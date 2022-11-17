@@ -35,7 +35,7 @@ class Login extends React.Component {
             } else {
                 // Get Record Data from table / json
                 $.ajax({
-                    url: "/api/userProfile/login?credential=" + user.toUpperCase(),
+                    url: "/db4free/api/login?credential=" + user.toUpperCase(),
                     type: "GET",
                     contentType: 'application/json',
                     cache: false,

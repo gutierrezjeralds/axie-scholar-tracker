@@ -13,6 +13,10 @@ const router = express.Router();
 const clientRequest = require("../handlers/ClientRequest");
 const { MESSAGE, HEROKU } = require("../../client/src/components/Constants");
 
+/*
+    ReactJS Buildpack Heroku
+    ** https://buildpack-registry.s3.amazonaws.com/buildpacks/mars/create-react-app.tgz
+*/
 
 const pgConn = {
     connectionString: process.env.POSTGRES_URI,

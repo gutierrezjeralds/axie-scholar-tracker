@@ -21,7 +21,9 @@ const logger = (level, message, subMessage = "", addedMessage = "") => {
         return console.log(message, subMessage, addedMessage);
     } else {
         try {
-            const msg = message + " " + JSON.stringify(subMessage) + " " + JSON.stringify(addedMessage);
+            subMessage = typeof subMessage === "string" ? subMessage : JSON.stringify(subMessage);
+            addedMessage = typeof addedMessage === "string" ? addedMessage : JSON.stringify(addedMessage);
+            const msg = message + " " + subMessage + " " + addedMessage;
             if (level === MESSAGE.INFO) {
                 logtail.info(msg);
             } else {

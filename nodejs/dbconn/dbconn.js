@@ -10,7 +10,7 @@ const client = new MongoClient(connectionString, {
     socketTimeoutMS: 12000,
     serverSelectionTimeoutMS: 12000,
     useNewUrlParser: true,
-    useUnifiedTopology: true,
+    useUnifiedTopology: false,
 });
 
 let dbConnection;

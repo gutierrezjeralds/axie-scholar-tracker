@@ -8,7 +8,7 @@
 
 
 // Loads the configuration from .env to process.env
-require('dotenv').config({ path: '../.env' });
+require('dotenv').config();
 
 // Dependencies
 const PORT = process.env.PORT || 3001;
@@ -16,6 +16,7 @@ const path = require('path');
 const express = require("express");
 const cors = require("cors");
 const dbConn = require('./dbconn/dbconn');
+const { APIURI, MESSAGE } = require("../client/src/components/Constants");
 
 /**
  * API container (to be export)
@@ -67,17 +68,20 @@ app.use("/db4free/api", dbfree);
 //     res.status(500).send('Something broke!');
 // });
 
-// Perform a database connection when the server starts
-dbConn.connectToServer(function (err) {
-    if (err) {
-        console.error(err);
-        process.exit();
-    }
-  
-    // start the Express server
-    app.listen(PORT, () => {
-        console.log(`Server is running on port: ${PORT}`);
+if (APIURI.indexOf('mongodb') > -1) {
+    // Perform a database connection when the server starts
+    dbConn.connectToServer(function (err) {
+        if (err) {
+            console.error(err);
+            process.exit();
+        }
     });
+}
+
+// start the Express server
+app.listen(PORT, () => {
+    console.log(MESSAGE.SERVER_ISRUNNING_PORT, PORT);
+    console.log(MESSAGE.SERVER_ISRUNNING_URI, APIURI);
 });
 
 // Export the API container

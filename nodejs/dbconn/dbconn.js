@@ -9,7 +9,7 @@ const client = new MongoClient(connectionString, {
     useNewUrlParser: true, // Avoid deprecation warning
     useUnifiedTopology: true, // Avoid deprecation warning
     serverSelectionTimeoutMS: 5000, // Keep trying to send operations for 5 seconds
-    socketTimeoutMS: 300000, // Close sockets after 5 minutes of inactivity
+    socketTimeoutMS: 300000 // Close sockets after 5 minutes of inactivity
 });
 
 let dbConnection;

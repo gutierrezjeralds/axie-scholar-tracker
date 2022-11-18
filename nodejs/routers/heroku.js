@@ -11,7 +11,7 @@ const express = require("express");
 const { Client } = require('pg');
 const router = express.Router();
 const clientRequest = require("../handlers/ClientRequest");
-const { MESSAGE, HEROKU } = require("../../client/src/components/Constants");
+const { SERVERLOGGER, MESSAGE, HEROKU } = require("../../client/src/components/Constants");
 
 /*
     ReactJS Buildpack Heroku
@@ -40,8 +40,8 @@ const pgConn = {
 */
 
 // Global console log
-const logger = (message, subMessage = "", addedMessage = "", isDevMode = false) => {
-    if (isDevMode) {
+const logger = (message, subMessage = "", addedMessage = "") => {
+    if (SERVERLOGGER) {
         return console.log(message, subMessage, addedMessage);
     }
 }

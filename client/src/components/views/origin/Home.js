@@ -11,7 +11,7 @@ import {
 import Moment from 'react-moment';
 import moments from 'moment';
 import moment from 'moment-timezone';
-import { MESSAGE } from '../../Constants';
+import { APIURI, MESSAGE } from '../../Constants';
 
 // const moment = require('moment-timezone');
 const momentToday = moment().tz('Asia/Manila');
@@ -315,7 +315,7 @@ class Home extends React.Component {
 
             // Run Ajax
             $.ajax({
-                url: "/mongodb/api/addEditScholar",
+                url: APIURI + "addEditScholar",
                 type: "POST",
                 data: JSON.stringify(datas),
                 contentType: 'application/json',
@@ -429,7 +429,7 @@ class Home extends React.Component {
 
             // Run api
             $.ajax({
-                url: "/mongodb/api/withdraw",
+                url: APIURI + "withdraw",
                 type: "POST",
                 data: JSON.stringify(datas),
                 contentType: 'application/json',
@@ -512,7 +512,7 @@ class Home extends React.Component {
                 
             // Run api
             $.ajax({
-                url: "/mongodb/api/managerEarned",
+                url: APIURI + "managerEarned",
                 type: "POST",
                 data: JSON.stringify(datas),
                 contentType: 'application/json',
@@ -573,7 +573,7 @@ class Home extends React.Component {
     // Get SLP and AXS Crypto Coins
     getCryptoCoins = () => {
         $.ajax({
-            url: "/mongodb/api/getCryptoCoins",
+            url: APIURI + "getCryptoCoins",
             dataType: "json",
             cache: false
         })
@@ -624,7 +624,7 @@ class Home extends React.Component {
         return new Promise((resolve, reject) => {
             // Run api
             $.ajax({
-                url: "/mongodb/api/authLogin",
+                url: APIURI + "authLogin",
                 type: "POST",
                 data: JSON.stringify(credentials),
                 contentType: 'application/json',
@@ -673,7 +673,7 @@ class Home extends React.Component {
     // Process of details by fetching all data in different api
     recordProcess = () => {
         $.ajax({
-            url: "/mongodb/api/records",
+            url: APIURI + "records",
             type: "GET",
             contentType: 'application/json',
             cache: false,
@@ -914,7 +914,7 @@ class Home extends React.Component {
     getPlayerDetails = async (details, detailsLength, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned) => {
         return new Promise((resolve, reject) => {
             $.ajax({
-                url: "/mongodb/api/getInGameSLP",
+                url: APIURI + "getInGameSLP",
                 type: "POST",
                 data: JSON.stringify({
                     token: details.accessToken

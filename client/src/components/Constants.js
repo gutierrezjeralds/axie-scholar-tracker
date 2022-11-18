@@ -1,3 +1,6 @@
+const APIURI = "/mongodb/api/";
+const SERVERLOGGER = true;
+
 const MESSAGE = {
     HOMETITLE: "Home | Team Loki Tracker",
     FOOTERTITLE: "Copyright: Team Loki x To the Moon ® All Rights Reserved.",
@@ -195,6 +198,8 @@ const MESSAGE = {
     STARTED_CRYPTOCOINS: "Crypto Coins Started",
     END_CRYPTOCOINS: "Crypto Coins End",
     ERROR_CRYPTOCOINS: "Error in Crypto Coins",
+    SERVER_ISRUNNING_PORT: "Server is running on port:",
+    SERVER_ISRUNNING_URI: "Server is running on URI:"
 }
 
 const TABLES = {
@@ -269,6 +274,8 @@ const DB4FREE = {
 
 // Export the function
 module.exports = {
+    APIURI,
+    SERVERLOGGER,
     MESSAGE,
     TABLES,
     HEROKU,

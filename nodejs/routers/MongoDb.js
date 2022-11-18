@@ -11,11 +11,11 @@ const express = require("express");
 const router = express.Router();
 const dbConnection = require('../dbconn/dbconn');
 const clientRequest = require("../handlers/ClientRequest");
-const { MESSAGE, TABLES } = require("../../client/src/components/Constants");
+const { SERVERLOGGER, MESSAGE, TABLES } = require("../../client/src/components/Constants");
 
 // Global console log
-const logger = (message, subMessage = "", addedMessage = "", isDevMode = false) => {
-    if (isDevMode) {
+const logger = (message, subMessage = "", addedMessage = "") => {
+    if (SERVERLOGGER) {
         return console.log(message, subMessage, addedMessage);
     }
 }

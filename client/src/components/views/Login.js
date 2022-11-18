@@ -1,6 +1,6 @@
 import React from "react";
 import $ from 'jquery';
-import { MESSAGE } from '../Constants';
+import { APIURI, MESSAGE } from '../Constants';
 import {
     MDBContainer, MDBRow, MDBCol, MDBInput, MDBBox,
     MDBCard, MDBCardBody, MDBCardTitle
@@ -35,7 +35,7 @@ class Login extends React.Component {
             } else {
                 // Get Record Data from table / json
                 $.ajax({
-                    url: "/mongodb/api/login?credential=" + user.toUpperCase(),
+                    url: APIURI + "login?credential=" + user.toUpperCase(),
                     type: "GET",
                     contentType: 'application/json',
                     cache: false,

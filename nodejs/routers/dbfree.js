@@ -8,7 +8,7 @@ const express = require("express");
 const mysql = require("mysql");
 const router = express.Router();
 const clientRequest = require("../handlers/ClientRequest");
-const { MESSAGE, DB4FREE } = require("../../client/src/components/Constants");
+const { SERVERLOGGER, MESSAGE, DB4FREE } = require("../../client/src/components/Constants");
 
 /*
     ReactJS Buildpack Heroku
@@ -37,8 +37,8 @@ const conn = {
 */
 
 // Global console log
-const logger = (message, subMessage = "", addedMessage = "", isDevMode = false) => {
-    if (isDevMode) {
+const logger = (message, subMessage = "", addedMessage = "") => {
+    if (SERVERLOGGER) {
         return console.log(message, subMessage, addedMessage);
     }
 }

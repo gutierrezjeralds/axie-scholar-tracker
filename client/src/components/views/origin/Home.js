@@ -917,7 +917,8 @@ class Home extends React.Component {
                 url: APIURI + "getInGameSLP",
                 type: "POST",
                 data: JSON.stringify({
-                    token: details.accessToken
+                    token: details.accessToken,
+                    name: details.NAME
                 }),
                 contentType: 'application/json',
                 cache: false

@@ -11,12 +11,25 @@ const express = require("express");
 const router = express.Router();
 const dbConnection = require('../dbconn/dbconn');
 const clientRequest = require("../handlers/ClientRequest");
-const { SERVERLOGGER, MESSAGE, TABLES } = require("../../client/src/components/Constants");
+const { ISDEVLOGGER, LOGTAIL, MESSAGE, TABLES } = require("../../client/src/components/Constants");
+const { Logtail } = require("@logtail/node");
 
 // Global console log
-const logger = (message, subMessage = "", addedMessage = "") => {
-    if (SERVERLOGGER) {
+const logtail = new Logtail(LOGTAIL);
+const logger = (level, message, subMessage = "", addedMessage = "") => {
+    if (ISDEVLOGGER) {
         return console.log(message, subMessage, addedMessage);
+    } else {
+        try {
+            const msg = message + " " + JSON.stringify(subMessage) + " " + JSON.stringify(addedMessage);
+            if (level === MESSAGE.INFO) {
+                logtail.info(msg);
+            } else {
+                logtail.error(msg);
+            }
+        } catch {
+            return console.log(message, subMessage, addedMessage);
+        }
     }
 }
 
@@ -28,7 +41,7 @@ const logger = (message, subMessage = "", addedMessage = "") => {
  router.get("/login", async function (req, res) {
     try {
         // Log the URL Path
-        logger(req.originalUrl);
+        logger(MESSAGE.INFO, req.originalUrl);
 
         // DB Connection
         const dbConn = dbConnection.getDb();
@@ -39,7 +52,7 @@ const logger = (message, subMessage = "", addedMessage = "") => {
             const access = (decodeURI(param.credential)).replace(/\s+/g, '+'); // Decode URL x replace space from "+" into value of "+"
 
             // Execute Query
-            logger(TABLES.TBUSERPROFILE, MESSAGE.STARTED);
+            logger(MESSAGE.INFO, TABLES.TBUSERPROFILE, MESSAGE.STARTED);
             dbConn.collection(TABLES.TBUSERPROFILE).find({
                 $or: [
                    { NAME: { $regex: access, $options: 'i' } },
@@ -48,13 +61,13 @@ const logger = (message, subMessage = "", addedMessage = "") => {
                 ]
             }).toArray(function (err, result) {
                 if (err) {
-                    logger(MESSAGE.ERROR_OCCURED, err);
+                    logger(MESSAGE.ERROR, MESSAGE.ERROR_OCCURED, err);
                     return res.type("application/json").status(500).send({
                         error: true,
                         data: err
                     });
                 } else {
-                    logger(TABLES.TBUSERPROFILE, MESSAGE.END);
+                    logger(MESSAGE.INFO, TABLES.TBUSERPROFILE, MESSAGE.END);
                     return res.type("application/json").status(200).send({
                         error: false,
                         data: result
@@ -62,13 +75,14 @@ const logger = (message, subMessage = "", addedMessage = "") => {
                 }
             });
         } else {
+            logger(MESSAGE.ERROR, MESSAGE.ERROR_PROCEDURE);
             return res.type("application/json").status(500).send({
                 error: true,
                 data: MESSAGE.ERROR_PROCEDURE
             });
         }
     } catch (err) {
-        logger(MESSAGE.ERROR_OCCURED, err);
+        logger(MESSAGE.ERROR, MESSAGE.ERROR_OCCURED, err);
         return res.type("application/json").status(500).send({
             error: true,
             data: err
@@ -85,25 +99,25 @@ const logger = (message, subMessage = "", addedMessage = "") => {
 router.get("/records", async function (req, res) {
     try {
         // Log the URL Path
-        logger(req.originalUrl);
+        logger(MESSAGE.INFO, req.originalUrl);
 
         // DB Connection
         const dbConn = dbConnection.getDb();
 
         // Execute Query
-        logger(TABLES.TBUSERPROFILE, MESSAGE.STARTED);
+        logger(MESSAGE.INFO, MESSAGE.INFO, TABLES.TBUSERPROFILE, MESSAGE.STARTED);
         dbConn.collection(TABLES.TBUSERPROFILE).find().toArray(function (err, result) {
             if (err) {
-                logger(MESSAGE.ERROR_OCCURED, err);
+                logger(MESSAGE.ERROR, MESSAGE.ERROR_OCCURED, err);
                 return res.type("application/json").status(500).send({
                     error: true,
                     data: err
                 });
             } else {
-                logger(TABLES.TBWITHDRAW, MESSAGE.STARTED);
+                logger(MESSAGE.INFO, TABLES.TBWITHDRAW, MESSAGE.STARTED);
                 dbConn.collection(TABLES.TBWITHDRAW).find().toArray(function (err, dataWithdraw) {
                     if (err) {
-                        logger(MESSAGE.ERROR_OCCURED, err);
+                        logger(MESSAGE.ERROR, MESSAGE.ERROR_OCCURED, err);
                         return res.type("application/json").status(200).send({
                             error: true,
                             data: result,
@@ -111,10 +125,10 @@ router.get("/records", async function (req, res) {
                             managerEarned: []
                         });
                     } else {
-                        logger(TABLES.TBMANAGEREARNED, MESSAGE.STARTED);
+                        logger(MESSAGE.INFO, TABLES.TBMANAGEREARNED, MESSAGE.STARTED);
                         dbConn.collection(TABLES.TBMANAGEREARNED).find().toArray(function (err, dataManager) {
                             if (err) {
-                                logger(MESSAGE.ERROR_OCCURED, err);
+                                logger(MESSAGE.ERROR, MESSAGE.ERROR_OCCURED, err);
                                 return res.type("application/json").status(200).send({
                                     error: true,
                                     data: result,
@@ -122,7 +136,7 @@ router.get("/records", async function (req, res) {
                                     managerEarned: []
                                 });
                             } else {
-                                logger(req.originalUrl, MESSAGE.END);
+                                logger(MESSAGE.INFO, req.originalUrl, MESSAGE.END);
                                 return res.type("application/json").status(200).send({
                                     error: false,
                                     data: result,
@@ -136,7 +150,7 @@ router.get("/records", async function (req, res) {
             }
         });
     } catch (err) {
-        logger(MESSAGE.ERROR_OCCURED, err);
+        logger(MESSAGE.ERROR, MESSAGE.ERROR_OCCURED, err);
         return res.type("application/json").status(500).send({
             error: true,
             data: err
@@ -152,7 +166,7 @@ router.get("/records", async function (req, res) {
 router.post("/addEditScholar", async function (req, res) {
    try {
         // Log the URL Path
-        logger(req.originalUrl);
+        logger(MESSAGE.INFO, req.originalUrl);
 
         // Body payload
         const payload = req.body;
@@ -162,7 +176,7 @@ router.post("/addEditScholar", async function (req, res) {
 
         if (payload.ACTION === MESSAGE.INSERT) {
             // Execute Query x insert new team record
-            logger(TABLES.TBUSERPROFILE, MESSAGE.INSERT, MESSAGE.STARTED);
+            logger(MESSAGE.INFO, TABLES.TBUSERPROFILE, MESSAGE.INSERT, MESSAGE.STARTED);
             dbConn.collection(TABLES.TBUSERPROFILE).insertOne({
                 ADDRESS: payload.ADDRESS,
                 NAME: payload.NAME,
@@ -176,13 +190,13 @@ router.post("/addEditScholar", async function (req, res) {
                 DELETEIND: payload.DELETEIND
             }, function (err, result) {
                 if (err) {
-                    logger(MESSAGE.ERROR_OCCURED, err);
+                    logger(MESSAGE.ERROR, MESSAGE.ERROR_OCCURED, err);
                     return res.type("application/json").status(500).send({
                         error: true,
                         data: err
                     });
                 } else {
-                    logger(TABLES.TBUSERPROFILE, MESSAGE.INSERT, MESSAGE.END);
+                    logger(MESSAGE.INFO, TABLES.TBUSERPROFILE, MESSAGE.INSERT, MESSAGE.END);
                     return res.type("application/json").status(200).send({
                         error: false,
                         data: result
@@ -191,7 +205,7 @@ router.post("/addEditScholar", async function (req, res) {
             });
         } else if (payload.ACTION === MESSAGE.UPDATE) {
             // Execute Query x update team record
-            logger(TABLES.TBUSERPROFILE, MESSAGE.UPDATE, MESSAGE.STARTED);
+            logger(MESSAGE.INFO, TABLES.TBUSERPROFILE, MESSAGE.UPDATE, MESSAGE.STARTED);
             dbConn.collection(TABLES.TBUSERPROFILE).updateOne({ ADDRESS: payload.ADDRESS }, {
                 $set: {
                     NAME: payload.NAME,
@@ -206,13 +220,13 @@ router.post("/addEditScholar", async function (req, res) {
                 }
             }, function (err, result) {
                 if (err) {
-                    logger(MESSAGE.ERROR_OCCURED, err);
+                    logger(MESSAGE.ERROR, MESSAGE.ERROR_OCCURED, err);
                     return res.type("application/json").status(500).send({
                         error: true,
                         data: err
                     });
                 } else {
-                    logger(TABLES.TBUSERPROFILE, MESSAGE.UPDATE, MESSAGE.END);
+                    logger(MESSAGE.INFO, TABLES.TBUSERPROFILE, MESSAGE.UPDATE, MESSAGE.END);
                     return res.type("application/json").status(200).send({
                         error: false,
                         data: result
@@ -220,13 +234,14 @@ router.post("/addEditScholar", async function (req, res) {
                 }
             });
         } else {
+            logger(MESSAGE.ERROR, MESSAGE.ERROR_PROCEDURE);
             return res.type("application/json").status(500).send({
                 error: true,
                 data: MESSAGE.ERROR_PROCEDURE
             });
         }
    } catch (err) {
-       logger(MESSAGE.ERROR_OCCURED, err);
+       logger(MESSAGE.ERROR, MESSAGE.ERROR_OCCURED, err);
        return res.type("application/json").status(500).send({
            error: true,
            data: err
@@ -242,7 +257,7 @@ router.post("/addEditScholar", async function (req, res) {
 router.post("/withdraw", async function (req, res) {
    try {
         // Log the URL Path
-        logger(req.originalUrl);
+        logger(MESSAGE.INFO, req.originalUrl);
 
         // Body payload
         const payload = req.body;
@@ -251,7 +266,7 @@ router.post("/withdraw", async function (req, res) {
         const dbConn = dbConnection.getDb();
 
         // Execute Query x insert new withdrawal record
-        logger(TABLES.TBWITHDRAW, MESSAGE.INSERT, MESSAGE.STARTED);
+        logger(MESSAGE.INFO, TABLES.TBWITHDRAW, MESSAGE.INSERT, MESSAGE.STARTED);
         dbConn.collection(TABLES.TBWITHDRAW).insertOne({
             ADDRESS: payload.ADDRESS,
             SLPTOTAL: payload.SLPTOTAL,
@@ -259,13 +274,13 @@ router.post("/withdraw", async function (req, res) {
             WITHDRAW_ON: payload.WITHDRAW_ON
         }, function (err, result) {
             if (err) {
-                logger(MESSAGE.ERROR_OCCURED, err);
+                logger(MESSAGE.ERROR, MESSAGE.ERROR_OCCURED, err);
                 return res.type("application/json").status(500).send({
                     error: true,
                     data: err
                 });
             } else {
-                logger(TABLES.TBWITHDRAW, MESSAGE.INSERT, MESSAGE.END);
+                logger(MESSAGE.INFO, TABLES.TBWITHDRAW, MESSAGE.INSERT, MESSAGE.END);
                 return res.type("application/json").status(200).send({
                     error: false,
                     data: result
@@ -273,7 +288,7 @@ router.post("/withdraw", async function (req, res) {
             }
         });
    } catch (err) {
-       logger(MESSAGE.ERROR_OCCURED, err);
+       logger(MESSAGE.ERROR, MESSAGE.ERROR_OCCURED, err);
        return res.type("application/json").status(500).send({
            error: true,
            data: err
@@ -289,7 +304,7 @@ router.post("/withdraw", async function (req, res) {
 router.post("/managerEarned", async function (req, res) {
    try {
         // Log the URL Path
-        logger(req.originalUrl);
+        logger(MESSAGE.INFO, req.originalUrl);
 
         // Body payload
         const payload = req.body;
@@ -298,7 +313,7 @@ router.post("/managerEarned", async function (req, res) {
         const dbConn = dbConnection.getDb();
 
         // Execute Query x insert new manager earned
-        logger(TABLES.TBMANAGEREARNED, MESSAGE.INSERT, MESSAGE.STARTED);
+        logger(MESSAGE.INFO, TABLES.TBMANAGEREARNED, MESSAGE.INSERT, MESSAGE.STARTED);
         dbConn.collection(TABLES.TBMANAGEREARNED).insertOne({
             SLPTOTAL: payload.SLPTOTAL,
             SLPCURRENCY: payload.SLPCURRENCY,
@@ -306,13 +321,13 @@ router.post("/managerEarned", async function (req, res) {
             EARNED_ON: payload.EARNED_ON
         }, function (err, result) {
             if (err) {
-                logger(MESSAGE.ERROR_OCCURED, err);
+                logger(MESSAGE.ERROR, MESSAGE.ERROR_OCCURED, err);
                 return res.type("application/json").status(500).send({
                     error: true,
                     data: err
                 });
             } else {
-                logger(TABLES.TBMANAGEREARNED, MESSAGE.INSERT, MESSAGE.END);
+                logger(MESSAGE.INFO, TABLES.TBMANAGEREARNED, MESSAGE.INSERT, MESSAGE.END);
                 return res.type("application/json").status(200).send({
                     error: false,
                     data: result
@@ -320,7 +335,7 @@ router.post("/managerEarned", async function (req, res) {
             }
         });
    } catch (err) {
-       logger(MESSAGE.ERROR_OCCURED, err);
+       logger(MESSAGE.ERROR, MESSAGE.ERROR_OCCURED, err);
        return res.type("application/json").status(500).send({
            error: true,
            data: err
@@ -336,7 +351,7 @@ router.post("/managerEarned", async function (req, res) {
 router.post("/authLogin", async function (req, res) {
    try {
        // Log the URL Path
-       logger(req.originalUrl);
+       logger(MESSAGE.INFO, req.originalUrl);
        
        // Body payload
        const payload = req.body;
@@ -345,7 +360,7 @@ router.post("/authLogin", async function (req, res) {
        const accessToken = await clientRequest.authLogin(payload, logger);
        return res.type("application/json").status(200).send(accessToken); // Return response form Auth Login
    } catch (err) {
-       logger(MESSAGE.ERROR_OCCURED, err);
+       logger(MESSAGE.ERROR, MESSAGE.ERROR_OCCURED, err);
        return res.type("application/json").status(500).send({
            error: true,
            data: err
@@ -361,7 +376,7 @@ router.post("/authLogin", async function (req, res) {
 router.post("/getInGameSLP", async function (req, res) {
    try {
        // Log the URL Path
-       logger(req.originalUrl);
+       logger(MESSAGE.INFO, req.originalUrl);
        
        // Body payload
        const payload = req.body;
@@ -370,7 +385,7 @@ router.post("/getInGameSLP", async function (req, res) {
        const inGameSLP = await clientRequest.inGameSLP(payload, logger);
        return res.type("application/json").status(200).send(inGameSLP); // Return response form InGame SLP
    } catch (err) {
-       logger(MESSAGE.ERROR_OCCURED, err);
+       logger(MESSAGE.ERROR, MESSAGE.ERROR_OCCURED, err);
        return res.type("application/json").status(500).send({
            error: true,
            data: err
@@ -386,13 +401,13 @@ router.post("/getInGameSLP", async function (req, res) {
 router.get("/getCryptoCoins", async function (req, res) {
    try {
        // Log the URL Path
-       logger(req.originalUrl);
+       logger(MESSAGE.INFO, req.originalUrl);
 
        // Execute Process of Crypto Coins
        const inGameSLP = await clientRequest.getCryptoCoins(logger);
        return res.type("application/json").status(200).send(inGameSLP); // Return response form InGame SLP
    } catch (err) {
-       logger(MESSAGE.ERROR_OCCURED, err);
+       logger(MESSAGE.ERROR, MESSAGE.ERROR_OCCURED, err);
        return res.type("application/json").status(500).send({
            error: true,
            data: err

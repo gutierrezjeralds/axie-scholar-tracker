@@ -16,7 +16,9 @@ const path = require('path');
 const express = require("express");
 const cors = require("cors");
 const dbConn = require('./dbconn/dbconn');
-const { APIURI, MESSAGE } = require("../client/src/components/Constants");
+const { APIURI, LOGTAIL, MESSAGE } = require("../client/src/components/Constants");
+const { Logtail } = require("@logtail/node");
+const logtail = new Logtail(LOGTAIL);
 
 /**
  * API container (to be export)
@@ -73,6 +75,7 @@ if (APIURI.indexOf('mongodb') > -1) {
     dbConn.connectToServer(function (err) {
         if (err) {
             console.error(err);
+            logtail.error(err);
             process.exit();
         }
     });

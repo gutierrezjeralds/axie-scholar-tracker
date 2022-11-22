@@ -203,7 +203,13 @@ const MESSAGE = {
     SERVER_ISRUNNING_URI: "Server is running on URI:",
     INFO: "Info",
     ERROR: "Error",
-    WARNING: "Warning"
+    WARNING: "Warning",
+    SLPBURNED_TODAY: "SLP Burned as of Today",
+    AS_TODAY: "As of Today:",
+    SLPBURNED: "SLP Burned",
+    SLPMINTED: "SLP Minted",
+    SLPSTATS: "SLP Statistics",
+    BURNED: "Burned"
 }
 
 const TABLES = {

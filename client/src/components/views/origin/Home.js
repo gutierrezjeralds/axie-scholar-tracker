@@ -12,6 +12,7 @@ import Moment from 'react-moment';
 import moments from 'moment';
 import moment from 'moment-timezone';
 import { APIURI, MESSAGE } from '../../Constants';
+import CanvasJSReact from '../../assets/js/canvasjs.react';
 
 // const moment = require('moment-timezone');
 const momentToday = moment().tz('Asia/Manila');
@@ -26,6 +27,8 @@ const _INGAMESLP = {
     "quantity": 0,
     "withdrawable": 0
 }
+
+const CanvasJSChart = CanvasJSReact.CanvasJSChart;
 
 class Home extends React.Component {
     constructor(props) {
@@ -72,7 +75,11 @@ class Home extends React.Component {
             slctClaimId: "",
             slctAddEditId: "",
             hasSponsor: false,
-            isDeleted: false
+            isDeleted: false,
+            hasSLPStatistics: false,
+            SLPBurnedCount: 0,
+            SLPMintedCount: 0,
+            isModalSLPStatisticsOpen: false
         }
     }
 
@@ -123,6 +130,14 @@ class Home extends React.Component {
             return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
         }
         return value;
+    }
+
+    // Modal Toggle for view of Manager Earning
+    modalSLPStatistics = () => () => {
+        // Open Modal Eraning from filters of "Manager"
+        this.setState({
+            isModalSLPStatisticsOpen: !this.state.isModalSLPStatisticsOpen
+        });
     }
 
     // Modal Toggle for view details of Leaderboard
@@ -764,6 +779,9 @@ class Home extends React.Component {
                         let initDisplay = []; // Data for initial display
                         let leaderboardDisplay = []; // Data for players leaderboard list display in Modal
 
+                        // Get SLP Burned Statistic
+                        await this.getSLPBurned();
+
                         const dataResult = results.filter(item => item && !item.error && item.data !== undefined && item.eth !== undefined); // Filter valid data
                         if (dataResult && dataResult.length > 0) {
                             // Sort as Top Leaderboard
@@ -1372,6 +1390,98 @@ class Home extends React.Component {
         });
     }
 
+    // Get SLP Burned Statistic
+    getSLPBurned = async () => {
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                url: "https://ronin.rest/origin/slp_burned",
+                dataType: "json",
+                cache: false
+            })
+            .then(
+                (result) => {
+                    try {
+                        if (result.stats.length > 0) {
+                            // Sucess Return x Adding the return in data chart
+                            let datas = [];
+                            const indexCount = result.stats[0].count; // Get the First object x must be the today value
+                            result.stats.sort((a, b) => moment(a.date).unix() - moment(b.date).unix()).map(items => {
+                                const tempObj = {
+                                    x: new Date(items.date),
+                                    y: Number(items.count)
+                                }
+                                // Push data object
+                                let tempObject = Object.assign({}, tempObj);
+                                datas.push(tempObject);
+                                // Return
+                                return true; 
+                            })
+                            
+                            this.setState({
+                                SLPBurnedCount: indexCount, // Insert the current today SLP Burned
+                                hasSLPStatistics: { // Chart Options with data
+                                    animationEnabled: true,
+                                    axisX: { valueFormatString: "MMM DD" },
+                                    toolTip:{   
+                                        // content: "{x}: SLP {y} / MMR {z}"
+                                        contentFormatter: function (e) {
+                                            // Adding comma in number x replacement in toLocaleString()
+                                            function numberWcommas (value) {
+                                                if (value) {
+                                                    return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                                                }
+                                                return value;
+                                            }
+
+                                            // Tooltip Content
+                                            var content = " ";
+                                            for (var i = 0; i < e.entries.length; i++) {
+                                                content += "<b class='primary'>" + moment(e.entries[i].dataPoint.x).format('MMM DD') + "</b>";
+                                                content += "<br/>";
+                                                content += MESSAGE.BURNED + ": " + numberWcommas(e.entries[i].dataPoint.y);
+                                            }
+                                            return content;
+                                        }
+                                    },
+                                    data: [{
+                                        yValueFormatString: "#,###",
+                                        xValueFormatString: "MMM DD",
+                                        type: "column",
+                                        color: "#4B515D",
+                                        dataPoints: datas
+                                    }]
+                                }
+                            })
+
+                            return resolve(result);
+                        } else {
+                            // Hass Error
+                            return reject({error: true, category: "getSLPBurned"});
+                        }
+                    } catch (error) {
+                        return reject({error: true, data: error, category: "getSLPBurned"});
+                    }
+                },
+                // Note: it's important to handle errors here
+                // instead of a catch() block so that we don't swallow
+                // exceptions from actual bugs in components.
+                (error) => {
+                    console.error(MESSAGE.ERROR_OCCURED, error)
+                    return reject({error: true, data: error, category: "getSLPBurned"})
+                }
+            )
+            .catch(
+                (err) => {
+                    console.error(MESSAGE.ERROR_OCCURED, err)
+                    return reject({error: true, data: err, category: "getSLPBurned"});
+                }
+            )
+        }).catch(err => {
+            console.error(MESSAGE.ERROR_OCCURED, err)
+            return err;
+        });
+    }
+
     // Render Crypto Currency details
     renderCurrencies() {
         if (this.state.currencySLP > 0) {
@@ -1419,21 +1529,47 @@ class Home extends React.Component {
                                 </MDBCard>
                             </MDBCol>
 
-                            {/* Total Average SLP of all players */}
-                            <MDBCol size="6" md="4" lg="2" className="my-2">
-                                <MDBCard className="z-depth-2 player-details h-180px">
-                                    <MDBCardBody className="black-text d-flex-center">
-                                        <MDBBox tag="div" className="text-center">
-                                            <MDBBox tag="span" className="d-block">{MESSAGE.TOTAL_AVERAGE_SLP}</MDBBox>
-                                            <MDBBox tag="span" className="d-block font-size-1pt3rem font-weight-bold">
-                                                <img src="/assets/images/smooth-love-potion.png" className="w-24px mr-1 mt-0pt3rem-neg" alt="SLP" />
-                                                {this.numberWithCommas(Math.floor(this.state.totalAverageInGameSLP))}
-                                            </MDBBox>
-                                            <MDBBox tag="span" className="d-block font-size-1pt3rem font-weight-bold">&#8369; {this.numberWithCommas((Number(this.state.totalAverageInGameSLP) * Number(this.state.currencySLP)).toFixed(2))}</MDBBox>
-                                        </MDBBox>
-                                    </MDBCardBody>
-                                </MDBCard>
-                            </MDBCol>
+                            {
+                                this.state.hasSLPStatistics ? (
+                                    // As of Today: SLP Burned
+                                    <MDBCol size="6" md="4" lg="2" className="my-2">
+                                        <MDBCard className="z-depth-2 player-details h-180px">
+                                            <MDBCardBody className="black-text cursor-pointer d-flex-center"
+                                                onClick={this.modalSLPStatistics()} >
+                                                <MDBBox tag="div" className="text-center">
+                                                    <MDBBox tag="span" className="d-block">{MESSAGE.AS_TODAY}</MDBBox>
+                                                    <MDBBox tag="span" className="d-block">{MESSAGE.SLPBURNED}</MDBBox>
+                                                    <MDBBox tag="span" className="d-block font-size-1rem font-weight-bold">
+                                                        {/* <img src="/assets/images/smooth-love-potion.png" className="w-24px mr-1 mt-0pt3rem-neg" alt="SLP" /> */}
+                                                        {this.numberWithCommas(this.state.SLPBurnedCount)}
+                                                    </MDBBox>
+                                                    <MDBBox tag="span" className="d-block mt-2">{MESSAGE.SLPMINTED}</MDBBox>
+                                                    <MDBBox tag="span" className="d-block font-size-1rem font-weight-bold">
+                                                        {/* <img src="/assets/images/smooth-love-potion.png" className="w-24px mr-1 mt-0pt3rem-neg" alt="SLP" /> */}
+                                                        {this.numberWithCommas(this.state.SLPMintedCount)}
+                                                    </MDBBox>
+                                                </MDBBox>
+                                            </MDBCardBody>
+                                        </MDBCard>
+                                    </MDBCol>
+                                ) : (
+                                    // Total Average SLP of all players
+                                    <MDBCol size="6" md="4" lg="2" className="my-2">
+                                        <MDBCard className="z-depth-2 player-details h-180px">
+                                            <MDBCardBody className="black-text d-flex-center">
+                                                <MDBBox tag="div" className="text-center">
+                                                    <MDBBox tag="span" className="d-block">{MESSAGE.TOTAL_AVERAGE_SLP}</MDBBox>
+                                                    <MDBBox tag="span" className="d-block font-size-1pt3rem font-weight-bold">
+                                                        <img src="/assets/images/smooth-love-potion.png" className="w-24px mr-1 mt-0pt3rem-neg" alt="SLP" />
+                                                        {this.numberWithCommas(Math.floor(this.state.totalAverageInGameSLP))}
+                                                    </MDBBox>
+                                                    <MDBBox tag="span" className="d-block font-size-1pt3rem font-weight-bold">&#8369; {this.numberWithCommas((Number(this.state.totalAverageInGameSLP) * Number(this.state.currencySLP)).toFixed(2))}</MDBBox>
+                                                </MDBBox>
+                                            </MDBCardBody>
+                                        </MDBCard>
+                                    </MDBCol>
+                                )
+                            }
 
                             {/* Total InGame SLP */}
                             <MDBCol size="6" md="4" lg="2" className="my-2">
@@ -1655,12 +1791,12 @@ class Home extends React.Component {
                                         {/* Market Place link */}
                                         <MDBCol size="12" md="6" lg="6">
                                             <MDBBox tag="u" className="d-block d-md-none d-lg-none">
-                                                <a href={"https://marketplace.axieinfinity.com/profile/" + this.state.modalPlayerDetails[0].ADDRESS + "/axie"} target="_blank" rel="noreferrer" className="black-text">
+                                                <a href={"https://marketplace.axieinfinity.com/profile/" + this.state.modalPlayerDetails[0].ADDRESS} target="_blank" rel="noreferrer" className="black-text">
                                                     {MESSAGE.OPEN_MARKETPLACE_PROFILE}
                                                 </a>
                                             </MDBBox>
                                             <MDBBox tag="u" className="d-none d-md-block d-lg-block text-right">
-                                                <a href={"https://marketplace.axieinfinity.com/profile/" + this.state.modalPlayerDetails[0].ADDRESS + "/axie"} target="_blank" rel="noreferrer" className="black-text">
+                                                <a href={"https://marketplace.axieinfinity.com/profile/" + this.state.modalPlayerDetails[0].ADDRESS} target="_blank" rel="noreferrer" className="black-text">
                                                     {MESSAGE.OPEN_MARKETPLACE_PROFILE}
                                                 </a>
                                             </MDBBox>
@@ -1957,6 +2093,20 @@ class Home extends React.Component {
         )
     }
 
+    // Render Modal for SLP Statistics
+    renderModalSLPStatistics() {
+        return (
+            <React.Fragment>
+                <MDBModal isOpen={this.state.isModalSLPStatisticsOpen} size="lg">
+                    <MDBModalHeader toggle={this.modalSLPStatistics("")} className="blue-whale">{MESSAGE.SLPSTATS}</MDBModalHeader>
+                    <MDBModalBody>
+                        <CanvasJSChart options={this.state.hasSLPStatistics} />
+                    </MDBModalBody>
+                </MDBModal>
+            </React.Fragment>
+        )
+    }
+
     // Render Empty Detail
     renderEmptyDetails() {
         return (
@@ -2068,6 +2218,7 @@ class Home extends React.Component {
                 {this.renderModalManagerEarnings()}
                 {this.renderModalPlayerDetails()}
                 {this.renderModalIskoInputs()}
+                {this.renderModalSLPStatistics()}
             </MDBBox>
         )
     }

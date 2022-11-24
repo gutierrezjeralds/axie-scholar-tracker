@@ -472,6 +472,12 @@
 .h-233px{
     height: 233px !important;
 }
+.h-250px{
+    height: 250px !important;
+}
+.h-300px{
+    height: 300px !important;
+}
 
 .h-50{
     height: 50% !important;
@@ -1117,5 +1123,46 @@ body, #root{
     }
     .export, .iskoInputs {
         padding: 10px;
+    }
+}
+
+// CSS Tooltip
+.tooltip-custom {
+    position: relative;
+    display: inline-block;
+    .tooltiptext {
+        visibility: hidden;
+        width: 200px;
+        background-color: black;
+        color: #fff;
+        text-align: center;
+        border-radius: 6px;
+        padding: 5px;
+        position: absolute;
+        z-index: 1;
+        bottom: 150%;
+        left: 50%;
+        margin-left: -100px;
+
+        /* Fade in tooltip - takes 1 second to go from 0% to 100% opac: */
+        opacity: 0;
+        transition: opacity 1s;
+        &:after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: black transparent transparent transparent;
+        }
+    }
+
+    &:hover {
+        .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
     }
 }

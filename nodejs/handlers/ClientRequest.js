@@ -252,6 +252,9 @@ async function inGameSLP(access, logger) {
                             let errMsg = MESSAGE.ERROR_INGAMESLP;
                             try {
                                 errMsg = httpResponse.body ? JSON.parse(httpResponse.body)._errorMessage : MESSAGE.ERROR_INGAMESLP;
+                                if (errMsg.toLowerCase().indexOf('not') > -1 && errMsg.toLowerCase().indexOf('found') > -1) {
+                                    errMsg = MESSAGE.EMPTY; // Set error msg to EMPTY to used in condition for resetting the token or not
+                                }
                             } catch {
                                 errMsg = MESSAGE.ERROR_INGAMESLP;
                             }

@@ -209,7 +209,9 @@ const MESSAGE = {
     SLPBURNED: "SLP Burned",
     SLPMINTED: "SLP Minted",
     SLPSTATS: "SLP Statistics",
-    BURNED: "Burned"
+    BURNED: "Burned",
+    LAST_PLAYED: "Last played",
+    NORUNE: "No Rune"
 }
 
 const TABLES = {

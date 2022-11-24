@@ -37,6 +37,7 @@ class Home extends React.Component {
             error: false,
             errorMsg: MESSAGE.UNEXPECTED_ERROR,
             isLoaded: false,
+            isModalLoaded: true, // Default True evenif modal is not yet showned
             currencySLP: 0,
             currencyAXS: 0,
             currencyNAME: "",
@@ -79,7 +80,8 @@ class Home extends React.Component {
             hasSLPStatistics: false,
             SLPBurnedCount: 0,
             SLPMintedCount: 0,
-            isModalSLPStatisticsOpen: false
+            isModalSLPStatisticsOpen: false,
+            lastUsedTeam: false
         }
     }
 
@@ -87,6 +89,7 @@ class Home extends React.Component {
         this.pageRefresh(120000); // Refresh in 2 minutes
         this.getCryptoCoins();
         this.recordProcess();
+        this.getRunesNCharms(); // Get data of Runes and Charms
         // Check if the user is valid email x for checking for display all the player data
         if (this.state.isUser) {
             const emailSplit = this.state.isUser.split('@');
@@ -157,6 +160,11 @@ class Home extends React.Component {
 
     // Modal Toggle for view of Players details
     modalPlayerDetailsToggle = (address, playerDetails) => async () => {
+        this.setState({ // State the isModalLoaded into false for display of loading process
+            isModalLoaded: false
+        })
+
+        // Filter the details
         let details = [];
         if (address && playerDetails.length > 0) {
             const findDetail = playerDetails.find(items => items.ADDRESS === address);
@@ -165,11 +173,136 @@ class Home extends React.Component {
             }
         }
 
-        this.setState({
-            isModalPlayerDetailsOpen: !this.state.isModalPlayerDetailsOpen,
-            modalPlayerDetails: details,
-            isViewAxieTeam: MESSAGE.VIEW_AXIE_TEAM
-        });
+        if (!this.state.isModalPlayerDetailsOpen) {
+            try {
+                const runesNcharms = localStorage.getItem("runesNcharms") !== null ? JSON.parse(localStorage.getItem("runesNcharms")) : false; // Get Runes and Charms in local storage
+                const battleLog = await this.getBattleLog(details[0]); // Get the Battle Log details
+                // Process the Last Used Axie Team based in Battle Log
+                if (!battleLog.error && battleLog.data.length > 0) {
+                    const lBattleLog = battleLog.data[0]; // Get Latest Battle Log
+                    const createdAt = moment.unix(lBattleLog.created_at).format("YYYY-MM-DD HH:mm:ss"); // Formating the Created At in Battle Log
+                    const clientIndex = lBattleLog.client_ids.indexOf(details[0].USERID) // Get index of client x for getting the owned axie used
+                    const propertyKey = clientIndex === 0 ? "first_client_fighters" : "second_client_fighters"; // Set the property key to get the owned axie used
+                    const ownedAxie = lBattleLog[propertyKey];
+                    console.log("ownedAxie", ownedAxie)
+    
+                    // Construct the data to be display
+                    const ownedPromise = ownedAxie.map(async function (data) {
+                        const tempDetails = { // Temp Object
+                            AXIEID: data.axie_id,
+                            AXIEIMG: `https://axiecdn.axieinfinity.com/axies/${data.axie_id}/axie/axie-full-transparent.png`,
+                            RUNES: false,
+                            CHARMS: false
+                        }
+    
+                        // Insert Runes and Charms details in object
+                        if (runesNcharms) {
+                            // Runes
+                            const runes = data.runes.length > 0 ? runesNcharms.filter(runes => runes.id === data.runes[0]) : false;
+                            if (runes) {
+                                tempDetails.RUNES = {
+                                    ID: runes[0].id,
+                                    IMG: runes[0].imageUrl,
+                                    NAME: runes[0].name,
+                                    DESC: runes[0].description
+                                }
+                            }
+                            // Charms filters
+                            const eyes = data.charms.eyes ? runesNcharms.filter(charms => charms.id === data.charms.eyes) : false;
+                            const mouth = data.charms.mouth ? runesNcharms.filter(charms => charms.id === data.charms.mouth) : false;
+                            const ears = data.charms.ears ? runesNcharms.filter(charms => charms.id === data.charms.ears) : false;
+                            const horn = data.charms.horn ? runesNcharms.filter(charms => charms.id === data.charms.horn) : false;
+                            const back = data.charms.back ? runesNcharms.filter(charms => charms.id === data.charms.back) : false;
+                            const tail = data.charms.tail ? runesNcharms.filter(charms => charms.id === data.charms.tail) : false;
+                            // Charms objects
+                            tempDetails.CHARMS = [
+                                {
+                                    ID: eyes ? eyes[0].id : "",
+                                    IMG: eyes ? eyes[0].imageUrl : "",
+                                    NAME: eyes ? eyes[0].name : "",
+                                    DESC: eyes ? eyes[0].description : ""
+                                },
+                                {
+                                    ID: mouth ? mouth[0].id : "",
+                                    IMG: mouth ? mouth[0].imageUrl : "",
+                                    NAME: mouth ? mouth[0].name : "",
+                                    DESC: mouth ? mouth[0].description : ""
+                                },
+                                {
+                                    ID: ears ? ears[0].id : "",
+                                    IMG: ears ? ears[0].imageUrl : "",
+                                    NAME: ears ? ears[0].name : "",
+                                    DESC: ears ? ears[0].description : ""
+                                },
+                                {
+                                    ID: horn ? horn[0].id : "",
+                                    IMG: horn ? horn[0].imageUrl : "",
+                                    NAME: horn ? horn[0].name : "",
+                                    DESC: horn ? horn[0].description : ""
+                                },
+                                {
+                                    ID: back ? back[0].id : "",
+                                    IMG: back ? back[0].imageUrl : "",
+                                    NAME: back ? back[0].name : "",
+                                    DESC: back ? back[0].description : ""
+                                },
+                                {
+                                    ID: tail ? tail[0].id : "",
+                                    IMG: tail ? tail[0].imageUrl : "",
+                                    NAME: tail ? tail[0].name : "",
+                                    DESC: tail ? tail[0].description : ""
+                                }
+                            ]
+                        }
+    
+                        // Push data and return
+                        const details = Object.assign({}, tempDetails);
+                        return details;
+                    })
+    
+                    // Adding the updated last used axie team
+                    const results = await Promise.all(ownedPromise);
+                    this.setState({
+                        isModalLoaded: true,
+                        lastUsedTeam: {
+                            DATE: moment(createdAt).fromNow(),
+                            ITEMS: results
+                        },
+                        isModalPlayerDetailsOpen: !this.state.isModalPlayerDetailsOpen,
+                        modalPlayerDetails: details,
+                        isViewAxieTeam: MESSAGE.VIEW_AXIE_TEAM // Initial display the Axie Team upon modal opened
+                    });
+                } else {
+                    // No data for last used team
+                    this.setState({
+                        isModalLoaded: true,
+                        lastUsedTeam: false,
+                        isModalPlayerDetailsOpen: !this.state.isModalPlayerDetailsOpen,
+                        modalPlayerDetails: details,
+                        isViewAxieTeam: MESSAGE.VIEW_EARNINGS // Initial display the Earnings upon modal opened
+                    });
+                }
+            } catch (error) {
+                console.error(MESSAGE.ERROR_OCCURED, error);
+                // No data for last used team
+                this.setState({
+                    isModalLoaded: true,
+                    lastUsedTeam: false,
+                    isModalPlayerDetailsOpen: !this.state.isModalPlayerDetailsOpen,
+                    modalPlayerDetails: details,
+                    isViewAxieTeam: MESSAGE.VIEW_EARNINGS // Initial display the Earnings upon modal opened
+                });
+            }
+        } else {
+            // No data for last used team
+            this.setState({
+                isModalLoaded: true,
+                lastUsedTeam: false,
+                isModalPlayerDetailsOpen: !this.state.isModalPlayerDetailsOpen,
+                modalPlayerDetails: details,
+                isViewAxieTeam: MESSAGE.VIEW_EARNINGS // Initial display the Earnings upon modal opened
+            });
+        }
     }
 
     // Hide and Show Player Earnings and Active Axie Team
@@ -654,8 +787,9 @@ class Home extends React.Component {
                         try {
                             const data = result.data !== undefined && Object.keys(result.data).length > 0 ? result.data : false;
                             const token = data.accessToken ? data.accessToken : false;
-                            if (token) {
-                                return resolve({error: false, token: token});
+                            const userID = data.userID ? data.userID : false;
+                            if (token && userID) {
+                                return resolve({error: false, token: token, userID: userID});
                             } else {
                                 return reject({error: true, category: "authLogin"});
                             }
@@ -735,10 +869,13 @@ class Home extends React.Component {
                                 }
                         }
 
+                        // Set userID to false by default x to prevent error in ternary/if condition
+                        item["USERID"] = false;
+
                         if (isDeleted || (!EMAIL || !PASS)) { // To prevent fetching access token and processing for delete details
                             // Details is mark as deleted and No valid credentials
                             // Continue Process for Player Details with Default/Empty data of InGame SLP
-                            item["accessToken"] = false; // Update the Access Token property value to empty for resetting in generate token
+                            item["ACCESSTOKEN"] = false; // Update the Access Token property value to empty for resetting in generate token
                             return await this.processPlayerDetails(_INGAMESLP, counter, item, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned);
 
                         } else {
@@ -746,7 +883,7 @@ class Home extends React.Component {
                             const detailLocalStored = localStorage.getItem(ethAddress) !== null ? JSON.parse(localStorage.getItem(ethAddress)) : false;
 
                             // Process for Generate Access Token
-                            let accessToken = detailLocalStored && detailLocalStored.accessToken ? detailLocalStored.accessToken : false;
+                            let accessToken = detailLocalStored && detailLocalStored.ACCESSTOKEN ? detailLocalStored.ACCESSTOKEN : false;
                             if (accessToken) {
                                 // Has already Access Token x Reassigned existing data from Local Storage
                                 item = detailLocalStored;
@@ -756,8 +893,9 @@ class Home extends React.Component {
                                 console.log(`${MESSAGE.RUN_TOKEN}:`, item.NAME);
                                 accessToken = await this.authLogin({email: item.EMAIL, password: item.PASS});
                                 if (!accessToken.error) {
-                                    // Set for Access Token
-                                    item["accessToken"] = accessToken.token;
+                                    // Set for Access Token and userID
+                                    item["ACCESSTOKEN"] = accessToken.token;
+                                    item["USERID"] = accessToken.userID;
                                 } else {
                                     // No Access Token x Don't display the player detail
                                     accessToken = false;
@@ -935,7 +1073,7 @@ class Home extends React.Component {
                 url: APIURI + "getInGameSLP",
                 type: "POST",
                 data: JSON.stringify({
-                    token: details.accessToken,
+                    token: details.ACCESSTOKEN,
                     name: details.NAME
                 }),
                 contentType: 'application/json',
@@ -949,16 +1087,21 @@ class Home extends React.Component {
                             const dataRes = result.data ? JSON.parse(result.data) : false;
                             const detailProcess = await this.processPlayerDetails(dataRes, detailsLength, details, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned);
                             return resolve(detailProcess);
-                        } catch {
+                        } catch (error) {
+                            console.error(MESSAGE.ERROR_OCCURED, error);
                             // Continue Process for Player Details with Default/Empty data of InGame SLP
-                            details.accessToken = false; // Update the Access Token property value to empty for resetting in generate token
+                            details.ACCESSTOKEN = false; // Update the Access Token property value to empty for resetting in generate token
                             const detailsReturn = Object.assign({}, details);
                             const detailProcess = await this.processPlayerDetails(_INGAMESLP, detailsLength, detailsReturn, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned);
                             return resolve(detailProcess);
                         }
+                    } else if (result.error && result.data === MESSAGE.EMPTY) {
+                        // Continue Process for Player Details with Default/Empty data of InGame SLP without updating the Access Token
+                        const detailProcess = await this.processPlayerDetails(_INGAMESLP, detailsLength, details, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned);
+                        return resolve(detailProcess);
                     } else {
                         // Continue Process for Player Details with Default/Empty data of InGame SLP
-                        details.accessToken = false; // Update the Access Token property value to empty for resetting in generate token
+                        details.ACCESSTOKEN = false; // Update the Access Token property value to empty for resetting in generate token
                         const detailsReturn = Object.assign({}, details);
                         const detailProcess = await this.processPlayerDetails(_INGAMESLP, detailsLength, detailsReturn, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned);
                         return resolve(detailProcess);
@@ -973,7 +1116,7 @@ class Home extends React.Component {
                     if (detailLocalStored) {
                         const dataRes = JSON.parse(detailLocalStored); // Parse the Cookie
                         if (Object.keys(dataRes).length > 0) { // Has player details
-                            details.accessToken = false; // Update the Access Token property value to empty for resetting in generate token
+                            details.ACCESSTOKEN = false; // Update the Access Token property value to empty for resetting in generate token
                             const detailsReturn = Object.assign({}, details);
                             // Process data from Local Storage
                             const detailProcess = await this.processPlayerDetails(dataRes, detailsLength, detailsReturn, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned, true);
@@ -997,7 +1140,7 @@ class Home extends React.Component {
                     if (detailLocalStored) {
                         const dataRes = JSON.parse(detailLocalStored); // Parse the Cookie
                         if (Object.keys(dataRes).length > 0) { // Has player details
-                            details.accessToken = false; // Update the Access Token property value to empty for resetting in generate token
+                            details.ACCESSTOKEN = false; // Update the Access Token property value to empty for resetting in generate token
                             const detailsReturn = Object.assign({}, details);
                             // Process data from Local Storage
                             const detailProcess = await this.processPlayerDetails(dataRes, detailsLength, detailsReturn, ethAddress, userEthAddress, dataWithdraw, dataManagerEarned, true);
@@ -1318,14 +1461,14 @@ class Home extends React.Component {
                                 return resolve(dataSet);
                             } else {
                                 // Hass Error
-                                return reject({error: true, category: "getPlayerWallet"});
+                                return reject({error: true, category: "getPlayerWallet", name: details.NAME});
                             }
                         } else {
                             // Hass Error
-                            return reject({error: true, category: "getPlayerWallet"});
+                            return reject({error: true, category: "getPlayerWallet", name: details.NAME});
                         }
                     } catch (error) {
-                        return reject({error: true, data: error, category: "getPlayerWallet"});
+                        return reject({error: true, data: error, category: "getPlayerWallet", name: details.NAME});
                     }
                 },
                 // Note: it's important to handle errors here
@@ -1333,13 +1476,13 @@ class Home extends React.Component {
                 // exceptions from actual bugs in components.
                 (error) => {
                     console.error(MESSAGE.ERROR_OCCURED, error)
-                    return reject({error: true, data: error, category: "getPlayerWallet"})
+                    return reject({error: true, data: error, category: "getPlayerWallet", name: details.NAME})
                 }
             )
             .catch(
                 (err) => {
                     console.error(MESSAGE.ERROR_OCCURED, err)
-                    return reject({error: true, data: err, category: "getPlayerWallet"});
+                    return reject({error: true, data: err, category: "getPlayerWallet", name: details.NAME});
                 }
             )
         }).catch(err => {
@@ -1364,10 +1507,10 @@ class Home extends React.Component {
                             return resolve(res.result);
                         } else {
                             // Hass Error
-                            return reject({error: true, category: "getPlayerLeaderboard"});
+                            return reject({error: true, category: "getPlayerLeaderboard", name: details.NAME});
                         }
                     } catch (error) {
-                        return reject({error: true, data: error, category: "getPlayerLeaderboard"});
+                        return reject({error: true, data: error, category: "getPlayerLeaderboard", name: details.NAME});
                     }
                 },
                 // Note: it's important to handle errors here
@@ -1375,13 +1518,13 @@ class Home extends React.Component {
                 // exceptions from actual bugs in components.
                 (error) => {
                     console.error(MESSAGE.ERROR_OCCURED, error)
-                    return reject({error: true, data: error, category: "getPlayerLeaderboard"})
+                    return reject({error: true, data: error, category: "getPlayerLeaderboard", name: details.NAME})
                 }
             )
             .catch(
                 (err) => {
                     console.error(MESSAGE.ERROR_OCCURED, err)
-                    return reject({error: true, data: err, category: "getPlayerLeaderboard"});
+                    return reject({error: true, data: err, category: "getPlayerLeaderboard", name: details.NAME});
                 }
             )
         }).catch(err => {
@@ -1474,6 +1617,114 @@ class Home extends React.Component {
                 (err) => {
                     console.error(MESSAGE.ERROR_OCCURED, err)
                     return reject({error: true, data: err, category: "getSLPBurned"});
+                }
+            )
+        }).catch(err => {
+            console.error(MESSAGE.ERROR_OCCURED, err)
+            return err;
+        });
+    }
+
+    // Get Battle Log
+    getBattleLog = async (details) => {
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                url: "https://ronin.rest/origin/battleLog/" + details.ADDRESS,
+                dataType: "json",
+                cache: false
+            })
+            .then(
+                (result) => {
+                    try {
+                        if (result.battles !== null && result.battles !== undefined && Object.keys(result.battles).length > 0) {
+                            // Sucess Return
+                            return resolve({error: false, data: result.battles});
+                        } else {
+                            // Hass Error
+                            return reject({error: true, category: "getBattleLog", name: details.NAME});
+                        }
+                    } catch (error) {
+                        return reject({error: true, data: error, category: "getBattleLog", name: details.NAME});
+                    }
+                },
+                // Note: it's important to handle errors here
+                // instead of a catch() block so that we don't swallow
+                // exceptions from actual bugs in components.
+                (error) => {
+                    console.error(MESSAGE.ERROR_OCCURED, error)
+                    return reject({error: true, data: error, category: "getBattleLog", name: details.NAME})
+                }
+            )
+            .catch(
+                (err) => {
+                    console.error(MESSAGE.ERROR_OCCURED, err)
+                    return reject({error: true, data: err, category: "getBattleLog", name: details.NAME});
+                }
+            )
+        }).catch(err => {
+            console.error(MESSAGE.ERROR_OCCURED, err)
+            return err;
+        });
+    }
+
+    // Get Runes and Charms
+    getRunesNCharms = async () => {
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                url: "https://ronin.rest/origin/game/listItems",
+                dataType: "json",
+                cache: false
+            })
+            .then(
+                (result) => {
+                    try {
+                        if (result._items !== null && result._items !== undefined && Object.keys(result._items).length > 0) {
+                            // Sucess Return x Set new data in local storage
+                            localStorage.setItem("runesNcharms", JSON.stringify(result._items));
+                            return resolve({error: false, data: result._items});
+                        } else {
+                            // Hass Error x Get the previous data in local storage
+                            const runesNcharms = localStorage.getItem("runesNcharms") !== null ? JSON.parse(localStorage.getItem("runesNcharms")) : false;
+                            if (runesNcharms) {
+                                return resolve({error: false, data: runesNcharms});
+                            } else {
+                                return reject({error: true, category: "getRunesNCharms"});
+                            }
+                        }
+                    } catch (error) {
+                        // Hass Error x Get the previous data in local storage
+                        const runesNcharms = localStorage.getItem("runesNcharms") !== null ? JSON.parse(localStorage.getItem("runesNcharms")) : false;
+                        if (runesNcharms) {
+                            return resolve({error: false, data: runesNcharms});
+                        } else {
+                            return reject({error: true, data: error, category: "getRunesNCharms"});
+                        }
+                    }
+                },
+                // Note: it's important to handle errors here
+                // instead of a catch() block so that we don't swallow
+                // exceptions from actual bugs in components.
+                (error) => {
+                    console.error(MESSAGE.ERROR_OCCURED, error)
+                    // Hass Error x Get the previous data in local storage
+                    const runesNcharms = localStorage.getItem("runesNcharms") !== null ? JSON.parse(localStorage.getItem("runesNcharms")) : false;
+                    if (runesNcharms) {
+                        return resolve({error: false, data: runesNcharms});
+                    } else {
+                        return reject({error: true, data: error, category: "getRunesNCharms"});
+                    }
+                }
+            )
+            .catch(
+                (err) => {
+                    console.error(MESSAGE.ERROR_OCCURED, err)
+                    // Hass Error x Get the previous data in local storage
+                    const runesNcharms = localStorage.getItem("runesNcharms") !== null ? JSON.parse(localStorage.getItem("runesNcharms")) : false;
+                    if (runesNcharms) {
+                        return resolve({error: false, data: runesNcharms});
+                    } else {
+                        return reject({error: true, data: err, category: "getRunesNCharms"});
+                    }
                 }
             )
         }).catch(err => {
@@ -1832,6 +2083,59 @@ class Home extends React.Component {
 
                                                 {
                                                     // Display Active Axie Team
+                                                    this.state.lastUsedTeam && this.state.lastUsedTeam.ITEMS.length > 0 ? (
+                                                        <React.Fragment>
+                                                            <MDBBox tag="div" className="text-center my-2">
+                                                                <MDBBox tag="span" className="d-block font-weight-bold">{MESSAGE.LAST_PLAYED} {this.state.lastUsedTeam.DATE}</MDBBox>
+                                                            </MDBBox>
+                                                            <MDBRow>
+                                                                {
+                                                                    this.state.lastUsedTeam.ITEMS.map((items, index) => (
+                                                                        <MDBCol key={index} size="4" md="4" lg="4" className="my-1 px-2">
+                                                                            <MDBCard className="z-depth-2 h-250px">
+                                                                                <MDBCardBody className="black-text">
+                                                                                    <MDBBox tag="div" className="text-center">
+                                                                                        <img src={items.AXIEIMG} className="w-100 mt-0pt3rem-neg" alt="AXIE" />
+                                                                                        <MDBBox tag="span" className="d-block font-size-pt9rem mt-1pt5rem-neg font-weight-bold tooltip-custom">
+                                                                                            {
+                                                                                                items.RUNES ? (
+                                                                                                    <React.Fragment>
+                                                                                                        <img src={items.RUNES.IMG} className="w-24px mr-1" alt="RUNES" />
+                                                                                                        {items.RUNES.NAME}
+                                                                                                        <MDBBox tag="span" className="tooltiptext">
+                                                                                                            {items.RUNES.DESC}
+                                                                                                        </MDBBox>
+                                                                                                    </React.Fragment>
+                                                                                                ) : (MESSAGE.NORUNE)
+                                                                                            }
+                                                                                        </MDBBox>
+                                                                                        {
+                                                                                            items.CHARMS.map((charms, idx) => (
+                                                                                                <MDBBox key={idx} tag="span" className="d-inline-block font-size-pt9rem font-weight-bold tooltip-custom my-3">
+                                                                                                    {
+                                                                                                        charms.ID ? (
+                                                                                                            <React.Fragment>
+                                                                                                                <img src={charms.IMG} className="w-24px mr-1" alt="CHARMS" />
+                                                                                                                <MDBBox tag="span" className="tooltiptext">
+                                                                                                                    {charms.NAME}: {charms.DESC}
+                                                                                                                </MDBBox>
+                                                                                                            </React.Fragment>
+                                                                                                        ) : (
+                                                                                                            <MDBBox tag="span" className="w-24px mr-1 d-block"> - </MDBBox>
+                                                                                                        )
+                                                                                                    }
+                                                                                                </MDBBox>
+                                                                                            ))
+                                                                                        }
+                                                                                    </MDBBox>
+                                                                                </MDBCardBody>
+                                                                            </MDBCard>
+                                                                        </MDBCol>
+                                                                    ))
+                                                                }
+                                                            </MDBRow>
+                                                        </React.Fragment>
+                                                    ) : ("")
                                                 }
                                             </React.Fragment>
                                         ) : (
@@ -2150,7 +2454,7 @@ class Home extends React.Component {
                 </MDBAnimation>
                 
                 {
-                    !this.state.isLoaded ? (
+                    !this.state.isLoaded || !this.state.isModalLoaded ? (
                         // Loading
                     <MDBBox tag="div" className="loader-section">
                         <MDBBox tag="div" className="position-fixed z-index-9999 l-0 t-0 r-0 b-0 m-auto overflow-visible flex-center">

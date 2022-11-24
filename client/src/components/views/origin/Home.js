@@ -2091,11 +2091,11 @@ class Home extends React.Component {
                                                             <MDBRow>
                                                                 {
                                                                     this.state.lastUsedTeam.ITEMS.map((items, index) => (
-                                                                        <MDBCol key={index} size="4" md="4" lg="4" className="my-1 px-2">
+                                                                        <MDBCol key={index} size="12" md="12" lg="4" className="my-1 px-2">
                                                                             <MDBCard className="z-depth-2 h-250px">
                                                                                 <MDBCardBody className="black-text">
                                                                                     <MDBBox tag="div" className="text-center">
-                                                                                        <img src={items.AXIEIMG} className="w-100 mt-0pt3rem-neg" alt="AXIE" />
+                                                                                        <img src={items.AXIEIMG} className="w-lg100pct-sm200px mt-0pt3rem-neg" alt="AXIE" />
                                                                                         <MDBBox tag="span" className="d-block font-size-pt9rem mt-1pt5rem-neg font-weight-bold tooltip-custom">
                                                                                             {
                                                                                                 items.RUNES ? (

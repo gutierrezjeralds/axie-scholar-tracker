@@ -447,6 +447,13 @@
     width: 19rem !important;
 }
 
+.w-lg100pct-sm200px {
+    width: 100% !important;
+    @include mediaQueries (mixin-max-medium) {
+        width: 200px !important;
+    }
+}
+
 // Height
 .h-8px{
     height: 8px !important;

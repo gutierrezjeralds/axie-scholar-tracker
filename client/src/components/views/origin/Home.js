@@ -184,7 +184,6 @@ class Home extends React.Component {
                     const clientIndex = lBattleLog.client_ids.indexOf(details[0].USERID) // Get index of client x for getting the owned axie used
                     const propertyKey = clientIndex === 0 ? "first_client_fighters" : "second_client_fighters"; // Set the property key to get the owned axie used
                     const ownedAxie = lBattleLog[propertyKey];
-                    console.log("ownedAxie", ownedAxie)
     
                     // Construct the data to be display
                     const ownedPromise = ownedAxie.map(async function (data) {
@@ -922,6 +921,8 @@ class Home extends React.Component {
 
                         const dataResult = results.filter(item => item && !item.error && item.data !== undefined && item.eth !== undefined); // Filter valid data
                         if (dataResult && dataResult.length > 0) {
+                            let indexCount = 0; // Global index count for not deleted data
+                            let indexDelCount = dataResult.length; // Startd global index count for deleted data x dataResult.length plus 1 ever loop for deleted data
                             // Sort as Top Leaderboard
                             dataResult.sort(function (a, b) {
                                 if (a.topRank === b.topRank) { // equal items sort equally
@@ -933,9 +934,16 @@ class Home extends React.Component {
                                 } else {  // otherwise, if we're ascending, lowest sorts first
                                     return a.topRank < b.topRank ? -1 : 1;
                                 }
-                              }).map((dataItem, index) => {
-                                const indexCount = index + 1; // Global index count
-                                dataItem.data.order = indexCount; // Adding ordered number
+                              }).map(dataItem => {
+                                if (!dataItem.isDelete) {
+                                    // Adding ordered number for not deleted data
+                                    indexCount = indexCount + 1;
+                                    dataItem.data.order = indexCount;
+                                } else {
+                                    // Adding ordered number for deleted data x dataResult.length plus 1 ever loop for deleted data
+                                    indexDelCount = indexDelCount + 1;
+                                    dataItem.data.order = indexDelCount;
+                                }
 
                                 // Get Top MMR Player
                                 if (indexCount === 1) {

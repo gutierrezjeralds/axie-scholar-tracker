@@ -2080,72 +2080,61 @@ class Home extends React.Component {
 
                                     {
                                         this.state.isViewAxieTeam === MESSAGE.VIEW_AXIE_TEAM ? (
-                                            // View Gained SLP Chart
-                                            <React.Fragment>
-                                                {
-                                                    // Display only the view earnings for specific user
-                                                    this.state.isUser === MESSAGE.MANAGER || !this.state.isUserEmail || (this.state.isUser).toLowerCase() === (this.state.modalPlayerDetails[0].details.EMAIL).toLowerCase() ? (
-                                                        <MDBBox tag="u" className="d-block mb-2 cursor-pointer" onClick={this.onScholarEaningNActiveTeamHandle.bind(this)}>{MESSAGE.VIEW_EARNINGS}</MDBBox> // Opposite label x for hide and show
-                                                    ) : ("")
-                                                }
-
-                                                {
-                                                    // Display Active Axie Team
-                                                    this.state.lastUsedTeam && this.state.lastUsedTeam.ITEMS.length > 0 ? (
-                                                        <React.Fragment>
-                                                            <MDBBox tag="div" className="text-center my-2">
-                                                                <MDBBox tag="span" className="d-block font-weight-bold">{MESSAGE.LAST_PLAYED} {this.state.lastUsedTeam.DATE}</MDBBox>
-                                                            </MDBBox>
-                                                            <MDBRow>
-                                                                {
-                                                                    this.state.lastUsedTeam.ITEMS.map((items, index) => (
-                                                                        <MDBCol key={index} size="12" md="12" lg="4" className="my-1 px-2">
-                                                                            <MDBCard className="z-depth-2 h-250px">
-                                                                                <MDBCardBody className="black-text">
-                                                                                    <MDBBox tag="div" className="text-center">
-                                                                                        <img src={items.AXIEIMG} className="w-lg100pct-sm200px mt-0pt3rem-neg" alt="AXIE" />
-                                                                                        <MDBBox tag="span" className="d-block font-size-pt9rem mt-1pt5rem-neg font-weight-bold tooltip-custom">
+                                            // Display Active Axie Team
+                                            this.state.lastUsedTeam && this.state.lastUsedTeam.ITEMS.length > 0 ? (
+                                                <React.Fragment>
+                                                    <MDBBox tag="u" className="d-block mb-2 cursor-pointer" onClick={this.onScholarEaningNActiveTeamHandle.bind(this)}>{MESSAGE.VIEW_EARNINGS}</MDBBox> {/* Opposite label x for hide and show */}
+                                                    <MDBBox tag="div" className="text-center my-2">
+                                                        <MDBBox tag="span" className="d-block font-weight-bold">{MESSAGE.LAST_PLAYED} {this.state.lastUsedTeam.DATE}</MDBBox>
+                                                    </MDBBox>
+                                                    <MDBRow>
+                                                        {
+                                                            this.state.lastUsedTeam.ITEMS.map((items, index) => (
+                                                                <MDBCol key={index} size="12" md="12" lg="4" className="my-1 px-2">
+                                                                    <MDBCard className="z-depth-2 h-250px">
+                                                                        <MDBCardBody className="black-text">
+                                                                            <MDBBox tag="div" className="text-center">
+                                                                                <img src={items.AXIEIMG} className="w-lg100pct-sm200px mt-0pt3rem-neg" alt="AXIE" />
+                                                                                <MDBBox tag="span" className="d-block font-size-pt9rem mt-1pt5rem-neg font-weight-bold tooltip-custom">
+                                                                                    {
+                                                                                        items.RUNES ? (
+                                                                                            <React.Fragment>
+                                                                                                <img src={items.RUNES.IMG} className="w-24px mr-1" alt="RUNES" />
+                                                                                                {items.RUNES.NAME}
+                                                                                                <MDBBox tag="span" className="tooltiptext">
+                                                                                                    {items.RUNES.DESC}
+                                                                                                </MDBBox>
+                                                                                            </React.Fragment>
+                                                                                        ) : (MESSAGE.NORUNE)
+                                                                                    }
+                                                                                </MDBBox>
+                                                                                {
+                                                                                    items.CHARMS.map((charms, idx) => (
+                                                                                        <MDBBox key={idx} tag="span" className="d-inline-block font-size-pt9rem font-weight-bold tooltip-custom my-3">
                                                                                             {
-                                                                                                items.RUNES ? (
+                                                                                                charms.ID ? (
                                                                                                     <React.Fragment>
-                                                                                                        <img src={items.RUNES.IMG} className="w-24px mr-1" alt="RUNES" />
-                                                                                                        {items.RUNES.NAME}
+                                                                                                        <img src={charms.IMG} className="w-24px mr-1" alt="CHARMS" />
                                                                                                         <MDBBox tag="span" className="tooltiptext">
-                                                                                                            {items.RUNES.DESC}
+                                                                                                            {charms.NAME}: {charms.DESC}
                                                                                                         </MDBBox>
                                                                                                     </React.Fragment>
-                                                                                                ) : (MESSAGE.NORUNE)
+                                                                                                ) : (
+                                                                                                    <MDBBox tag="span" className="w-24px mr-1 d-block"> - </MDBBox>
+                                                                                                )
                                                                                             }
                                                                                         </MDBBox>
-                                                                                        {
-                                                                                            items.CHARMS.map((charms, idx) => (
-                                                                                                <MDBBox key={idx} tag="span" className="d-inline-block font-size-pt9rem font-weight-bold tooltip-custom my-3">
-                                                                                                    {
-                                                                                                        charms.ID ? (
-                                                                                                            <React.Fragment>
-                                                                                                                <img src={charms.IMG} className="w-24px mr-1" alt="CHARMS" />
-                                                                                                                <MDBBox tag="span" className="tooltiptext">
-                                                                                                                    {charms.NAME}: {charms.DESC}
-                                                                                                                </MDBBox>
-                                                                                                            </React.Fragment>
-                                                                                                        ) : (
-                                                                                                            <MDBBox tag="span" className="w-24px mr-1 d-block"> - </MDBBox>
-                                                                                                        )
-                                                                                                    }
-                                                                                                </MDBBox>
-                                                                                            ))
-                                                                                        }
-                                                                                    </MDBBox>
-                                                                                </MDBCardBody>
-                                                                            </MDBCard>
-                                                                        </MDBCol>
-                                                                    ))
-                                                                }
-                                                            </MDBRow>
-                                                        </React.Fragment>
-                                                    ) : ("")
-                                                }
-                                            </React.Fragment>
+                                                                                    ))
+                                                                                }
+                                                                            </MDBBox>
+                                                                        </MDBCardBody>
+                                                                    </MDBCard>
+                                                                </MDBCol>
+                                                            ))
+                                                        }
+                                                    </MDBRow>
+                                                </React.Fragment>
+                                            ) : ("")
                                         ) : (
                                             // View Earnings
                                             <React.Fragment>

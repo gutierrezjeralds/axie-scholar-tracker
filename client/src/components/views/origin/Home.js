@@ -2138,7 +2138,13 @@ class Home extends React.Component {
                                         ) : (
                                             // View Earnings
                                             <React.Fragment>
-                                                <MDBBox tag="u" className="d-block mb-2 cursor-pointer" onClick={this.onScholarEaningNActiveTeamHandle.bind(this)}>{MESSAGE.VIEW_AXIE_TEAM}</MDBBox> {/* Opposite label x for hide and show */}
+                                                {
+                                                    // If the lastUsedTeam is empty x don't show the onclick handle to change the view
+                                                    this.state.lastUsedTeam && this.state.lastUsedTeam.ITEMS.length > 0 ? (
+                                                        <MDBBox tag="u" className="d-block mb-2 cursor-pointer" onClick={this.onScholarEaningNActiveTeamHandle.bind(this)}>{MESSAGE.VIEW_AXIE_TEAM}</MDBBox> // Opposite label x for hide and show
+                                                    ) : ("")
+                                                }
+                                                
                                                 {/* Table Details */}
                                                 <MDBTable scrollY maxHeight="70vh" bordered striped responsive className="mt-2">
                                                     <MDBTableBody>

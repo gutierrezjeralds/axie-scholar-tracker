@@ -11,8 +11,7 @@ const express = require("express");
 const { Client } = require('pg');
 const router = express.Router();
 const clientRequest = require("../handlers/ClientRequest");
-const { ISDEVLOGGER, LOGTAIL, MESSAGE, HEROKU } = require("../../client/src/components/Constants");
-const { Logtail } = require("@logtail/node");
+const { MESSAGE, HEROKU } = require("../../client/src/components/Constants");
 
 /*
     ReactJS Buildpack Heroku
@@ -40,27 +39,6 @@ const pgConn = {
     **** ID, ADDRESS, YESTERDAY, DATE_ON, MMR
 */
 
-// Global console log
-const logtail = new Logtail(LOGTAIL);
-const logger = (level, message, subMessage = "", addedMessage = "") => {
-    if (ISDEVLOGGER) {
-        return console.log(message, subMessage, addedMessage);
-    } else {
-        try {
-            subMessage = typeof subMessage === "string" ? subMessage : JSON.stringify(subMessage);
-            addedMessage = typeof addedMessage === "string" ? addedMessage : JSON.stringify(addedMessage);
-            const msg = message + " " + subMessage + " " + addedMessage;
-            if (level === MESSAGE.INFO) {
-                logtail.info(msg);
-            } else {
-                logtail.error(msg);
-            }
-        } catch {
-            return console.log(message, subMessage, addedMessage);
-        }
-    }
-}
-
 // All other GET requests not handled before will return our React app
 // app.get('*', (req, res) => {
 //     res.sendFile(path.resolve(__dirname, '../client/build', 'index.html'));
@@ -69,16 +47,16 @@ const logger = (level, message, subMessage = "", addedMessage = "") => {
 // POST Method x Get Access Token
 router.post("/authLogin", async (req, res) => {
     try {
-        logger(MESSAGE.INFO, MESSAGE.STARTED_GENERATE_TOKEN);
+        req.logger.info(MESSAGE.STARTED_GENERATE_TOKEN);
         
         // Body payload
         const payload = req.body;
 
         // Execute Process of Auth Login
-        const accessToken = await clientRequest.authLogin(payload, logger);
+        const accessToken = await clientRequest.authLogin(payload, req.logger);
         return res.type("application/json").status(200).send(accessToken); // Return response form Auth Login
     } catch (err) {
-        logger(MESSAGE.ERROR, MESSAGE.ERROR_OCCURED, err);
+        req.logger.error(MESSAGE.ERROR_OCCURED, err);
         return res.type("application/json").status(500).send({
             error: true,
             data: err
@@ -89,16 +67,16 @@ router.post("/authLogin", async (req, res) => {
 // POST Method x Get In Game SLP
 router.post("/getInGameSLP", async (req, res) => {
     try {
-        logger(MESSAGE.INFO, MESSAGE.STARTED_INGAMESLP_API);
+        req.logger.info(MESSAGE.STARTED_INGAMESLP_API);
         
         // Body payload
         const payload = req.body;
 
         // Execute Process of Auth Login
-        const inGameSLP = await clientRequest.inGameSLP(payload, logger);
+        const inGameSLP = await clientRequest.inGameSLP(payload, req.logger);
         return res.type("application/json").status(200).send(inGameSLP); // Return response form InGame SLP
     } catch (err) {
-        logger(MESSAGE.ERROR, MESSAGE.ERROR_OCCURED, err);
+        req.logger.error(MESSAGE.ERROR_OCCURED, err);
         return res.type("application/json").status(500).send({
             error: true,
             data: err
@@ -109,13 +87,13 @@ router.post("/getInGameSLP", async (req, res) => {
 // POST Method x Get In Game SLP
 router.get("/getCryptoCoins", async (req, res) => {
     try {
-        logger(MESSAGE.INFO, MESSAGE.STARTED_CRYPTOCOINS_API);
+        req.logger.info(MESSAGE.STARTED_CRYPTOCOINS_API);
 
         // Execute Process of Crypto Coins
-        const inGameSLP = await clientRequest.getCryptoCoins(logger);
+        const inGameSLP = await clientRequest.getCryptoCoins(req.logger);
         return res.type("application/json").status(200).send(inGameSLP); // Return response form InGame SLP
     } catch (err) {
-        logger(MESSAGE.ERROR, MESSAGE.ERROR_OCCURED, err);
+        req.logger.error(MESSAGE.ERROR_OCCURED, err);
         return res.type("application/json").status(500).send({
             error: true,
             data: err
@@ -126,7 +104,7 @@ router.get("/getCryptoCoins", async (req, res) => {
 // GET Method x Fetch User Profile x TB_USERPROFILE
 router.get("/userProfile", async (req, res) => {
     try {
-        logger(MESSAGE.INFO, MESSAGE.STARTED_SELECTQUERY);
+        req.logger.info(MESSAGE.STARTED_SELECTQUERY);
 
         // Conect to postgres
         const client = new Client(pgConn);
@@ -135,11 +113,11 @@ router.get("/userProfile", async (req, res) => {
         // Execute Query x JOIN table
         const query = `${HEROKU.QUERY.SELECT.USERPROFILE}`;
         client.query(query, (error, result) => {
-            logger(MESSAGE.INFO, MESSAGE.END_SELECTQUERY);
+            req.logger.info(MESSAGE.END_SELECTQUERY);
             // End Connection
             client.end();
             if (error) {
-                logger(MESSAGE.ERROR, MESSAGE.ERROR_OCCURED, error);
+                req.logger.error(MESSAGE.ERROR_OCCURED, error);
                 return res.type("application/json").status(500).send({
                     error: true,
                     data: error
@@ -152,7 +130,7 @@ router.get("/userProfile", async (req, res) => {
             }
         });
     } catch (err) {
-        logger(MESSAGE.ERROR, MESSAGE.ERROR_OCCURED, err);
+        req.logger.error(MESSAGE.ERROR_OCCURED, err);
         return res.type("application/json").status(500).send({
             error: true,
             data: err
@@ -163,7 +141,7 @@ router.get("/userProfile", async (req, res) => {
 // GET Method x Fetch User Profile x TB_USERPROFILE
 router.get("/login", async (req, res) => {
     try {
-        logger(MESSAGE.INFO, MESSAGE.STARTED_SELECTQUERY);
+        req.logger.info(MESSAGE.STARTED_SELECTQUERY);
 
         // Conect to postgres
         const client = new Client(pgConn);
@@ -177,11 +155,11 @@ router.get("/login", async (req, res) => {
             // Execute Query x JOIN table
             const query = `${HEROKU.QUERY.SELECT.USERPROFILE} WHERE UPPER("NAME") = '${access}' OR UPPER("EMAIL") = '${access}' OR UPPER("SPONSOR_NAME") = '${access}'`;
             client.query(query, (error, result) => {
-                logger(MESSAGE.INFO, MESSAGE.END_SELECTQUERY);
+                req.logger.info(MESSAGE.END_SELECTQUERY);
                 // End Connection
                 client.end();
                 if (error) {
-                    logger(MESSAGE.ERROR, MESSAGE.ERROR_OCCURED, error);
+                    req.logger.error(MESSAGE.ERROR_OCCURED, error);
                     return res.type("application/json").status(500).send({
                         error: true,
                         data: error
@@ -194,14 +172,14 @@ router.get("/login", async (req, res) => {
                 }
             });
         } else {
-            logger(MESSAGE.ERROR, MESSAGE.ERROR_PROCEDURE);
+            req.logger.error(MESSAGE.ERROR_PROCEDURE);
             return res.type("application/json").status(500).send({
                 error: true,
                 data: MESSAGE.ERROR_PROCEDURE
             });
         }
     } catch (err) {
-        logger(MESSAGE.ERROR, MESSAGE.ERROR_OCCURED, err);
+        req.logger.error(MESSAGE.ERROR_OCCURED, err);
         return res.type("application/json").status(500).send({
             error: true,
             data: err
@@ -212,7 +190,7 @@ router.get("/login", async (req, res) => {
 // GET Method x Fetch records x TB_USERPROFILE + TB_WITHDRAW + TB_DAILYSLP
 router.get("/records", async (req, res) => {
     try {
-        logger(MESSAGE.INFO, MESSAGE.STARTED_SELECTQUERY);
+        req.logger.info(MESSAGE.STARTED_SELECTQUERY);
 
         // Conect to postgres
         const client = new Client(pgConn);
@@ -222,7 +200,7 @@ router.get("/records", async (req, res) => {
         const query = `SELECT "USER".*, "DAILY"."YESTERDAY", "DAILY"."YESTERDAYRES", "DAILY"."TODAY", "DAILY"."TODATE" FROM ${HEROKU.TABLE.USERPROFILE} AS "USER" JOIN ${HEROKU.TABLE.DAILYSLP} AS "DAILY" ON "USER"."ADDRESS" = "DAILY"."ADDRESS"`;
         client.query(query, (error, result) => {
             if (error) {
-                logger(MESSAGE.ERROR, MESSAGE.ERROR_OCCURED, error);
+                req.logger.error(MESSAGE.ERROR_OCCURED, error);
                 // End Connection
                 client.end();
                 return res.type("application/json").status(500).send({
@@ -233,11 +211,11 @@ router.get("/records", async (req, res) => {
                 // Execute Query x TB_WITHDRAW
                 const query = `${HEROKU.QUERY.SELECT.WITHDRAW}`;
                 client.query(query, (err, dataWithdraw) => {
-                    logger(MESSAGE.INFO, MESSAGE.END_SELECTQUERY);
+                    req.logger.info(MESSAGE.END_SELECTQUERY);
                     if (err) {
                         // End Connection
                         client.end();
-                        logger(MESSAGE.ERROR, MESSAGE.ERROR_OCCURED, err);
+                        req.logger.error(MESSAGE.ERROR_OCCURED, err);
                         return res.type("application/json").status(200).send({
                             error: false,
                             data: result.rows,
@@ -248,11 +226,11 @@ router.get("/records", async (req, res) => {
                         // Execute Query x TB_YESTERDAYSLP
                         const query = `${HEROKU.QUERY.SELECT.YESTERDAYSLP}`;
                         client.query(query, (err, dataYesterday) => {
-                            logger(MESSAGE.INFO, MESSAGE.END_SELECTQUERY);
+                            req.logger.info(MESSAGE.END_SELECTQUERY);
                             if (err) {
                                 // End Connection
                                 client.end();
-                                logger(MESSAGE.ERROR, MESSAGE.ERROR_OCCURED, err);
+                                req.logger.error(MESSAGE.ERROR_OCCURED, err);
                                 return res.type("application/json").status(200).send({
                                     error: false,
                                     data: result.rows,
@@ -264,11 +242,11 @@ router.get("/records", async (req, res) => {
                                 // Execute Query x TB_MANAGEREARNED
                                 const query = `${HEROKU.QUERY.SELECT.MANAGEREARNED}`;
                                 client.query(query, (err, dataManager) => {
-                                    logger(MESSAGE.INFO, MESSAGE.END_SELECTQUERY);
+                                    req.logger.info(MESSAGE.END_SELECTQUERY);
                                     // End Connection
                                     client.end();
                                     if (err) {
-                                        logger(MESSAGE.ERROR, MESSAGE.ERROR_OCCURED, err);
+                                        req.logger.error(MESSAGE.ERROR_OCCURED, err);
                                         return res.type("application/json").status(200).send({
                                             error: false,
                                             data: result.rows,
@@ -293,7 +271,7 @@ router.get("/records", async (req, res) => {
             }
         });
     } catch (err) {
-        logger(MESSAGE.ERROR, MESSAGE.ERROR_OCCURED, err);
+        req.logger.error(MESSAGE.ERROR_OCCURED, err);
         return res.type("application/json").status(500).send({
             error: true,
             data: err
@@ -304,7 +282,7 @@ router.get("/records", async (req, res) => {
 // POST Method x Saving process of adding new scholar
 router.post("/addEditScholar", async (req, res) => {
     try {
-        logger(MESSAGE.INFO, MESSAGE.STARTED_INSERTQUERY);
+        req.logger.info(MESSAGE.STARTED_INSERTQUERY);
 
         // Conect to postgres
         const client = new Client(pgConn);
@@ -317,9 +295,9 @@ router.post("/addEditScholar", async (req, res) => {
             // Execute Query x insert new team record
             const query = `${HEROKU.QUERY.INSERT.USERPROFILE} ("ADDRESS", "NAME", "EMAIL", "PASS", "SHR_MANAGER", "SHR_SCHOLAR", "SHR_SPONSOR", "SPONSOR_NAME", "STARTED_ON", "SLP_CLAIMED", "DELETEIND") VALUES ('${payload.ADDRESS}', '${payload.NAME}', '${payload.EMAIL}', '${payload.PASS}', '${payload.SHR_MANAGER}', '${payload.SHR_SCHOLAR}', '${payload.SHR_SPONSOR}', '${payload.SPONSOR_NAME}', '${payload.STARTED_ON}', '0', '')`;
             client.query(query, (error) => {
-                logger(MESSAGE.INFO, MESSAGE.TEAMRECORD, MESSAGE.STARTED_INSERTQUERY);
+                req.logger.info(MESSAGE.TEAMRECORD, MESSAGE.STARTED_INSERTQUERY);
                 if (error) {
-                    logger(MESSAGE.ERROR, MESSAGE.TEAMRECORD, MESSAGE.END_INSERTQUERY, error);
+                    req.logger.error(MESSAGE.TEAMRECORD, MESSAGE.END_INSERTQUERY, error);
                     // End Connection
                     client.end();
                     return res.type("application/json").status(500).send({
@@ -330,17 +308,17 @@ router.post("/addEditScholar", async (req, res) => {
                     // Execute Query x insert new daily slp record
                     const query = `${HEROKU.QUERY.INSERT.DAILYSLP} ("ADDRESS", "YESTERDAY", "YESTERDAYRES", "TODAY", "TODATE") VALUES ('${payload.ADDRESS}', '0', '0', '0','${payload.STARTED_ON}')`;
                     client.query(query, (err, result) => {
-                        logger(MESSAGE.INFO, MESSAGE.DAILYSLP, MESSAGE.STARTED_INSERTQUERY);
+                        req.logger.info(MESSAGE.DAILYSLP, MESSAGE.STARTED_INSERTQUERY);
                         // End Connection
                         client.end();
                         if (err) {
-                            logger(MESSAGE.ERROR, MESSAGE.DAILYSLP, MESSAGE.END_INSERTQUERY, err);
+                            req.logger.error(MESSAGE.DAILYSLP, MESSAGE.END_INSERTQUERY, err);
                             return res.type("application/json").status(500).send({
                                 error: true,
                                 data: err
                             });
                         } else {
-                            logger(MESSAGE.INFO, MESSAGE.DAILYSLP, MESSAGE.END_INSERTQUERY);
+                            req.logger.info(MESSAGE.DAILYSLP, MESSAGE.END_INSERTQUERY);
                             return res.type("application/json").status(200).send({
                                 error: false,
                                 data: result
@@ -353,17 +331,17 @@ router.post("/addEditScholar", async (req, res) => {
             // Execute Query x update team record
             const query = `${HEROKU.QUERY.UPDATE.USERPROFILE} SET "ADDRESS" = '${payload.ADDRESS}', "NAME" = '${payload.NAME}', "EMAIL" = '${payload.EMAIL}', "PASS" = '${payload.PASS}', "SHR_MANAGER" = '${payload.SHR_MANAGER}', "SHR_SCHOLAR" = '${payload.SHR_SCHOLAR}', "SHR_SPONSOR" = '${payload.SHR_SPONSOR}', "SPONSOR_NAME" = '${payload.SPONSOR_NAME}', "DELETEIND" = '${payload.DELETEIND}' WHERE "ADDRESS" = '${payload.ADDRESS}'`;
             client.query(query, (error, result) => {
-                logger(MESSAGE.INFO, MESSAGE.STARTED_UPDATEQUERY, payload.ADDRESS);
+                req.logger.info(MESSAGE.STARTED_UPDATEQUERY, payload.ADDRESS);
                 // End Connection
                 client.end();
                 if (error) {
-                    logger(MESSAGE.ERROR, MESSAGE.USERPROFILE, MESSAGE.END_UPDATEQUERY, error);
+                    req.logger.error(MESSAGE.USERPROFILE, MESSAGE.END_UPDATEQUERY, error);
                     return res.type("application/json").status(500).send({
                         error: true,
                         data: error
                     });
                 } else {
-                    logger(MESSAGE.INFO, MESSAGE.USERPROFILE, MESSAGE.END_UPDATEQUERY);
+                    req.logger.info(MESSAGE.USERPROFILE, MESSAGE.END_UPDATEQUERY);
                     return res.type("application/json").status(200).send({
                         error: false,
                         data: result
@@ -371,14 +349,14 @@ router.post("/addEditScholar", async (req, res) => {
                 }
             });
         } else {
-            logger(MESSAGE.ERROR, MESSAGE.ERROR_PROCEDURE);
+            req.logger.error(MESSAGE.ERROR_PROCEDURE);
             return res.type("application/json").status(500).send({
                 error: true,
                 data: MESSAGE.ERROR_PROCEDURE
             });
         }
     } catch (err) {
-        logger(MESSAGE.ERROR, MESSAGE.ERROR_OCCURED, err);
+        req.logger.error(MESSAGE.ERROR_OCCURED, err);
         return res.type("application/json").status(500).send({
             error: true,
             data: err
@@ -389,7 +367,7 @@ router.post("/addEditScholar", async (req, res) => {
 // POST Method x Saving process of Daily SLP x Yesterday and Today
 router.post("/dailySLP", async (req, res) => {
     try {
-        logger(MESSAGE.INFO, MESSAGE.STARTED_INSERTQUERY);
+        req.logger.info(MESSAGE.STARTED_INSERTQUERY);
 
         // Body payload
         const payload = req.body;
@@ -402,29 +380,29 @@ router.post("/dailySLP", async (req, res) => {
                 client.connect();
 
                 // Execute Query for Daily SLP
-                logger(MESSAGE.INFO, MESSAGE.STARTED_UPDATEQUERY, items.ADDRESS);
+                req.logger.info(MESSAGE.STARTED_UPDATEQUERY, items.ADDRESS);
                 let query = `${HEROKU.QUERY.UPDATE.DAILYSLP} SET "YESTERDAY" = '${items.YESTERDAY}', "YESTERDAYRES" = '${items.YESTERDAYRES}', "TODAY" = '${items.TODAY}', "TODATE" = '${items.TODATE}' WHERE "ADDRESS" = '${items.ADDRESS}'`;
                 if (!items.ALLFIELDS) { // False, only TODATE SLP will be updating
                     query = `${HEROKU.QUERY.UPDATE.DAILYSLP} SET "TODAY" = '${items.TODAY}' WHERE "ADDRESS" = '${items.ADDRESS}'`;
                 }
 
                 client.query(query, (error) => {
-                    logger(MESSAGE.INFO, MESSAGE.END_UPDATEQUERY, items.ADDRESS);
+                    req.logger.info(MESSAGE.END_UPDATEQUERY, items.ADDRESS);
                     if (error) {
                         // End Connection
                         client.end();
-                        logger(MESSAGE.ERROR, MESSAGE.ERROR_PROCEDURE, error);
+                        req.logger.error(MESSAGE.ERROR_PROCEDURE, error);
                     } else {
                         if (items.TBINSERTYESTERDAY) {
                             if (Number(items.YESTERDAYRES) > 0 && Number(items.YESTERDAYRES) <= Number(items.MAXGAINSLP)) { // Insert all positive value x greater than zero
                                 // Execute Query for insert Yesterday SLP
                                 const insertQuery = `${HEROKU.QUERY.INSERT.YESTERDAYSLP} ("ADDRESS", "YESTERDAY", "DATE_ON", "MMR") VALUES ('${items.ADDRESS}', '${items.YESTERDAYRES}', '${items.YESTERDAYDATE}', '${items.MMR}')`;
                                 client.query(insertQuery, (error) => {
-                                    logger(MESSAGE.INFO, MESSAGE.END_INSERTQUERY, items.ADDRESS);
+                                    req.logger.info(MESSAGE.END_INSERTQUERY, items.ADDRESS);
                                     // End Connection
                                     client.end();
                                     if (error) {
-                                        logger(MESSAGE.ERROR, MESSAGE.ERROR_PROCEDURE, error);
+                                        req.logger.error(MESSAGE.ERROR_PROCEDURE, error);
                                     }
                                 });
                             } else {
@@ -436,11 +414,11 @@ router.post("/dailySLP", async (req, res) => {
                             if (Number(items.HIGHSLPGAIN) > 0 && Number(items.HIGHSLPGAIN) <= Number(items.MAXGAINSLP)) { // Insert all positive value x greater than zero
                                 const query = `${HEROKU.QUERY.UPDATE.USERPROFILE} SET "HIGH_SLP_GAIN" = '${items.HIGHSLPGAIN}', "HIGH_SLP_DATE" = '${items.HIGHSLPDATE}' WHERE "ADDRESS" = '${items.ADDRESS}'`;
                                 client.query(query, (error) => {
-                                    logger(MESSAGE.INFO, MESSAGE.STARTED_UPDATEQUERY, items.ADDRESS);
+                                    req.logger.info(MESSAGE.STARTED_UPDATEQUERY, items.ADDRESS);
                                     // End Connection
                                     client.end();
                                     if (error) {
-                                        logger(MESSAGE.ERROR, MESSAGE.ERROR_PROCEDURE, error);
+                                        req.logger.error(MESSAGE.ERROR_PROCEDURE, error);
                                     }
                                 });
                             }
@@ -454,21 +432,21 @@ router.post("/dailySLP", async (req, res) => {
 
             // Return
             return await Promise.all(upsertProcedure).then(function () {
-                logger(MESSAGE.INFO, MESSAGE.END_UPDATEQUERY);
+                req.logger.info(MESSAGE.END_UPDATEQUERY);
                 return res.type("application/json").status(200).send({
                     error: false,
                     data: payload
                 });
             });
         } else {
-            logger(MESSAGE.ERROR, MESSAGE.EMPTYPAYLOAD);
+            req.logger.error(MESSAGE.EMPTYPAYLOAD);
             return res.type("application/json").status(400).send({
                 error: true,
                 data: MESSAGE.EMPTYPAYLOAD
             });
         }
     } catch (err) {
-        logger(MESSAGE.ERROR, MESSAGE.ERROR_OCCURED, err);
+        req.logger.error(MESSAGE.ERROR_OCCURED, err);
         return res.type("application/json").status(500).send({
             error: true,
             data: err
@@ -479,7 +457,7 @@ router.post("/dailySLP", async (req, res) => {
 // POST Method x Saving process of Update SLP Claimed in USER PROFILE Table
 router.post("/updateSLPClaimed", async (req, res) => {
     try {
-        logger(MESSAGE.INFO, MESSAGE.STARTED_INSERTQUERY);
+        req.logger.info(MESSAGE.STARTED_INSERTQUERY);
 
         // Body payload
         const payload = req.body;
@@ -492,35 +470,35 @@ router.post("/updateSLPClaimed", async (req, res) => {
                 client.connect();
 
                 // Execute Query for Daily SLP
-                logger(MESSAGE.INFO, MESSAGE.STARTED_UPDATEQUERY, items.ADDRESS);
+                req.logger.info(MESSAGE.STARTED_UPDATEQUERY, items.ADDRESS);
                 query = `${HEROKU.QUERY.UPDATE.USERPROFILE} SET "SLP_CLAIMED" = '${items.SLP_CLAIMED}' WHERE "ADDRESS" = '${items.ADDRESS}'`;
                 client.query(query, (error) => {
-                    logger(MESSAGE.INFO, MESSAGE.END_UPDATEQUERY, items.ADDRESS);
+                    req.logger.info(MESSAGE.END_UPDATEQUERY, items.ADDRESS);
                     // End Connection
                     client.end();
                     if (error) {
-                        logger(MESSAGE.ERROR, MESSAGE.ERROR_PROCEDURE, error);
+                        req.logger.error(MESSAGE.ERROR_PROCEDURE, error);
                     }
                 });
             });
 
             // Return
             return await Promise.all(upsertProcedure).then(function () {
-                logger(MESSAGE.INFO, MESSAGE.END_UPDATEQUERY);
+                req.logger.info(MESSAGE.END_UPDATEQUERY);
                 return res.type("application/json").status(200).send({
                     error: false,
                     data: payload
                 });
             });
         } else {
-            logger(MESSAGE.ERROR, MESSAGE.EMPTYPAYLOAD);
+            req.logger.error(MESSAGE.EMPTYPAYLOAD);
             return res.type("application/json").status(400).send({
                 error: true,
                 data: MESSAGE.EMPTYPAYLOAD
             });
         }
     } catch (err) {
-        logger(MESSAGE.ERROR, MESSAGE.ERROR_OCCURED, err);
+        req.logger.error(MESSAGE.ERROR_OCCURED, err);
         return res.type("application/json").status(500).send({
             error: true,
             data: err
@@ -531,7 +509,7 @@ router.post("/updateSLPClaimed", async (req, res) => {
 // POST Method x Deletion process of YESTERDAY SLP x Delete the old data
 router.post("/deleteYesterdaySLP", async (req, res) => {
     try {
-        logger(MESSAGE.INFO, MESSAGE.STARTED_DELETEQUERY);
+        req.logger.info(MESSAGE.STARTED_DELETEQUERY);
 
         // Body payload
         const payload = req.body;
@@ -544,35 +522,35 @@ router.post("/deleteYesterdaySLP", async (req, res) => {
                 client.connect();
 
                 // Execute Query for Daily SLP
-                logger(MESSAGE.INFO, MESSAGE.STARTED_DELETEQUERY, items.ADDRESS);
+                req.logger.info(MESSAGE.STARTED_DELETEQUERY, items.ADDRESS);
                 query = `${HEROKU.QUERY.DELETE.YESTERDAYSLP} WHERE "ID" = '${items.ID}'`;
                 client.query(query, (error) => {
-                    logger(MESSAGE.INFO, MESSAGE.END_DELETEQUERY, items.ADDRESS);
+                    req.logger.info(MESSAGE.END_DELETEQUERY, items.ADDRESS);
                     // End Connection
                     client.end();
                     if (error) {
-                        logger(MESSAGE.ERROR, MESSAGE.ERROR_PROCEDURE, error);
+                        req.logger.error(MESSAGE.ERROR_PROCEDURE, error);
                     }
                 });
             });
 
             // Return
             return await Promise.all(upsertProcedure).then(function () {
-                logger(MESSAGE.INFO, MESSAGE.END_DELETEQUERY);
+                req.logger.info(MESSAGE.END_DELETEQUERY);
                 return res.type("application/json").status(200).send({
                     error: false,
                     data: payload
                 });
             });
         } else {
-            logger(MESSAGE.ERROR, MESSAGE.EMPTYPAYLOAD);
+            req.logger.error(MESSAGE.EMPTYPAYLOAD);
             return res.type("application/json").status(400).send({
                 error: true,
                 data: MESSAGE.EMPTYPAYLOAD
             });
         }
     } catch (err) {
-        logger(MESSAGE.ERROR, MESSAGE.ERROR_OCCURED, err);
+        req.logger.error(MESSAGE.ERROR_OCCURED, err);
         return res.type("application/json").status(500).send({
             error: true,
             data: err
@@ -583,7 +561,7 @@ router.post("/deleteYesterdaySLP", async (req, res) => {
 // POST Method x Saving process of team withdraw
 router.post("/withdraw", async (req, res) => {
     try {
-        logger(MESSAGE.INFO, MESSAGE.STARTED_INSERTQUERY);
+        req.logger.info(MESSAGE.STARTED_INSERTQUERY);
 
         // Conect to postgres
         const client = new Client(pgConn);
@@ -595,17 +573,17 @@ router.post("/withdraw", async (req, res) => {
         // Execute Query x insert new team record
         const query = `${HEROKU.QUERY.INSERT.WITHDRAW} ("ADDRESS", "SLPTOTAL", "SLPCURRENCY", "WITHDRAW_ON") VALUES ('${payload.ADDRESS}', '${payload.SLPTOTAL}', '${payload.SLPCURRENCY}', '${payload.WITHDRAW_ON}')`;
         client.query(query, (error, result) => {
-            logger(MESSAGE.INFO, MESSAGE.WITHDRAW, MESSAGE.STARTED_INSERTQUERY);
+            req.logger.info(MESSAGE.WITHDRAW, MESSAGE.STARTED_INSERTQUERY);
             // End Connection
             client.end();
             if (error) {
-                logger(MESSAGE.ERROR, MESSAGE.WITHDRAW, MESSAGE.END_INSERTQUERY, error);
+                req.logger.error(MESSAGE.WITHDRAW, MESSAGE.END_INSERTQUERY, error);
                 return res.type("application/json").status(500).send({
                     error: true,
                     data: error
                 });
             } else {
-                logger(MESSAGE.INFO, MESSAGE.WITHDRAW, MESSAGE.END_INSERTQUERY);
+                req.logger.info(MESSAGE.WITHDRAW, MESSAGE.END_INSERTQUERY);
                 return res.type("application/json").status(200).send({
                     error: false,
                     data: result
@@ -613,7 +591,7 @@ router.post("/withdraw", async (req, res) => {
             }
         });
     } catch (err) {
-        logger(MESSAGE.ERROR, MESSAGE.ERROR_OCCURED, err);
+        req.logger.error(MESSAGE.ERROR_OCCURED, err);
         return res.type("application/json").status(500).send({
             error: true,
             data: err
@@ -624,7 +602,7 @@ router.post("/withdraw", async (req, res) => {
 // POST Method x Saving process of manager earned
 router.post("/managerEarned", async (req, res) => {
     try {
-        logger(MESSAGE.INFO, MESSAGE.STARTED_INSERTQUERY);
+        req.logger.info(MESSAGE.STARTED_INSERTQUERY);
 
         // Conect to postgres
         const client = new Client(pgConn);
@@ -636,17 +614,17 @@ router.post("/managerEarned", async (req, res) => {
         // Execute Query x insert new team record
         const query = `${HEROKU.QUERY.INSERT.MANAGEREARNED} ("SLPTOTAL", "SLPCURRENCY", "CATEGORY", "EARNED_ON") VALUES ('${payload.SLPTOTAL}', '${payload.SLPCURRENCY}', '${payload.CATEGORY}', '${payload.EARNED_ON}')`;
         client.query(query, (error, result) => {
-            logger(MESSAGE.INFO, MESSAGE.MANAGER_EARNED, MESSAGE.STARTED_INSERTQUERY);
+            req.logger.info(MESSAGE.MANAGER_EARNED, MESSAGE.STARTED_INSERTQUERY);
             // End Connection
             client.end();
             if (error) {
-                logger(MESSAGE.ERROR, MESSAGE.MANAGER_EARNED, MESSAGE.END_INSERTQUERY, error);
+                req.logger.error(MESSAGE.MANAGER_EARNED, MESSAGE.END_INSERTQUERY, error);
                 return res.type("application/json").status(500).send({
                     error: true,
                     data: error
                 });
             } else {
-                logger(MESSAGE.INFO, MESSAGE.MANAGER_EARNED, MESSAGE.END_INSERTQUERY);
+                req.logger.info(MESSAGE.MANAGER_EARNED, MESSAGE.END_INSERTQUERY);
                 return res.type("application/json").status(200).send({
                     error: false,
                     data: result
@@ -654,7 +632,7 @@ router.post("/managerEarned", async (req, res) => {
             }
         });
     } catch (err) {
-        logger(MESSAGE.ERROR, MESSAGE.ERROR_OCCURED, err);
+        req.logger.error(MESSAGE.ERROR_OCCURED, err);
         return res.type("application/json").status(500).send({
             error: true,
             data: err

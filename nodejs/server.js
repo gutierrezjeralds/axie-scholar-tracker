@@ -16,9 +16,13 @@ const path = require('path');
 const express = require("express");
 const cors = require("cors");
 const dbConn = require('./dbconn/dbconn');
-const { APIURI, LOGTAIL, MESSAGE } = require("../client/src/components/Constants");
+const { APIURI, LOGTAILHEROKU, LOGTAILVERCEL, MESSAGE } = require("../client/src/components/Constants");
 const { Logtail } = require("@logtail/node");
-const logtail = new Logtail(LOGTAIL);
+const logtailHeroku = new Logtail(LOGTAILHEROKU);
+const logtailVercel = new Logtail(LOGTAILVERCEL);
+const {
+	appLogger
+} = require("./middlewares");
 
 /**
  * API container (to be export)
@@ -29,6 +33,9 @@ app.use(cors());
 
 // Have Node serve the files for our built React app
 app.use(express.static(path.resolve(__dirname, '../client/build')));
+
+// Initialized Middlewares
+appLogger(app);
 
 /**
  * Static index page
@@ -75,7 +82,8 @@ if (APIURI.indexOf('mongodb') > -1) {
     dbConn.connectToServer(function (err) {
         if (err) {
             console.error(err);
-            logtail.error(err);
+            logtailHeroku.error(err);
+            logtailVercel.error(err);
             process.exit();
         }
     });

@@ -1,6 +1,6 @@
 const APIURI = "/mongodb/api/";
-const ISDEVLOGGER = false;
-const LOGTAIL = "miTYRjaQcVfyQTgqUormjzCw";
+const LOGTAILHEROKU = "cdDTUxs2ThtJMnKeaqwMV4qw";
+const LOGTAILVERCEL = "miTYRjaQcVfyQTgqUormjzCw";
 
 const MESSAGE = {
     HOMETITLE: "Home | Team Loki Tracker",
@@ -211,7 +211,8 @@ const MESSAGE = {
     SLPSTATS: "SLP Statistics",
     BURNED: "Burned",
     LAST_PLAYED: "Last played",
-    NORUNE: "No Rune"
+    NORUNE: "No Rune",
+    MIDWARE_LOGGER: "Logger Middleware"
 }
 
 const TABLES = {
@@ -288,7 +289,8 @@ const DB4FREE = {
 module.exports = {
     APIURI,
     ISDEVLOGGER,
-    LOGTAIL,
+    LOGTAILHEROKU,
+    LOGTAILVERCEL,
     MESSAGE,
     TABLES,
     HEROKU,

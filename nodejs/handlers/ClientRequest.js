@@ -17,7 +17,7 @@ async function authLogin(credentials, logger) {
     return new Promise(async(resolve, reject) => {
         try {
             // Get Token from Auth Login
-            logger(MESSAGE.INFO, MESSAGE.STARTED_AUTHLOGIN);
+            logger.info(MESSAGE.STARTED_AUTHLOGIN);
             request.post(
                 {
                     url:'https://athena.skymavis.com/v1/rpc/auth/login', 
@@ -25,16 +25,16 @@ async function authLogin(credentials, logger) {
                 },
                 function (err, httpResponse, body) {
                     if (err) {
-                        logger(MESSAGE.ERROR, MESSAGE.ERROR_AUTHLOGIN, credentials.email);
+                        logger.error(MESSAGE.ERROR_AUTHLOGIN, credentials.email);
                         reject({ error: true, data: err, name: credentials.email });
                     } else {
                         if (httpResponse.statusCode === 200) {
                             // Success return of Random Message
-                            logger(MESSAGE.INFO, MESSAGE.END_AUTHLOGIN);
+                            logger.info(MESSAGE.END_AUTHLOGIN);
                             resolve({ error: false, data: body });
                         } else {
                             // Has error in response
-                            logger(MESSAGE.ERROR, MESSAGE.ERROR_AUTHLOGIN, credentials.email);
+                            logger.error(MESSAGE.ERROR_AUTHLOGIN, credentials.email);
                             let errMsg = MESSAGE.ERROR_AUTHLOGIN;
                             try {
                                 errMsg = httpResponse.body ? JSON.parse(httpResponse.body)._errorMessage : MESSAGE.ERROR_AUTHLOGIN;
@@ -47,11 +47,11 @@ async function authLogin(credentials, logger) {
                 }
             );
         } catch (error) {
-            logger(MESSAGE.INFO, MESSAGE.INTERNAL_SERVER_ERROR, error);
+            logger.info(MESSAGE.INTERNAL_SERVER_ERROR, error);
             reject({ error: true, data: error });
         }
     }).catch((err) => {
-        logger(MESSAGE.ERROR, MESSAGE.ERROR_OCCURED, err);
+        logger.error(MESSAGE.ERROR_OCCURED, err);
 		return err;
 	});
 }
@@ -61,7 +61,7 @@ async function generateAccessToken(key, address, name, logger) {
     return new Promise(async(resolve, reject) => {
         try {
             // Get Random Message x Initial Process
-            logger(MESSAGE.INFO, MESSAGE.STARTED_GENERATE_RANDOMMSG);
+            logger.info(MESSAGE.STARTED_GENERATE_RANDOMMSG);
             request.post(
                 {
                     url:'https://graphql-gateway.axieinfinity.com/graphql',
@@ -86,27 +86,27 @@ async function generateAccessToken(key, address, name, logger) {
                                             await signRoninMessage(msg, key, address, name, logger); // Run Sign Ronin Message
                                         } else {
                                             // Return error
-                                            logger(MESSAGE.INFO, MESSAGE.CANT_GEN_TOKEN_RANDOMMSG);
+                                            logger.info(MESSAGE.CANT_GEN_TOKEN_RANDOMMSG);
                                             reject({ error: true, errorMsg: MESSAGE.CANT_GEN_TOKEN_RANDOMMSG });
                                         }
                                     } else {
                                         // Return error
-                                        logger(MESSAGE.INFO, MESSAGE.CANT_GEN_TOKEN_RANDOMMSG);
+                                        logger.info(MESSAGE.CANT_GEN_TOKEN_RANDOMMSG);
                                         reject({ error: true, errorMsg: MESSAGE.CANT_GEN_TOKEN_RANDOMMSG });
                                     }
                                 } else {
                                     // Has error in JSON Parsing
-                                    logger(MESSAGE.ERROR, MESSAGE.ERROR_JSONPARSE);
+                                    logger.error(MESSAGE.ERROR_JSONPARSE);
                                     reject({ error: true, errorMsg: MESSAGE.ERROR_JSONPARSE });
                                 }
                             } catch {
                                 // Has error
-                                logger(MESSAGE.INFO, MESSAGE.CANT_GEN_TOKEN_RANDOMMSG);
+                                logger.info(MESSAGE.CANT_GEN_TOKEN_RANDOMMSG);
                                 reject({ error: true, errorMsg: MESSAGE.CANT_GEN_TOKEN_RANDOMMSG });
                             }
                         } else {
                             // Has error in response
-                            logger(MESSAGE.INFO, MESSAGE.CANT_GEN_TOKEN_RANDOMMSG);
+                            logger.info(MESSAGE.CANT_GEN_TOKEN_RANDOMMSG);
                             let errMsg = MESSAGE.CANT_GEN_TOKEN_RANDOMMSG;
                             try {
                                 errMsg = httpResponse.body ? JSON.parse(httpResponse.body)._errorMessage : MESSAGE.CANT_GEN_TOKEN_RANDOMMSG;
@@ -119,18 +119,18 @@ async function generateAccessToken(key, address, name, logger) {
                 }
             );
         } catch (error) {
-            logger(MESSAGE.INFO, MESSAGE.INTERNAL_SERVER_ERROR, error);
+            logger.info(MESSAGE.INTERNAL_SERVER_ERROR, error);
             reject({ error: true, errorMsg: err });
         }
     }).catch((err) => {
-        logger(MESSAGE.ERROR, MESSAGE.ERROR_OCCURED, err);
+        logger.error(MESSAGE.ERROR_OCCURED, err);
 		return error;
 	});
 }
 
 // Get Sign Ronin Message x Second Process
 async function signRoninMessage(message, key, address, name, logger) {
-    logger(MESSAGE.INFO, MESSAGE.STARTED_GENERATE_SIGNRONINMSG);
+    logger.info(MESSAGE.STARTED_GENERATE_SIGNRONINMSG);
     try {
         if (message !== undefined) {
             const ronweb3 = new Web3(new Web3.providers.HttpProvider('https://api.roninchain.com/rpc'));
@@ -139,11 +139,11 @@ async function signRoninMessage(message, key, address, name, logger) {
             await CreateAccessToken(message, signature, address, name); // Run Create Access Token
         } else {
             // Instant return error x no other transaction
-            logger(MESSAGE.INFO, MESSAGE.CANT_GEN_TOKEN_SIGNRONINMSG);
+            logger.info(MESSAGE.CANT_GEN_TOKEN_SIGNRONINMSG);
             return {error: true};
         }
     } catch (err) {
-        logger(MESSAGE.ERROR, MESSAGE.ERROR_OCCURED, err)
+        logger.error(MESSAGE.ERROR_OCCURED, err)
         return {error: true};
     }
 }
@@ -151,7 +151,7 @@ async function signRoninMessage(message, key, address, name, logger) {
 // Create Access Token x Final Process
 async function CreateAccessToken(message, signnature, address, name, logger) {
     try {
-        logger(MESSAGE.INFO, MESSAGE.STARTED_CREATE_ACCESSMSG);
+        logger.info(MESSAGE.STARTED_CREATE_ACCESSMSG);
         request.post(
             {
                 url:'https://graphql-gateway.axieinfinity.com/graphql',
@@ -196,17 +196,17 @@ async function CreateAccessToken(message, signnature, address, name, logger) {
                                 }
                             } else {
                                 // Has error in JSON Parsing
-                                logger(MESSAGE.ERROR, MESSAGE.ERROR_JSONPARSE);
+                                logger.error(MESSAGE.ERROR_JSONPARSE);
                                 reject({ error: true, errorMsg: MESSAGE.ERROR_JSONPARSE });
                             }
                         } catch {
                             // Has error
-                            logger(MESSAGE.INFO, MESSAGE.CANT_GEN_TOKEN_RANDOMMSG);
+                            logger.info(MESSAGE.CANT_GEN_TOKEN_RANDOMMSG);
                             reject({ error: true, errorMsg: MESSAGE.CANT_GEN_TOKEN_ACCESSMSG });
                         }
                     } else {
                         // Has error in response
-                        logger(MESSAGE.INFO, MESSAGE.CANT_GEN_TOKEN_ACCESSMSG);
+                        logger.info(MESSAGE.CANT_GEN_TOKEN_ACCESSMSG);
                         let errMsg = MESSAGE.CANT_GEN_TOKEN_ACCESSMSG;
                         try {
                             errMsg = httpResponse.body ? JSON.parse(httpResponse.body)._errorMessage : MESSAGE.CANT_GEN_TOKEN_ACCESSMSG;
@@ -219,7 +219,7 @@ async function CreateAccessToken(message, signnature, address, name, logger) {
             }
         );
     } catch (err) {
-        logger(MESSAGE.ERROR, MESSAGE.ERROR_OCCURED, err)
+        logger.error(MESSAGE.ERROR_OCCURED, err)
         return reject({error: true});
     }
 }
@@ -229,7 +229,7 @@ async function inGameSLP(access, logger) {
     return new Promise(async(resolve, reject) => {
         try {
             // Get Token from Auth Login
-            logger(MESSAGE.INFO, MESSAGE.STARTED_INGAMESLP);
+            logger.info(MESSAGE.STARTED_INGAMESLP);
             request.get(
                 {
                     url:'https://game-api-origin.skymavis.com/v2/users/me/items/marketplace/slp',
@@ -239,16 +239,16 @@ async function inGameSLP(access, logger) {
                 },
                 function (err, httpResponse, body) {
                     if (err) {
-                        logger(MESSAGE.ERROR, MESSAGE.ERROR_INGAMESLP, access.name);
+                        logger.error(MESSAGE.ERROR_INGAMESLP, access.name);
                         reject({ error: true, data: err, name: access.name });
                     } else {
                         if (httpResponse.statusCode === 200) {
                             // Success return of Random Message
-                            logger(MESSAGE.INFO, MESSAGE.END_INGAMESLP);
+                            logger.info(MESSAGE.END_INGAMESLP);
                             resolve({ error: false, data: body });
                         } else {
                             // Has error in response
-                            logger(MESSAGE.ERROR, MESSAGE.ERROR_INGAMESLP, access.name);
+                            logger.error(MESSAGE.ERROR_INGAMESLP, access.name);
                             let errMsg = MESSAGE.ERROR_INGAMESLP;
                             try {
                                 errMsg = httpResponse.body ? JSON.parse(httpResponse.body)._errorMessage : MESSAGE.ERROR_INGAMESLP;
@@ -264,11 +264,11 @@ async function inGameSLP(access, logger) {
                 }
             );
         } catch (error) {
-            logger(MESSAGE.INFO, MESSAGE.INTERNAL_SERVER_ERROR, error);
+            logger.info(MESSAGE.INTERNAL_SERVER_ERROR, error);
             reject({ error: true, data: error });
         }
     }).catch((err) => {
-        logger(MESSAGE.ERROR, MESSAGE.ERROR_OCCURED, err);
+        logger.error(MESSAGE.ERROR_OCCURED, err);
 		return err;
 	});
 }
@@ -278,7 +278,7 @@ async function getCryptoCoins(logger) {
     return new Promise(async(resolve, reject) => {
         try {
             // Get Crypto Coins from Binance
-            logger(MESSAGE.INFO, MESSAGE.STARTED_CRYPTOCOINS);
+            logger.info(MESSAGE.STARTED_CRYPTOCOINS);
             request.get(
                 {
                     url:'https://api.binance.com/api/v3/ticker/price?symbols=["SLPUSDT","AXSUSDT"]'
@@ -291,7 +291,7 @@ async function getCryptoCoins(logger) {
                     } else {
                         if (httpResponse.statusCode === 200) {
                             // Success return
-                            logger(MESSAGE.INFO, MESSAGE.END_CRYPTOCOINS);
+                            logger.info(MESSAGE.END_CRYPTOCOINS);
 
                             try {
                                 const dataRes = body ? JSON.parse(body) : false;
@@ -345,7 +345,7 @@ async function getCryptoCoins(logger) {
             resolve (coingecko);
         }
     }).catch((err) => {
-        logger(MESSAGE.ERROR, MESSAGE.ERROR_OCCURED, err);
+        logger.error(MESSAGE.ERROR_OCCURED, err);
 		return err;
 	});
 }
@@ -355,19 +355,19 @@ async function getCoingecko(logger) {
     return new Promise(async(resolve, reject) => {
         try {
             // Get Crypto Coins from Coinggecko
-            logger(MESSAGE.INFO, MESSAGE.STARTED_CRYPTOCOINS);
+            logger.info(MESSAGE.STARTED_CRYPTOCOINS);
             request.get(
                 {
                     url:'https://api.coingecko.com/api/v3/simple/price?ids=smooth-love-potion,axie-infinity&vs_currencies=php'
                 },
                 async function (err, httpResponse, body) {
                     if (err) {
-                        logger(MESSAGE.ERROR, MESSAGE.ERROR_CRYPTOCOINS);
+                        logger.error(MESSAGE.ERROR_CRYPTOCOINS);
                         reject({ error: true, data: err });
                     } else {
                         if (httpResponse.statusCode === 200) {
                             // Success return
-                            logger(MESSAGE.INFO, MESSAGE.END_CRYPTOCOINS);
+                            logger.info(MESSAGE.END_CRYPTOCOINS);
 
                             try {
                                 const currencies = body ? JSON.parse(body) : false; // 0 is default PHP Value
@@ -386,7 +386,7 @@ async function getCoingecko(logger) {
                             }
                         } else {
                             // Has error in response
-                            logger(MESSAGE.ERROR, MESSAGE.ERROR_CRYPTOCOINS);
+                            logger.error(MESSAGE.ERROR_CRYPTOCOINS);
                             let errMsg = MESSAGE.ERROR_CRYPTOCOINS;
                             try {
                                 errMsg = httpResponse.body ? JSON.parse(httpResponse.body)._errorMessage : MESSAGE.ERROR_CRYPTOCOINS;
@@ -399,11 +399,11 @@ async function getCoingecko(logger) {
                 }
             );
         } catch (error) {
-            logger(MESSAGE.INFO, MESSAGE.INTERNAL_SERVER_ERROR, error);
+            logger.info(MESSAGE.INTERNAL_SERVER_ERROR, error);
             reject({ error: true, data: error });
         }
     }).catch((err) => {
-        logger(MESSAGE.ERROR, MESSAGE.ERROR_OCCURED, err);
+        logger.error(MESSAGE.ERROR_OCCURED, err);
 		return err;
 	});
 }
@@ -432,7 +432,7 @@ async function getPHPCurrentValue(logger) {
             }
         )
     }).catch(err => {
-        logger(MESSAGE.ERROR, MESSAGE.ERROR_OCCURED, err)
+        logger.error(MESSAGE.ERROR_OCCURED, err)
         return err;
     });
 }

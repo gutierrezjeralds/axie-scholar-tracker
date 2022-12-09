@@ -288,7 +288,6 @@ const DB4FREE = {
 // Export the function
 module.exports = {
     APIURI,
-    ISDEVLOGGER,
     LOGTAILHEROKU,
     LOGTAILVERCEL,
     MESSAGE,

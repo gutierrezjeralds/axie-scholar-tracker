@@ -488,9 +488,12 @@ class Home extends React.Component {
                 // exceptions from actual bugs in components.
                 (error) => {
                     console.error(MESSAGE.ERROR_OCCURED, error)
+                    let errmsg = MESSAGE.UNEXPECTED_ERROR;
+                    try { errmsg = error.responseJSON.data ? error.responseJSON.data : MESSAGE.UNEXPECTED_ERROR; }
+                    catch { errmsg = MESSAGE.UNEXPECTED_ERROR; }
                     this.setState({
                         isValidAddTeam: false,
-                        errorMsg: MESSAGE.UNEXPECTED_ERROR,
+                        errorMsg: errmsg,
                         isLoaded: true,
                         isModalIskoInputsOpen: true // Open modal after processing with error
                     })
@@ -602,10 +605,13 @@ class Home extends React.Component {
                 // exceptions from actual bugs in components.
                 (error) => {
                     console.error(MESSAGE.ERROR_OCCURED, error)
+                    let errmsg = MESSAGE.UNEXPECTED_ERROR;
+                    try { errmsg = error.responseJSON.data ? error.responseJSON.data : MESSAGE.UNEXPECTED_ERROR; }
+                    catch { errmsg = MESSAGE.UNEXPECTED_ERROR; }
                     // Has error
                     this.setState({
                         isValidWithdraw: false,
-                        errorMsg: MESSAGE.UNEXPECTED_ERROR,
+                        errorMsg: errmsg,
                         isLoaded: true,
                         isModalIskoInputsOpen: true // Open modal after processing with error
                     })
@@ -685,10 +691,13 @@ class Home extends React.Component {
                 // exceptions from actual bugs in components.
                 (error) => {
                     console.error(MESSAGE.ERROR_OCCURED, error)
+                    let errmsg = MESSAGE.UNEXPECTED_ERROR;
+                    try { errmsg = error.responseJSON.data ? error.responseJSON.data : MESSAGE.UNEXPECTED_ERROR; }
+                    catch { errmsg = MESSAGE.UNEXPECTED_ERROR; }
                     // Has error
                     this.setState({
                         isValidManagerEarn: false,
-                        errorMsg: MESSAGE.UNEXPECTED_ERROR,
+                        errorMsg: errmsg,
                         isLoaded: true,
                         isModalIskoInputsOpen: true // Open modal after processing with error
                     })
@@ -803,7 +812,10 @@ class Home extends React.Component {
                 // exceptions from actual bugs in components.
                 (error) => {
                     console.error(MESSAGE.ERROR_OCCURED, error)
-                    return reject({error: true, data: error, category: "authLogin"});
+                    let errmsg = MESSAGE.UNEXPECTED_ERROR;
+                    try { errmsg = error.responseJSON.data ? error.responseJSON.data : MESSAGE.UNEXPECTED_ERROR; }
+                    catch { errmsg = MESSAGE.UNEXPECTED_ERROR; }
+                    return reject({error: true, data: errmsg, category: "authLogin"});
                 }
             )
             .catch(

@@ -9,7 +9,7 @@
 // Dependencies
 const express = require("express");
 const router = express.Router();
-const dbConnection = require('../dbconn/dbconn');
+const dbConnection = require('../dbconn/Mongo');
 const clientRequest = require("../handlers/ClientRequest");
 const { MESSAGE, TABLES } = require("../../client/src/components/Constants");
 
@@ -18,7 +18,7 @@ const { MESSAGE, TABLES } = require("../../client/src/components/Constants");
  * Method: GET
  * Endpoint for fetching data for Login
  */
- router.get("/login", async function (req, res) {
+router.get("/login", async function (req, res) {
     try {
         // Log the URL Path
         req.logger.info(req.originalUrl);
@@ -68,7 +68,7 @@ const { MESSAGE, TABLES } = require("../../client/src/components/Constants");
             data: err
         });
     }
- });
+});
 
  /**
  * Route Definition: 
@@ -154,40 +154,22 @@ router.post("/addEditScholar", async function (req, res) {
         // DB Connection
         const dbConn = dbConnection.getDb();
 
+        // Find record first to check if duplicate or not
+        const foundUser = await dbConn.collection(TABLES.TBUSERPROFILE).findOne({ ADDRESS: payload.ADDRESS });
+
         if (payload.ACTION === MESSAGE.INSERT) {
             // Execute Query x insert new team record
-            req.logger.info(TABLES.TBUSERPROFILE, MESSAGE.INSERT, MESSAGE.STARTED);
-            dbConn.collection(TABLES.TBUSERPROFILE).insertOne({
-                ADDRESS: payload.ADDRESS,
-                NAME: payload.NAME,
-                EMAIL: payload.EMAIL,
-                PASS: payload.PASS,
-                SHR_MANAGER: payload.SHR_MANAGER,
-                SHR_SCHOLAR: payload.SHR_SCHOLAR,
-                SHR_SPONSOR: payload.SHR_SPONSOR,
-                SPONSOR_NAME: payload.SPONSOR_NAME,
-                STARTED_ON: payload.STARTED_ON,
-                DELETEIND: payload.DELETEIND
-            }, function (err, result) {
-                if (err) {
-                    req.logger.error(MESSAGE.ERROR_OCCURED, err);
-                    return res.type("application/json").status(500).send({
-                        error: true,
-                        data: err
-                    });
-                } else {
-                    req.logger.info(TABLES.TBUSERPROFILE, MESSAGE.INSERT, MESSAGE.END);
-                    return res.type("application/json").status(200).send({
-                        error: false,
-                        data: result
-                    });
-                }
-            });
-        } else if (payload.ACTION === MESSAGE.UPDATE) {
-            // Execute Query x update team record
-            req.logger.info(TABLES.TBUSERPROFILE, MESSAGE.UPDATE, MESSAGE.STARTED);
-            dbConn.collection(TABLES.TBUSERPROFILE).updateOne({ ADDRESS: payload.ADDRESS }, {
-                $set: {
+            if (foundUser) {
+                // Duplicate data
+                req.logger.error(MESSAGE.ERROR_DUPLICATEDATA);
+                return res.type("application/json").status(500).send({
+                    error: true,
+                    data: MESSAGE.ERROR_DUPLICATEDATA
+                });
+            } else {
+                req.logger.info(TABLES.TBUSERPROFILE, MESSAGE.INSERT, MESSAGE.STARTED);
+                dbConn.collection(TABLES.TBUSERPROFILE).insertOne({
+                    ADDRESS: payload.ADDRESS,
                     NAME: payload.NAME,
                     EMAIL: payload.EMAIL,
                     PASS: payload.PASS,
@@ -197,22 +179,84 @@ router.post("/addEditScholar", async function (req, res) {
                     SPONSOR_NAME: payload.SPONSOR_NAME,
                     STARTED_ON: payload.STARTED_ON,
                     DELETEIND: payload.DELETEIND
-                }
-            }, function (err, result) {
-                if (err) {
-                    req.logger.error(MESSAGE.ERROR_OCCURED, err);
-                    return res.type("application/json").status(500).send({
-                        error: true,
-                        data: err
-                    });
-                } else {
-                    req.logger.info(TABLES.TBUSERPROFILE, MESSAGE.UPDATE, MESSAGE.END);
-                    return res.type("application/json").status(200).send({
-                        error: false,
-                        data: result
-                    });
-                }
-            });
+                }, function (err, result) {
+                    if (err) {
+                        req.logger.error(MESSAGE.ERROR_OCCURED, err);
+                        return res.type("application/json").status(500).send({
+                            error: true,
+                            data: err
+                        });
+                    } else {
+                        req.logger.info(TABLES.TBUSERPROFILE, MESSAGE.INSERT, MESSAGE.END);
+                        return res.type("application/json").status(200).send({
+                            error: false,
+                            data: result
+                        });
+                    }
+                });
+            }
+        } else if (payload.ACTION === MESSAGE.UPDATE) {
+            if (foundUser) {
+                // Execute Query x update team record
+                req.logger.info(TABLES.TBUSERPROFILE, MESSAGE.UPDATE, MESSAGE.STARTED);
+                dbConn.collection(TABLES.TBUSERPROFILE).updateOne({ ADDRESS: payload.ADDRESS }, {
+                    $set: {
+                        NAME: payload.NAME,
+                        EMAIL: payload.EMAIL,
+                        PASS: payload.PASS,
+                        SHR_MANAGER: payload.SHR_MANAGER,
+                        SHR_SCHOLAR: payload.SHR_SCHOLAR,
+                        SHR_SPONSOR: payload.SHR_SPONSOR,
+                        SPONSOR_NAME: payload.SPONSOR_NAME,
+                        STARTED_ON: payload.STARTED_ON,
+                        DELETEIND: payload.DELETEIND
+                    }
+                }, function (err, result) {
+                    if (err) {
+                        req.logger.error(MESSAGE.ERROR_OCCURED, err);
+                        return res.type("application/json").status(500).send({
+                            error: true,
+                            data: err
+                        });
+                    } else {
+                        req.logger.info(TABLES.TBUSERPROFILE, MESSAGE.UPDATE, MESSAGE.END);
+                        return res.type("application/json").status(200).send({
+                            error: false,
+                            data: result
+                        });
+                    }
+                });
+            } else {
+                // No data to update x Insert new one
+                // Continue with the Insert process
+                req.logger.info(TABLES.TBUSERPROFILE, MESSAGE.INSERT, MESSAGE.STARTED);
+                dbConn.collection(TABLES.TBUSERPROFILE).insertOne({
+                    ADDRESS: payload.ADDRESS,
+                    NAME: payload.NAME,
+                    EMAIL: payload.EMAIL,
+                    PASS: payload.PASS,
+                    SHR_MANAGER: payload.SHR_MANAGER,
+                    SHR_SCHOLAR: payload.SHR_SCHOLAR,
+                    SHR_SPONSOR: payload.SHR_SPONSOR,
+                    SPONSOR_NAME: payload.SPONSOR_NAME,
+                    STARTED_ON: payload.STARTED_ON,
+                    DELETEIND: payload.DELETEIND
+                }, function (err, result) {
+                    if (err) {
+                        req.logger.error(MESSAGE.ERROR_OCCURED, err);
+                        return res.type("application/json").status(500).send({
+                            error: true,
+                            data: err
+                        });
+                    } else {
+                        req.logger.info(TABLES.TBUSERPROFILE, MESSAGE.INSERT, MESSAGE.END);
+                        return res.type("application/json").status(200).send({
+                            error: false,
+                            data: result
+                        });
+                    }
+                });
+            }
         } else {
             req.logger.error(MESSAGE.ERROR_PROCEDURE);
             return res.type("application/json").status(500).send({

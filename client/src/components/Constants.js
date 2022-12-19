@@ -1,4 +1,4 @@
-const APIURI = "/mongodb/api/";
+const APIURI = "/mongoose/api/";
 const LOGTAILHEROKU = "cdDTUxs2ThtJMnKeaqwMV4qw";
 const LOGTAILVERCEL = "miTYRjaQcVfyQTgqUormjzCw";
 
@@ -212,7 +212,13 @@ const MESSAGE = {
     BURNED: "Burned",
     LAST_PLAYED: "Last played",
     NORUNE: "No Rune",
-    MIDWARE_LOGGER: "Logger Middleware"
+    MIDWARE_LOGGER: "Logger Middleware",
+    SUCESSCON_MONGODB: "Successfully connected to MongoDB!",
+    SUCESSCON_MONGOOSEDB: "Successfully connected to MongooseDB!",
+    CONNECTIONDB_ERROR: "Error in DB Connection!",
+    NO_CONNECTIONDB: "No DB Connection!",
+    ERROR_DUPLICATEDATA: "Error, Duplicate Data!",
+    ERROR_UPDATE_NODATA: "Error, No Data for Update!"
 }
 
 const TABLES = {

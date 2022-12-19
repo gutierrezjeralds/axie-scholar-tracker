@@ -3,9 +3,12 @@
  */
 
 const { MongoClient } = require('mongodb');
+const { MESSAGE } = require("../../client/src/components/Constants");
 // const connectionString = process.env.ATLAS_URI;
 const connectionString = process.env.MONGODB_URI;
-const client = new MongoClient(connectionString, {
+
+// Connection for MongoDB
+const client = new MongoClient(connectionString, { // MongoDB
     useNewUrlParser: true, // Avoid deprecation warning
     useUnifiedTopology: true, // Avoid deprecation warning
     serverSelectionTimeoutMS: 5000, // Keep trying to send operations for 5 seconds
@@ -22,10 +25,10 @@ module.exports = {
             }
 
             dbConnection = db.db("LOKIDB");
-            console.log("Successfully connected to MongoDB!");
-
-            return callback();
+            console.log(MESSAGE.SUCESSCON_MONGODB);
         });
+    
+        return callback();
     },
 
     getDb: function () {

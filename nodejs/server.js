@@ -15,7 +15,6 @@ const PORT = process.env.PORT || 3001;
 const path = require('path');
 const express = require("express");
 const cors = require("cors");
-const dbConn = require('./dbconn/dbconn');
 const { APIURI, LOGTAILHEROKU, LOGTAILVERCEL, MESSAGE } = require("../client/src/components/Constants");
 const { Logtail } = require("@logtail/node");
 const logtailHeroku = new Logtail(LOGTAILHEROKU);
@@ -61,6 +60,10 @@ app.get('/', (req,res)=>{
 var mongoDb = require("./routers/MongoDb");
 app.use("/mongodb/api", mongoDb);
 
+// Mongoose
+var mongoose = require("./routers/Mongoose");
+app.use("/mongoose/api", mongoose);
+
 // Heroku
 var heroku = require("./routers/heroku");
 app.use("/heroku/api", heroku);
@@ -78,6 +81,8 @@ app.use("/db4free/api", dbfree);
 // });
 
 if (APIURI.indexOf('mongodb') > -1) {
+    // Connect MongoDB
+    const dbConn = require('./dbconn/Mongo');
     // Perform a database connection when the server starts
     dbConn.connectToServer(function (err) {
         if (err) {
@@ -85,15 +90,37 @@ if (APIURI.indexOf('mongodb') > -1) {
             logtailHeroku.error(err);
             logtailVercel.error(err);
             process.exit();
+        } else {
+            // Start the Express server
+            app.listen(PORT, () => {
+                console.log(MESSAGE.SERVER_ISRUNNING_PORT, PORT);
+                console.log(MESSAGE.SERVER_ISRUNNING_URI, APIURI);
+            });
         }
     });
+} else if (APIURI.indexOf('mongoose') > -1) {
+    // Connect Mongoose
+    const mongooseDB = require("mongoose");
+    const connectDB = require('./dbconn/Mongoose');
+    connectDB();
+    // Perform a database connection when the server starts
+    mongooseDB.connection.on("error", console.error.bind(console, MESSAGE.CONNECTIONDB_ERROR));
+    mongooseDB.connection.once("open", function () {
+        console.log(MESSAGE.SUCESSCON_MONGOOSEDB);
+        // Start the Express server
+        app.listen(PORT, () => {
+            console.log(MESSAGE.SERVER_ISRUNNING_PORT, PORT);
+            console.log(MESSAGE.SERVER_ISRUNNING_URI, APIURI);
+        });
+    });
+} else {
+    // No Database connection x Start the Express server
+    app.listen(PORT, () => {
+        console.log(MESSAGE.NO_CONNECTIONDB);
+        console.log(MESSAGE.SERVER_ISRUNNING_PORT, PORT);
+        console.log(MESSAGE.SERVER_ISRUNNING_URI, APIURI);
+    });
 }
-
-// start the Express server
-app.listen(PORT, () => {
-    console.log(MESSAGE.SERVER_ISRUNNING_PORT, PORT);
-    console.log(MESSAGE.SERVER_ISRUNNING_URI, APIURI);
-});
 
 // Export the API container
 module.exports = app;

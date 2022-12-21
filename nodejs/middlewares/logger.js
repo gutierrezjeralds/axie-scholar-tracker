@@ -12,7 +12,11 @@ const { Logtail } = require("@logtail/node");
 const logger = {
     info: (function () {}),
     error: (function () {}),
-    warn: (function () {})
+    warn: (function () {}),
+    logtail: {
+        heroku: new Logtail(LOGTAILHEROKU),
+        vercel: new Logtail(LOGTAILVERCEL)
+    }
 };
 
 // Create middleware
@@ -22,9 +26,9 @@ const middleware = async(req, res, next) => {
         const DOMAIN = (req.hostname).split(".")[1] ? (req.hostname).split(".")[1] : false;
         let LOGTAIL = false;
         if (DOMAIN === "herokuapp") {
-            LOGTAIL = new Logtail(LOGTAILHEROKU);
+            LOGTAIL = logger.logtail.heroku;
         } else if (DOMAIN === "vercel") {
-            LOGTAIL = new Logtail(LOGTAILVERCEL);
+            LOGTAIL = logger.logtail.vercel;
         }
 
         // Set log console

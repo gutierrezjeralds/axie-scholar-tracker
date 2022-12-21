@@ -43,7 +43,7 @@ const middleware = async(req, res, next) => {
                 };
             } else {
                 logger[data] = function(msg, subMsg = "", addedMsg = "") {
-                    console[data](msg, subMsg, addedMsg);
+                    console[data](new Date(), msg, subMsg, addedMsg);
                 };
             }
         });

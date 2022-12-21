@@ -85,7 +85,7 @@ router.get("/records", async function (req, res) {
         const dbConn = dbConnection.getDb();
 
         // Execute Query
-        req.logger.info(MESSAGE.INFO, TABLES.TBUSERPROFILE, MESSAGE.STARTED);
+        req.logger.info(TABLES.TBUSERPROFILE, MESSAGE.STARTED);
         dbConn.collection(TABLES.TBUSERPROFILE).find().toArray(function (err, result) {
             if (err) {
                 req.logger.error(MESSAGE.ERROR_OCCURED, err);

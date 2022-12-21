@@ -81,49 +81,17 @@ router.get("/records", async function (req, res) {
         req.logger.info(req.originalUrl);
 
         // Execute Query
-        req.logger.info(MESSAGE.INFO, TABLES.TBUSERPROFILE, MESSAGE.STARTED);
-        MODELS.TBUSERPROFILE.find().exec((err, result) => {
-            if (err) {
-                req.logger.error(MESSAGE.ERROR_OCCURED, err);
-                return res.type("application/json").status(500).send({
-                    error: true,
-                    data: err
-                });
-            } else {
-                req.logger.info(TABLES.TBWITHDRAW, MESSAGE.STARTED);
-                MODELS.TBWITHDRAW.find().exec((err, dataWithdraw) => {
-                    if (err) {
-                        req.logger.error(MESSAGE.ERROR_OCCURED, err);
-                        return res.type("application/json").status(200).send({
-                            error: true,
-                            data: result,
-                            withdraw: [],
-                            managerEarned: []
-                        });
-                    } else {
-                        req.logger.info(TABLES.TBMANAGEREARNED, MESSAGE.STARTED);
-                        MODELS.TBMANAGEREARNED.find().exec((err, dataManager) => {
-                            if (err) {
-                                req.logger.error(MESSAGE.ERROR_OCCURED, err);
-                                return res.type("application/json").status(200).send({
-                                    error: true,
-                                    data: result,
-                                    withdraw: dataWithdraw,
-                                    managerEarned: []
-                                });
-                            } else {
-                                req.logger.info(req.originalUrl, MESSAGE.END);
-                                return res.type("application/json").status(200).send({
-                                    error: false,
-                                    data: result,
-                                    withdraw: dataWithdraw,
-                                    managerEarned: dataManager
-                                });
-                            }
-                        });
-                    }
-                });
-            }
+        req.logger.info(MESSAGE.TEAMRECORD, MESSAGE.STARTED);
+        const users = await MODELS.TBUSERPROFILE.find().exec();
+        const withdraws = await MODELS.TBWITHDRAW.find().exec();
+        const mEarnings = await MODELS.TBMANAGEREARNED.find().exec();
+
+        req.logger.info(MESSAGE.TEAMRECORD, MESSAGE.END);
+        return res.type("application/json").status(200).send({
+            error: false,
+            data: users ? users : [],
+            withdraw: withdraws ? withdraws : [],
+            managerEarned: mEarnings ? mEarnings : []
         });
     } catch (err) {
         req.logger.error(MESSAGE.ERROR_OCCURED, err);

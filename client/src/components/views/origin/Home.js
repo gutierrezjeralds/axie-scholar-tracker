@@ -271,6 +271,8 @@ class Home extends React.Component {
                         modalPlayerDetails: details,
                         isViewAxieTeam: MESSAGE.VIEW_AXIE_TEAM // Initial display the Axie Team upon modal opened
                     });
+                    // Log the Last Active Axie Used
+                    console.log("lastUsedTeam:", results)
                 } else {
                     // No data for last used team
                     this.setState({
@@ -2062,12 +2064,12 @@ class Home extends React.Component {
                                         {/* Market Place link */}
                                         <MDBCol size="12" md="6" lg="6">
                                             <MDBBox tag="u" className="d-block d-md-none d-lg-none">
-                                                <a href={"https://marketplace.axieinfinity.com/profile/" + this.state.modalPlayerDetails[0].ADDRESS} target="_blank" rel="noreferrer" className="black-text">
+                                                <a href={"https://app.axieinfinity.com/profile/" + this.state.modalPlayerDetails[0].ADDRESS + "/axies/"} target="_blank" rel="noreferrer" className="black-text">
                                                     {MESSAGE.OPEN_MARKETPLACE_PROFILE}
                                                 </a>
                                             </MDBBox>
                                             <MDBBox tag="u" className="d-none d-md-block d-lg-block text-right">
-                                                <a href={"https://marketplace.axieinfinity.com/profile/" + this.state.modalPlayerDetails[0].ADDRESS} target="_blank" rel="noreferrer" className="black-text">
+                                                <a href={"https://app.axieinfinity.com/profile/" + this.state.modalPlayerDetails[0].ADDRESS + "/axies/"} target="_blank" rel="noreferrer" className="black-text">
                                                     {MESSAGE.OPEN_MARKETPLACE_PROFILE}
                                                 </a>
                                             </MDBBox>
@@ -2106,7 +2108,9 @@ class Home extends React.Component {
                                                                     <MDBCard className="z-depth-2 h-250px">
                                                                         <MDBCardBody className="black-text">
                                                                             <MDBBox tag="div" className="text-center">
-                                                                                <img src={items.AXIEIMG} className="w-lg100pct-sm200px mt-0pt3rem-neg" alt="AXIE" />
+                                                                                <a href={"https://app.axieinfinity.com/marketplace/axies/" + items.AXIEID} target="_blank" rel="noreferrer" className="black-text">
+                                                                                    <img src={items.AXIEIMG} className="w-lg100pct-sm200px mt-0pt3rem-neg" alt="AXIE" />
+                                                                                </a>
                                                                                 <MDBBox tag="span" className="d-block font-size-pt9rem mt-1pt5rem-neg font-weight-bold tooltip-custom">
                                                                                     {
                                                                                         items.RUNES ? (
